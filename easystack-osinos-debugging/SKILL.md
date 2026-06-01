@@ -1,9 +1,9 @@
 ---
-name: openstack-env-debugging
-description: Use when debugging OpenStack services deployed on Kubernetes via SSH jump hosts. Covers SSH access chain, OpenStack CLI auth from busybox pod, configmap editing, pod restart, manual service debugging with sleep 10d pattern, and fluentd log search.
+name: easystack-osinos-debugging
+description: Use when debugging EasyStack OSINOS services deployed on Kubernetes via SSH jump hosts. Covers SSH access chain, OpenStack CLI auth from busybox pod, configmap editing, pod restart, manual service debugging with sleep 10d pattern, and fluentd log search.
 ---
 
-# OpenStack K8s Environment Debugging
+# EasyStack OSINOS Environment Debugging
 
 ## Overview
 

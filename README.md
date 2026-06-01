@@ -6,7 +6,7 @@
 
 | Skill | 描述 |
 |-------|------|
-| [osinos-debugging](osinos-debugging/) | OpenStack + K8s 环境调试 skill，涵盖服务状态检查、日志分析、Pod 诊断、Nova 维护、脚本工具等 |
+| [easystack-osinos-debugging](easystack-osinos-debugging/) | EasyStack OSINOS 环境调试 skill，涵盖服务状态检查、日志分析、Pod 诊断、Nova 维护、脚本工具等 |
 
 ## 使用方法
 
@@ -20,7 +20,7 @@ git clone https://git.soocoo.xyz/superc/my-skill.git
 
 ```
 .
-├── osinos-debugging/
+├── easystack-osinos-debugging/
 │   ├── SKILL.md            # Skill 主入口定义
 │   ├── access.md           # 访问与网络连通性检查
 │   ├── auth.md             # 认证与鉴权排查
