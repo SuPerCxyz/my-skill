@@ -25,15 +25,19 @@ Debugging requires SSH through a jump host, then `kubectl` to interact with pods
 | Service failing to start, database issues, config debugging, helm rollback | [scenarios.md](scenarios.md) |
 | Essential commands, environment constants, namespaces | [reference.md](reference.md) |
 
-## Quick Start — 3 Most Used Commands
+## Quick Start — 固定访问路径
+
+**SSH 链：跳板机 → 10.20.0.3（K8s 控制节点）**
 
 ```bash
-# 1. SSH to target node
-sshpass -p "easystack" ssh -tt -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@<JUMP_IP> 'ssh -i .ssh/id_rsa.roller <TARGET_NODE_IP>'
+# 1. 一步执行远端 kubectl 命令
+sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<JUMP_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@10.20.0.3' "<kubectl-command>"
 
-# 2. Enter busybox pod (has openstack CLI, mysql client)
+# 2. 进入 busybox pod（有 openstack CLI、mysql 客户端）
 kubectl exec -it -n openstack services/busybox -- bash
 
-# 3. Restart a service
+# 3. 重启服务
 kubectl rollout restart deployment -n openstack <service-name>
 ```
+
+**重要：** K8s 控制节点固定为 10.20.0.3，不要扫描网络或试探其他节点。跳板机本身没有 kubectl，必须内层 SSH 到 10.20.0.3。

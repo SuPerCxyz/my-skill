@@ -1,33 +1,27 @@
 # Environment Access
 
-## SSH Chain
+## SSH Chain — 标准路径
+
+**跳板机 → K8s 控制节点 (10.20.0.3)**
 
 ```bash
-sshpass -p "easystack" ssh -tt -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@<JUMP_IP> 'ssh -i .ssh/id_rsa.roller <TARGET_NODE_IP>'
+# 一步执行远端命令
+sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<JUMP_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@10.20.0.3' "<kubectl-command>"
+
+# 交互式会话
+sshpass -p "easystack" ssh -tt -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<JUMP_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@10.20.0.3'
 ```
 
-- `<JUMP_IP>` varies per environment (e.g., `172.18.0.133`)
-- `<TARGET_NODE_IP>` is the K8s node IP (e.g., `10.20.0.3`)
-- The `easystack` password may change per environment — ask the user if unknown
+- `<JUMP_IP>` 由用户指定（如 `172.18.0.133`、`172.18.0.242`）
+- K8s 控制节点固定为 **10.20.0.3**，不需要扫描或查找其他节点
+- 所有 `kubectl` 命令直接在远端执行，不要在本机扫描网络或试探节点
+- 跳板机本身没有 kubectl，必须内层 SSH 到 10.20.0.3
+- `easystack` 密码可能因环境不同，未知时询问用户
 
-## Interactive SSH Shell
+## 注意事项
 
-For extended debugging sessions, open an interactive shell on the target node:
-
-```bash
-sshpass -p "easystack" ssh -tt -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@<JUMP_IP> 'ssh -i .ssh/id_rsa.roller <TARGET_NODE_IP>'
-```
-
-From there you can run any `kubectl` command interactively without re-wrapping each call.
-
-## SSH + kubectl in One Command
-
-```bash
-sshpass -p "easystack" ssh -tt -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@<JUMP_IP> 'ssh -i .ssh/id_rsa.roller <TARGET_NODE_IP>' "<kubectl-command>"
-```
-
-**Note:** `for` loops and complex shell scripts cannot be run through the nested SSH quoting.
-For those, first enter the interactive SSH shell, then run the script there.
+- `for` 循环和复杂脚本不能通过嵌套 SSH 引号传递，需要先建立交互式 SSH 会话再执行
+- 必须加 `-F /dev/null` 避免本机 ssh_config 干扰
 
 ## Local OpenStack Client via Endpoint Mapping
 
