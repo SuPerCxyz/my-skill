@@ -1,6 +1,6 @@
 # 我的 Skills
 
-个人 Skill 仓库，用于保存和分享自定义的 Claude Code skills。
+个人 Skill 仓库，用于保存和分享自定义的 AI 编程助手 skills。
 
 ## Skills 列表
 
@@ -11,7 +11,7 @@
 
 ## 使用方法
 
-将本仓库 clone 到本地，在 Claude Code 配置中引用 skill 路径即可使用。
+将本仓库 clone 到本地，在 AI 编程助手中引用 skill 路径即可使用。
 
 ```bash
 git clone https://git.soocoo.xyz/superc/my-skill.git
