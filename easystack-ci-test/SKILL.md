@@ -1,11 +1,11 @@
 ---
 name: easystack-ci-test
-description: Run tox cover and pep8 tests for OpenStack Cinder. Runs cover first, then pep8 at the end to save time. Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini (basepython = python3, supports Python 3.9+).
+description: Run tox cover and pep8 tests for EasyStack OpenStack projects. Runs cover first, then pep8 at the end to save time. Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini (basepython = python3, supports Python 3.9+).
 ---
 
 # EasyStack CI Test Guide
 
-OpenStack Cinder uses tox for CI testing. This skill covers running `tox -e pep8` (flake8 linting) and `tox -e cover` (unit test coverage), plus auto-fixing failures until both pass.
+EasyStack OpenStack projects use tox for CI testing. This skill covers running `tox -e pep8` (flake8 linting) and `tox -e cover` (unit test coverage), plus auto-fixing failures until both pass.
 
 ## Quick Reference — File Index
 
