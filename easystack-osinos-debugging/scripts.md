@@ -34,33 +34,32 @@ Auxiliary scripts in `/tmp/`:
 - `<service>-bin` → mounted at `/tmp/` (scripts)
 - `<service>-etc` → mounted at `/etc/<service>/` (configs)
 
-## Debug Deployment Command (sleep 10d Pattern)
+## Startup-Time Code Overlay Debugging
 
-To debug code inside a pod:
+Do not replace workload commands with `sleep 10d` for normal service debugging.
+Instead, keep the service's normal startup path and inject a code overlay step at the
+beginning of the startup script so the pod can start normally and still emit logs through
+`kubectl logs`.
+
+Recommended pattern:
 
 ```bash
-# Step 1: Change the workload's command to sleep 10d
-kubectl edit deployment -n openstack <service-name>         # For Deployments
-kubectl edit statefulset -n openstack <service-name>        # For StatefulSets
-kubectl edit daemonset -n openstack <service-name>          # For DaemonSetSets
-# Change command from ["/tmp/service.sh", "start"] to ["sleep", "10d"]
+# In the startup script's beginning, before the real service launch:
+cp -rf /opt/<service>/* /path/to/site-packages/<service>/
 
-# Step 2: Wait for pod to restart
-kubectl get pod -n openstack -w
-
-# Step 3: Exec into pod
-kubectl exec -it -n openstack <pod-name> -- /bin/bash
-
-# Step 4: Inside pod — edit code/config as needed
-# Scripts are in /tmp/, configs in /etc/<service>/
-
-# Step 5: Manually start the service
-/tmp/<service>.sh start
-# Or run code directly for debugging
-python3 /path/to/module.py
+# Then continue normal startup
+exec /usr/bin/python3 -m <service>.main
 ```
 
-When using `sleep 10d`, the service won't start automatically — you must exec in and start manually.
+Key points:
+
+- Edit the startup script content in the `<service>-bin` ConfigMap or its mounted file
+- Use the node-mounted `/opt/<service>/` directory as the source of debug code
+- Copy the overlay into the container's target package directory before service startup
+- Keep the original process running so `kubectl logs` remains the primary observability path
+
+If the service needs a temporary manual shell for one-off debugging, prefer an interactive
+`kubectl exec` session over changing the workload command.
 
 ## Edit Config/Script and Restart Pod
 

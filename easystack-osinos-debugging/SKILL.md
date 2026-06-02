@@ -1,6 +1,6 @@
 ---
 name: easystack-osinos-debugging
-description: Use when debugging EasyStack OSINOS services deployed on Kubernetes via SSH jump hosts. Covers SSH access chain, OpenStack CLI auth from busybox pod, configmap editing, pod restart, manual service debugging with sleep 10d pattern, and fluentd log search.
+description: Use when debugging EasyStack OSINOS services deployed on Kubernetes via SSH jump hosts. Covers SSH access chain, OpenStack CLI auth from busybox pod, configmap editing, pod restart, startup-time code overlay debugging, and fluentd log search.
 ---
 
 # EasyStack OSINOS Environment Debugging
@@ -18,7 +18,7 @@ Debugging requires SSH through a jump host, then `kubectl` to interact with pods
 | OpenStack CLI auth, busybox pod, admin credentials | [auth.md](auth.md) |
 | Service list, pod names, OVN networking, Helm releases, code repo layout | [services.md](services.md) |
 | Multi-container pods, label selectors, StatefulSet vs Deployment | [pods.md](pods.md) |
-| Startup scripts, configmaps, sleep 10d debugging, config/script editing | [scripts.md](scripts.md) |
+| Startup scripts, configmaps, startup-time code overlay debugging, config/script editing | [scripts.md](scripts.md) |
 | /opt mount for overlay code debugging | [code-debug.md](code-debug.md) |
 | Nova maintenance pod for cell/evacuation operations | [nova-maintenance.md](nova-maintenance.md) |
 | kubectl logs, fluentd history log search | [logs.md](logs.md) |

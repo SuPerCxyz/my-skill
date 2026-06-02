@@ -16,16 +16,13 @@ The host's `/opt` contains service-specific subdirectories
 # e.g., scp to the K8s node, or use the interactive SSH shell to paste it
 scp <your-code.py> root@<TARGET_NODE_IP>:/opt/<service>/
 
-# Step 2: Exec into the pod
-kubectl exec -it -n openstack <pod-name> -- /bin/bash
+# Step 2: Edit the startup script so it copies code from /opt into the runtime package path first
+# Example:
+cp -rf /opt/<service>/* /path/to/site-packages/<service>/
 
-# Step 3: Inside the pod, copy from /opt to overwrite the pod's internal code
-# Find the target location (typically Python site-packages inside the container)
-cp /opt/<service>/<your-code.py> /path/to/original/<your-code.py>
-
-# Step 4: Restart the service or reload the module
-/tmp/<service>.sh stop
-/tmp/<service>.sh start
+# Step 3: Let the pod continue normal startup
+# Keep the original launch path so logs stay visible through kubectl logs
+exec /usr/bin/python3 -m <service>.main
 ```
 
 ## Common /opt Locations

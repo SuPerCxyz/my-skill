@@ -9,7 +9,7 @@
 - SSH 访问链建立与本地 OpenStack 客户端配置
 - 服务状态检查、Pod 诊断、日志分析
 - ConfigMap 编辑与 Pod 重启
-- `sleep 10d` 模式手动调试代码
+- 启动时代码覆盖调试模式
 - Nova 维护操作（cell、evacuation）
 - fluentd 历史日志搜索
 - 常见故障场景排查
@@ -34,4 +34,4 @@ sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnown
 | [pods.md](pods.md) | K8s Pod 诊断技巧 |
 | [reference.md](reference.md) | 常用命令、环境常量速查 |
 | [scenarios.md](scenarios.md) | 常见故障场景排查 |
-| [scripts.md](scripts.md) | ConfigMap 结构、sleep 10d 调试模式、脚本编辑 |
+| [scripts.md](scripts.md) | ConfigMap 结构、启动时代码覆盖调试模式、脚本编辑 |

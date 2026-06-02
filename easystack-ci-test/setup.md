@@ -2,7 +2,7 @@
 
 ## Activate Environment
 
-All tox commands (pep8 and cover) run in a **single shared conda environment** named:
+All tox commands (pep8 and cover) run in a **single shared Miniconda environment** named:
 
 ```
 easystack-<project>-py<version>
@@ -18,7 +18,39 @@ PROJECT=$(basename "$PWD")
 
 For example, in `/home/user/cinder`, project name is `cinder`.
 
-### Step 2: Detect Python version
+### Step 2: Find the Miniconda installation directory
+
+Do not assume `conda` is already on `PATH`. First locate the Miniconda installation, then
+source its activation script and use the bundled `bin/conda` binary:
+
+```bash
+MINICONDA_BASE=""
+for candidate in \
+    "$HOME/miniconda3" \
+    "$HOME/miniconda" \
+    "/opt/miniconda3" \
+    "/opt/miniconda" \
+    "/usr/local/miniconda3" \
+    "/usr/local/miniconda"
+do
+    if [ -x "${candidate}/bin/conda" ]; then
+        MINICONDA_BASE="${candidate}"
+        break
+    fi
+done
+
+if [ -z "${MINICONDA_BASE}" ]; then
+    echo "Cannot find Miniconda installation directory"
+    return 1 2>/dev/null || exit 1
+fi
+
+source "${MINICONDA_BASE}/etc/profile.d/conda.sh"
+CONDA="${MINICONDA_BASE}/bin/conda"
+```
+
+If Miniconda is installed in a non-standard location, add that path to the candidate list.
+
+### Step 3: Detect Python version
 
 Infer the Python version from `tox.ini`:
 
@@ -31,12 +63,12 @@ PYTHON_VER=${PYTHON_VER:-3.9}
 PY_SHORT="py${PYTHON_VER//./}"
 ```
 
-### Step 3: Build env name, activate or create
+### Step 4: Build env name, activate or create
 
 ```bash
 ENV_NAME="easystack-${PROJECT}-${PY_SHORT}"
 
-if conda env list | grep -q "^${ENV_NAME} "; then
+if "${CONDA}" env list | grep -q "^${ENV_NAME} "; then
     echo "Found existing conda env: ${ENV_NAME}"
     conda activate "${ENV_NAME}"
 else

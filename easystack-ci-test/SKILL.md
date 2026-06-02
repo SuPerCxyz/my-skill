@@ -22,13 +22,16 @@ EasyStack OpenStack projects use tox for CI testing. This skill covers running `
 
 **Before running tox, activate the conda environment.** Follow [setup.md](setup.md) to:
 1. Detect project name from current directory
-2. Detect Python version from `tox.ini` (`basepython` field)
-3. Activate or create env named `easystack-<project>-py<version>` (e.g. `py39`, `py312`)
-4. Install `tox` in the env
+2. Find the Miniconda installation directory and source its `conda.sh`
+3. Detect Python version from `tox.ini` (`basepython` field)
+4. Activate or create env named `easystack-<project>-py<version>` (e.g. `py39`, `py312`)
+5. Install `tox` in the env
 
 ```bash
 # Example: in a cinder project with python3.9
 # env name: easystack-cinder-py39
+MINICONDA_BASE="$HOME/miniconda3"
+source "${MINICONDA_BASE}/etc/profile.d/conda.sh"
 conda activate easystack-cinder-py39  # if exists
 # or create + activate + install tox
 

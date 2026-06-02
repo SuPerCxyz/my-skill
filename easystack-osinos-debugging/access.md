@@ -23,6 +23,32 @@ sshpass -p "easystack" ssh -tt -F /dev/null -o StrictHostKeyChecking=no -o UserK
 - `for` 循环和复杂脚本不能通过嵌套 SSH 引号传递，需要先建立交互式 SSH 会话再执行
 - 必须加 `-F /dev/null` 避免本机 ssh_config 干扰
 
+## 嵌套 SSH + 复杂命令：可靠传递模式
+
+多层 SSH 下，复杂 shell 逻辑最容易在引号、`$@`、`$$`、变量展开和转义上丢失。
+如果命令里包含多行逻辑、循环、条件分支或需要精确保留参数，**唯一可靠的传递方式**是：
+
+1. 先把复杂逻辑写成 Python 脚本
+2. 在本机将脚本 `base64` 编码
+3. 通过 SSH 管道把编码内容发送到远端
+4. 远端解码后执行
+
+示例：
+
+```bash
+python3 <<'PY' | base64 -w0 | sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<JUMP_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@10.20.0.3 "base64 -d | python3"'
+from pathlib import Path
+
+print("hello from remote script")
+PY
+```
+
+适用场景：
+
+- 多层 SSH 远端执行复杂逻辑
+- 需要保留 Python 字符串、`$@`、`$$`、引号和换行
+- 临时排障脚本，不想把逻辑拆成一串难维护的一次性 shell 引号
+
 ## Local OpenStack Client via Endpoint Mapping
 
 The jump host runs APISIX which routes requests by Host header.

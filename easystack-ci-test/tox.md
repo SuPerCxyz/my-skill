@@ -9,8 +9,10 @@ tox -e pep8
 If tox is in a specific environment:
 
 ```bash
-PYTHON=~/miniconda3/envs/cinder-py39/bin/python \
-  ~/miniconda3/envs/cinder-py39/bin/tox -e pep8
+MINICONDA_BASE="$HOME/miniconda3"
+source "${MINICONDA_BASE}/etc/profile.d/conda.sh"
+conda activate cinder-py39
+tox -e pep8
 ```
 
 ## Coverage Testing

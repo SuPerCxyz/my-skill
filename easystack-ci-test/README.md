@@ -24,7 +24,7 @@ tox -e pep8    # 代码风格检查（后跑，约 40 秒）
 | 文件 | 内容 |
 |------|------|
 | [SKILL.md](SKILL.md) | Skill 主入口，快速参考 |
-| [setup.md](setup.md) | 环境配置（venv、conda、系统依赖） |
+| [setup.md](setup.md) | 环境配置（先定位 Miniconda 安装目录，再创建/激活环境、系统依赖） |
 | [tox.md](tox.md) | tox 命令参考（pep8、cover、stestr） |
 | [pep8.md](pep8.md) | pep8/flake8 错误修复指南 |
 | [coverage.md](coverage.md) | 覆盖率修复与 HTML 报告查看 |
