@@ -6,43 +6,17 @@
 
 | Skill | 描述 |
 |-------|------|
-| [easystack-osinos-debugging](easystack-osinos-debugging/) | EasyStack OSINOS 环境调试 skill，涵盖服务状态检查、日志分析、Pod 诊断、Nova 维护、脚本工具等 |
-| [easystack-ci-test](easystack-ci-test/) | OpenStack Cinder CI 测试 skill，涵盖 tox cover/pep8 运行、覆盖率修复、自动修复循环、privsep 测试等 |
+| [easystack-osinos-debugging](easystack-osinos-debugging/) | EasyStack OSINOS 环境调试 — 通过 SSH 跳板机访问 K8s 集群，对 OpenStack 服务进行状态检查、日志分析、Pod 诊断、代码调试等 |
+| [easystack-ci-test](easystack-ci-test/) | OpenStack Cinder CI 测试 — 运行 tox cover/pep8，自动修复失败项直到测试全部通过并满足覆盖率要求 |
 
 ## 使用方法
 
-将本仓库 clone 到本地，在你的 Claude Code 配置中引用 skill 路径即可使用。
+将本仓库 clone 到本地，在 Claude Code 配置中引用 skill 路径即可使用。
 
 ```bash
 git clone https://git.soocoo.xyz/superc/my-skill.git
 ```
 
-## 目录结构
-
-```
-.
-├── easystack-ci-test/
-│   ├── SKILL.md            # Skill 主入口定义
-│   ├── auto-fix.md         # 自动修复循环工作流
-│   ├── coverage.md         # 覆盖率修复与报告查看
-│   ├── pep8.md             # pep8/flake8 错误修复
-│   ├── privsep.md          # privsep 函数测试指南
-│   ├── setup.md            # 环境配置
-│   └── tox.md              # tox 命令参考
-├── easystack-osinos-debugging/
-│   ├── SKILL.md            # Skill 主入口定义
-│   ├── access.md           # 访问与网络连通性检查
-│   ├── auth.md             # 认证与鉴权排查
-│   ├── code-debug.md       # 代码级调试指南
-│   ├── logs.md             # 日志查看与分析
-│   ├── nova-maintenance.md # Nova 维护操作
-│   ├── pods.md             # K8s Pod 诊断
-│   ├── reference.md        # 参考信息速查
-│   ├── scenarios.md        # 常见故障场景
-│   └── scripts.md          # 常用脚本与命令
-└── README.md
-```
-
 ## 添加新 Skill
 
-在本仓库根目录下新建 skill 文件夹，按照已有 skill 的结构编写 `SKILL.md` 及相关文档即可。
+在本仓库根目录下新建 skill 文件夹，编写 `SKILL.md` 和 `README.md` 及相关文档即可。
