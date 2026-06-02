@@ -1,5 +1,23 @@
 # Fixing Coverage Gaps
 
+## 0. Scope — Which Files to Check
+
+The coverage report covers the **entire project**, but you only need to ensure
+100% coverage for files modified in the current change set. This includes both:
+
+1. The latest unmerged commit on the current branch
+2. All uncommitted changes (staged and unstaged)
+
+```bash
+# List all modified files: committed (latest) + uncommitted (staged + unstaged)
+git diff HEAD~1 --name-only   # files changed in latest commit
+git diff --name-only          # unstaged changes
+git diff --cached --name-only # staged but not committed changes
+```
+
+Every line in these modified files must be covered — zero `mis` (missing) and
+zero `par` (partial) in the HTML report. Lines in untouched files are out of scope.
+
 ## 1. Find Uncovered Lines
 
 After `tox -e cover`, check `cover/status.json`. File keys are derived from

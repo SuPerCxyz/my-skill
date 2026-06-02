@@ -45,11 +45,14 @@ When fixing pep8 or coverage for a change, follow this loop until both pass:
   1. `tox -e cover` passes (all tests pass)
   2. cover HTML shows zero `mis` and zero `par` lines for all modified files
   3. `tox -e pep8` passes
-- To identify which files were modified in the latest commit:
+- To identify which files were modified (latest commit + uncommitted changes):
   ```bash
+  # All three combined: committed + staged + unstaged
   git diff HEAD~1 --name-only
+  git diff --name-only
+  git diff --cached --name-only
   ```
-  Use this list to scope your HTML coverage checks.
+  Use this combined list to scope your HTML coverage checks.
 
 ## Useful Commands During the Loop
 
@@ -59,6 +62,6 @@ When fixing pep8 or coverage for a change, follow this loop until both pass:
 | Run pep8 | `tox -e pep8` |
 | Isolate lint | `flake8 path/to/file.py` (Miniconda env already has flake8 via tox) |
 | Run one test | `stestr run <pattern>` (Miniconda env already has stestr via tox) |
-| List modified files | `git diff HEAD~1 --name-only` |
+| List modified files | `git diff HEAD~1 --name-only` + `git diff --name-only` + `git diff --cached --name-only` |
 | Check coverage | See [coverage.md](coverage.md) |
 | Test privsep code | See [privsep.md](privsep.md) |
