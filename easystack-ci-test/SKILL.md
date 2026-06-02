@@ -1,6 +1,6 @@
 ---
 name: easystack-ci-test
-description: Run tox cover and pep8 tests for EasyStack OpenStack projects. Runs cover first, then pep8 at the end to save time. Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini (basepython = python3, supports Python 3.9+).
+description: Run tox cover and pep8 tests for EasyStack OpenStack projects. Runs cover first, then pep8 at the end to save time. Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini (`basepython`): python2 maps to python2.7, python3 maps to python3.9.
 ---
 
 # EasyStack CI Test Guide

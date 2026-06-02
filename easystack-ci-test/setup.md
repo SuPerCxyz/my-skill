@@ -52,14 +52,21 @@ If Miniconda is installed in a non-standard location, add that path to the candi
 
 ### Step 3: Detect Python version
 
-Infer the Python version from `tox.ini`:
+Infer the Python version from `tox.ini` and map to a fixed conda Python:
 
 ```bash
-# Extract basepython, e.g. python3.9 -> 3.9
-PYTHON_VER=$(grep -oP 'basepython\s*=\s*python\K.+' tox.ini | head -1 | tr -d '[:space:]')
-# Fallback: if no basepython found, default to 3.9
-PYTHON_VER=${PYTHON_VER:-3.9}
-# Convert 3.9 -> py39, 3.12 -> py312 for env name
+# Extract basepython major version, e.g. python3 -> 3, python2 -> 2
+PY_MAJOR=$(grep -oP 'basepython\s*=\s*python\K[0-9]+' tox.ini | head -1 | tr -d '[:space:]')
+# Fallback: if no basepython found, default to 3
+PY_MAJOR=${PY_MAJOR:-3}
+
+# Map to fixed Python version for conda env creation
+if [ "$PY_MAJOR" = "2" ]; then
+    PYTHON_VER="2.7"
+else
+    PYTHON_VER="3.9"
+fi
+# Convert 2.7 -> py27, 3.9 -> py39 for env name
 PY_SHORT="py${PYTHON_VER//./}"
 ```
 
