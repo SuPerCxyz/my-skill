@@ -7,6 +7,7 @@
 | Skill | 描述 |
 |-------|------|
 | [easystack-osinos-debugging](easystack-osinos-debugging/) | EasyStack OSINOS 环境调试 skill，涵盖服务状态检查、日志分析、Pod 诊断、Nova 维护、脚本工具等 |
+| [easystack-ci-test](easystack-ci-test/) | OpenStack Cinder CI 测试 skill，涵盖 tox cover/pep8 运行、覆盖率修复、自动修复循环、privsep 测试等 |
 
 ## 使用方法
 
@@ -20,6 +21,14 @@ git clone https://git.soocoo.xyz/superc/my-skill.git
 
 ```
 .
+├── easystack-ci-test/
+│   ├── SKILL.md            # Skill 主入口定义
+│   ├── auto-fix.md         # 自动修复循环工作流
+│   ├── coverage.md         # 覆盖率修复与报告查看
+│   ├── pep8.md             # pep8/flake8 错误修复
+│   ├── privsep.md          # privsep 函数测试指南
+│   ├── setup.md            # 环境配置
+│   └── tox.md              # tox 命令参考
 ├── easystack-osinos-debugging/
 │   ├── SKILL.md            # Skill 主入口定义
 │   ├── access.md           # 访问与网络连通性检查
@@ -36,4 +45,4 @@ git clone https://git.soocoo.xyz/superc/my-skill.git
 
 ## 添加新 Skill
 
-在本仓库根目录下新建 skill 文件夹，按照 `osinos-debugging` 的结构编写 `SKILL.md` 及相关文档即可。
+在本仓库根目录下新建 skill 文件夹，按照已有 skill 的结构编写 `SKILL.md` 及相关文档即可。

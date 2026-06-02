@@ -1,0 +1,37 @@
+---
+name: easystack-ci-test
+description: Run tox cover and pep8 tests for OpenStack Cinder. Runs cover first, then pep8 at the end to save time. Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini (basepython = python3, supports Python 3.9+).
+---
+
+# EasyStack CI Test Guide
+
+OpenStack Cinder uses tox for CI testing. This skill covers running `tox -e pep8` (flake8 linting) and `tox -e cover` (unit test coverage), plus auto-fixing failures until both pass.
+
+## Quick Reference — File Index
+
+| When you need... | Read |
+|------------------|------|
+| Environment setup (venv, conda, system deps) | [setup.md](setup.md) |
+| Running tox commands (pep8, cover, stestr) | [tox.md](tox.md) |
+| Fixing pep8 / flake8 errors | [pep8.md](pep8.md) |
+| Fixing coverage gaps, checking HTML reports | [coverage.md](coverage.md) |
+| Testing privsep entrypoint-decorated functions | [privsep.md](privsep.md) |
+| Auto-fix loop workflow (cover → pep8 cycle) | [auto-fix.md](auto-fix.md) |
+
+## Quick Start — Core Commands
+
+```bash
+tox -e cover   # Coverage check (run first, takes ~5 min)
+tox -e pep8    # Lint check (run last, takes ~40 sec)
+```
+
+When either fails, follow the [auto-fix loop](auto-fix.md) until both pass.
+
+## Code Scope
+
+When running `tox -e pep8` or `tox -e cover`, the scope is the **combined state** of:
+
+1. The latest unmerged commit shown by `git log` on the current branch
+2. All uncommitted changes (both staged via `git add` and unstaged working tree modifications)
+
+During development, code may be partially `git add`ed or still being modified. The tests should cover the integrated state of all these changes together — treat the working tree as the complete codebase to validate.
