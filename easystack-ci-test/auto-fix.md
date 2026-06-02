@@ -1,5 +1,7 @@
 # Auto-Fix Loop
 
+**Prerequisite:** The shared conda environment `easystack-<project>-py<version>` must be active. See [setup.md](setup.md). Both `tox -e cover` and `tox -e pep8` run in this same environment.
+
 When fixing pep8 or coverage for a change, follow this loop until both pass:
 
 ```
@@ -47,8 +49,8 @@ When fixing pep8 or coverage for a change, follow this loop until both pass:
 |------|---------|
 | Run coverage | `tox -e cover` |
 | Run pep8 | `tox -e pep8` |
-| Isolate lint | `. .tox/pep8/bin/activate && flake8 path/to/file.py` |
-| Run one test | `. .tox/cover/bin/activate && stestr run <pattern>` |
+| Isolate lint | `flake8 path/to/file.py` (conda env already has flake8 via tox) |
+| Run one test | `stestr run <pattern>` (conda env already has stestr via tox) |
 | List modified files | `git diff HEAD~1 --name-only` |
 | Check coverage | See [coverage.md](coverage.md) |
 | Test privsep code | See [privsep.md](privsep.md) |

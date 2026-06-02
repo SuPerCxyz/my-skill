@@ -11,16 +11,28 @@ EasyStack OpenStack projects use tox for CI testing. This skill covers running `
 
 | When you need... | Read |
 |------------------|------|
-| Environment setup (venv, conda, system deps) | [setup.md](setup.md) |
+| Environment setup (conda env auto-create/activate) | [setup.md](setup.md) |
 | Running tox commands (pep8, cover, stestr) | [tox.md](tox.md) |
 | Fixing pep8 / flake8 errors | [pep8.md](pep8.md) |
 | Fixing coverage gaps, checking HTML reports | [coverage.md](coverage.md) |
 | Testing privsep entrypoint-decorated functions | [privsep.md](privsep.md) |
 | Auto-fix loop workflow (cover → pep8 cycle) | [auto-fix.md](auto-fix.md) |
 
-## Quick Start — Core Commands
+## Quick Start
+
+**Before running tox, activate the conda environment.** Follow [setup.md](setup.md) to:
+1. Detect project name from current directory
+2. Detect Python version from `tox.ini` (`basepython` field)
+3. Activate or create env named `easystack-<project>-py<version>` (e.g. `py39`, `py312`)
+4. Install `tox` in the env
 
 ```bash
+# Example: in a cinder project with python3.9
+# env name: easystack-cinder-py39
+conda activate easystack-cinder-py39  # if exists
+# or create + activate + install tox
+
+# Then run tox
 tox -e cover   # Coverage check (run first, takes ~5 min)
 tox -e pep8    # Lint check (run last, takes ~40 sec)
 ```

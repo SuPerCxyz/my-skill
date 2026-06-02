@@ -1,21 +1,53 @@
 # Environment Setup
 
-## Virtual Environment
+## Activate Environment
 
-tox.ini specifies `basepython = python3`. Create a matching venv:
+All tox commands (pep8 and cover) run in a **single shared conda environment** named:
 
-```bash
-python3 -m venv .tox-env
-.tox-env/bin/pip install tox -q
+```
+easystack-<project>-py<version>
 ```
 
-## Conda Environment
+### Step 1: Detect project name
+
+Infer the project name from the current directory:
 
 ```bash
-conda create -n cinder-py39 python=3.9 -y
-conda activate cinder-py39
-pip install tox
+PROJECT=$(basename "$PWD")
 ```
+
+For example, in `/home/user/cinder`, project name is `cinder`.
+
+### Step 2: Detect Python version
+
+Infer the Python version from `tox.ini`:
+
+```bash
+# Extract basepython, e.g. python3.9 -> 3.9
+PYTHON_VER=$(grep -oP 'basepython\s*=\s*python\K.+' tox.ini | head -1 | tr -d '[:space:]')
+# Fallback: if no basepython found, default to 3.9
+PYTHON_VER=${PYTHON_VER:-3.9}
+# Convert 3.9 -> py39, 3.12 -> py312 for env name
+PY_SHORT="py${PYTHON_VER//./}"
+```
+
+### Step 3: Build env name, activate or create
+
+```bash
+ENV_NAME="easystack-${PROJECT}-${PY_SHORT}"
+
+if conda env list | grep -q "^${ENV_NAME} "; then
+    echo "Found existing conda env: ${ENV_NAME}"
+    conda activate "${ENV_NAME}"
+else
+    echo "Creating conda env: ${ENV_NAME} (python=${PYTHON_VER})"
+    conda create -n "${ENV_NAME}" python="${PYTHON_VER}" -y
+    conda activate "${ENV_NAME}"
+    pip install tox -q
+fi
+```
+
+After activation, `tox` is available in PATH. Run `tox -e cover` and `tox -e pep8` directly.
 
 ## System Dependencies
 
