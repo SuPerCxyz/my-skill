@@ -10,7 +10,7 @@ description: Use when debugging EasyStack OSINOS services deployed on Kubernetes
 OpenStack services run on Kubernetes (Helm-deployed) in the `openstack` namespace.
 Debugging requires SSH through a jump host, then `kubectl` to interact with pods.
 
-## Quick Reference — File Index
+## Quick Reference - File Index
 
 | When you need... | Read |
 |------------------|------|
@@ -25,7 +25,7 @@ Debugging requires SSH through a jump host, then `kubectl` to interact with pods
 | Service failing to start, database issues, config debugging, helm rollback | [scenarios.md](scenarios.md) |
 | Essential commands, environment constants, namespaces | [reference.md](reference.md) |
 
-## Quick Start — 固定访问路径
+## Quick Start - 固定访问路径
 
 **SSH 链：跳板机 → 10.20.0.3（K8s 控制节点）**
 

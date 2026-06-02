@@ -10,4 +10,4 @@ Refer to the flake8 output for exact error codes and line numbers. Fix each repo
 
 ## After Fixing
 
-Re-run `tox -e pep8` to verify. New errors may appear — fix those too. See the [auto-fix loop](auto-fix.md) for the full cycle.
+Re-run `tox -e pep8` to verify. New errors may appear - fix those too. See the [auto-fix loop](auto-fix.md) for the full cycle.

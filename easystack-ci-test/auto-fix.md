@@ -40,7 +40,7 @@ When fixing pep8 or coverage for a change, follow this loop until both pass:
 
 ## Key Points
 
-- New tests may introduce test failures — fix those before moving on
+- New tests may introduce test failures - fix those before moving on
 - DONE only when all three conditions are met:
   1. `tox -e cover` passes (all tests pass)
   2. cover HTML shows zero `mis` and zero `par` lines for all modified files

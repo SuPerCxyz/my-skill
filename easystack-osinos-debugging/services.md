@@ -8,10 +8,10 @@
 | Glance | `glance-api-0,1,2` | 9292 | Image service (StatefulSet) |
 | Nova | `nova-api-osapi-*`, `nova-compute-*`, `nova-conductor-*`, `nova-scheduler-*`, `nova-maintenance-*` | 8774 | Compute service |
 | Cinder | `cinder-api-*`, `cinder-scheduler-*`, `cinder-volume-*` | 8776 | Block storage |
-| Cinder Golem | `cinder-golem-*` | — | Cinder dashboard/management |
+| Cinder Golem | `cinder-golem-*` | - | Cinder dashboard/management |
 | Aodh | `aodh-api-*`, `aodh-evaluator-*`, `aodh-notifier-*` | 8042 | Alarming |
 | Ceilometer | `ceilometer-api-*`, `ceilometer-collector-*` | 8777 | Telemetry |
-| Gnocchi | `gnocchi-api-*`, `gnocchi-metricd-*` | — | Metrics storage |
+| Gnocchi | `gnocchi-api-*`, `gnocchi-metricd-*` | - | Metrics storage |
 | Horizon | `horizon-*` | 80 | OpenStack dashboard |
 
 ## Networking (OVN Mode)
@@ -76,7 +76,7 @@ Each component typically has 3-4 repositories:
 | Cinder | `cinder` | `ark-cinder` | `cinder-dashboard` | `golem` |
 | Glance | `glance` | `ark-glance` | `glance-dashboard` | `glance-dashboard-api` |
 
-These are repository names. Source code is **not** on nodes by default — only packaged service code runs in pods.
+These are repository names. Source code is **not** on nodes by default - only packaged service code runs in pods.
 
 ## Custom/Extended Services
 

@@ -1,4 +1,4 @@
-# Reference — Essential Commands and Constants
+# Reference - Essential Commands and Constants
 
 ## Essential Commands
 
@@ -44,7 +44,7 @@ MySQL CLI (busybox):          /usr/bin/mysql
 
 ## Default Credentials
 
-(Confirm with user — may vary per environment)
+(Confirm with user - may vary per environment)
 
 ```
 SSH jump host password:       easystack
@@ -76,11 +76,11 @@ NS:      openstack
 - ConfigMap edits require pod restart to take effect
 - Pods mount configmaps read-only; editing requires modifying the configmap and restarting the pod
 - Service logs go to stdout (via `kubectl logs`), not `/var/log/` inside pods
-- Neutron uses OVN mode — no standalone `neutron-server` pods exist
+- Neutron uses OVN mode - no standalone `neutron-server` pods exist
 - For multi-container pods, always specify `-c <container-name>` with `logs` and `exec`
 - For multi-replica API services, changes to configmaps affect all replicas equally
-- Helm releases track versions — use `helm history` and `helm rollback` for quick recovery
-- Fluentd collects logs from all nodes — each of the 3 fluentd pods holds logs from a different node
+- Helm releases track versions - use `helm history` and `helm rollback` for quick recovery
+- Fluentd collects logs from all nodes - each of the 3 fluentd pods holds logs from a different node
 - Fluentd default container is `httpd`; use `-c httpd` when exec'ing into fluentd pods
 - `kubectl exec -it -n openstack services/busybox -- bash` enters the busybox pod via service selector
 - Local OpenStack client maps endpoint hostnames to jump host IP in `/etc/hosts`, use `publicURL`

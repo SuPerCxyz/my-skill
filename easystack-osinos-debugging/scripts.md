@@ -4,8 +4,8 @@
 
 Each service has two configmaps in `openstack` namespace:
 
-- `<service>-etc` — configuration files (e.g., `cinder.conf`, `api-paste.ini`)
-- `<service>-bin` — startup scripts and auxiliary scripts
+- `<service>-etc` - configuration files (e.g., `cinder.conf`, `api-paste.ini`)
+- `<service>-bin` - startup scripts and auxiliary scripts
 
 ```bash
 kubectl edit cm -n openstack <service>-etc    # Edit config

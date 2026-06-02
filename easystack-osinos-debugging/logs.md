@@ -8,7 +8,7 @@ Service logs go to stdout/stderr, not `/var/log/` inside pods.
 # Single-container pod
 kubectl logs -f -n openstack <pod-name>
 
-# Multi-container pod — specify container name
+# Multi-container pod - specify container name
 kubectl logs -f -n openstack <pod-name> -c <container-name>
 
 # List containers first
@@ -67,5 +67,5 @@ done
 ```
 
 **When to use fluentd vs kubectl logs:**
-- `kubectl logs` — real-time, current pod only, not persisted after pod restart
-- Fluentd — historical, across all nodes, persisted (daily rotation), searchable across replicas
+- `kubectl logs` - real-time, current pod only, not persisted after pod restart
+- Fluentd - historical, across all nodes, persisted (daily rotation), searchable across replicas

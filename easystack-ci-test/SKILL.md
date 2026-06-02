@@ -7,7 +7,7 @@ description: "Run tox cover and pep8 tests for EasyStack OpenStack projects. Run
 
 EasyStack OpenStack projects use tox for CI testing. This skill covers running `tox -e pep8` (flake8 linting) and `tox -e cover` (unit test coverage), plus auto-fixing failures until both pass.
 
-## Quick Reference — File Index
+## Quick Reference - File Index
 
 | When you need... | Read |
 |------------------|------|
@@ -53,4 +53,4 @@ When running `tox -e pep8` or `tox -e cover`, the scope is the **combined state*
 1. The latest unmerged commit shown by `git log` on the current branch
 2. All uncommitted changes (both staged via `git add` and unstaged working tree modifications)
 
-During development, code may be partially `git add`ed or still being modified. The tests should cover the integrated state of all these changes together — treat the working tree as the complete codebase to validate.
+During development, code may be partially `git add`ed or still being modified. The tests should cover the integrated state of all these changes together - treat the working tree as the complete codebase to validate.

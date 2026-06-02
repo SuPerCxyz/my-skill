@@ -37,4 +37,4 @@ kubectl exec -n openstack services/busybox -- env -i PATH=/usr/bin:/usr/local/bi
 ## Drone User (Limited)
 
 `/openrc.v3.domain` contains `drone` user credentials with limited permissions.
-Gets 403 on many operations — use admin credentials for debugging.
+Gets 403 on many operations - use admin credentials for debugging.

@@ -1,6 +1,6 @@
 # Environment Access
 
-## SSH Chain — 标准路径
+## SSH Chain - 标准路径
 
 **跳板机 → K8s 控制节点 (10.20.0.3)**
 
@@ -62,7 +62,7 @@ then install `python-openstackclient` locally:
 # Step 2: Install openstack client
 pip install python-openstackclient
 
-# Step 3: Set environment variables (use publicURL — APISIX routes via Host header)
+# Step 3: Set environment variables (use publicURL - APISIX routes via Host header)
 export OS_IDENTITY_API_VERSION=3
 export OS_USERNAME=admin
 export OS_PASSWORD='<PASSWORD>'        # default: Admin@ES20!8
@@ -79,7 +79,7 @@ Now run `openstack` commands directly: `project list`, `server list`, `volume li
 **Why publicURL:** APISIX on the jump host only exposes port 80.
 Services with `internalURL`/`adminURL` on non-standard ports are not accessible.
 
-## Local vs Busybox CLI — When to Use Each
+## Local vs Busybox CLI - When to Use Each
 
 | Scenario | Where to Run | Why |
 |----------|-------------|-----|

@@ -1,6 +1,6 @@
 # Fixing Coverage Gaps
 
-## 0. Scope — Which Files to Check
+## 0. Scope - Which Files to Check
 
 The coverage report covers the **entire project**, but you only need to ensure
 100% coverage for files modified in the current change set. This includes both:
@@ -15,7 +15,7 @@ git diff --name-only          # unstaged changes
 git diff --cached --name-only # staged but not committed changes
 ```
 
-Every line in these modified files must be covered — zero `mis` (missing) and
+Every line in these modified files must be covered - zero `mis` (missing) and
 zero `par` (partial) in the HTML report. Lines in untouched files are out of scope.
 
 ## 1. Find Uncovered Lines
@@ -55,8 +55,8 @@ grep 'class="par' cover/cinder_privsep_cgroup_py.html | grep -o 'id="t[0-9]*"' |
 
 100% coverage requires testing **error paths**, not just the happy path:
 
-- **`except` branches** — mock with `side_effect=OSError` or similar to trigger exception handlers
-- **`partial` (par) lines** — both sides of an `if` condition must be exercised. If only the `true` branch runs, the `false` branch is partial. Write a separate test that flips the condition.
+- **`except` branches** - mock with `side_effect=OSError` or similar to trigger exception handlers
+- **`partial` (par) lines** - both sides of an `if` condition must be exercised. If only the `true` branch runs, the `false` branch is partial. Write a separate test that flips the condition.
 
 Example:
 
