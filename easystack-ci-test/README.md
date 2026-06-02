@@ -1,6 +1,6 @@
 # EasyStack CI 测试
 
-运行 OpenStack Cinder 项目的 tox CI 测试并自动修复问题。
+运行 EasyStack 旗下 OpenStack 项目的通用 CI 测试并自动修复问题。
 
 ## 功能
 
