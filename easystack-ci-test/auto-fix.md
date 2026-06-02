@@ -8,7 +8,7 @@ source "${MINICONDA_BASE}/etc/profile.d/conda.sh"
 conda activate easystack-<project>-py<version>
 ```
 
-Both `tox -e cover` and `tox -e pep8` run in this same environment.
+Both `tox -e cover` and `tox -e pep8` run in this same environment. **Never run `tox` directly without activating conda first.**
 
 When fixing pep8 or coverage for a change, follow this loop until both pass:
 

@@ -11,7 +11,7 @@ EasyStack OpenStack projects use tox for CI testing. This skill covers running `
 
 | When you need... | Read |
 |------------------|------|
-| Environment setup (conda env auto-create/activate) | [setup.md](setup.md) |
+| Environment setup (Miniconda env auto-create/activate) | [setup.md](setup.md) |
 | Running tox commands (pep8, cover, stestr) | [tox.md](tox.md) |
 | Fixing pep8 / flake8 errors | [pep8.md](pep8.md) |
 | Fixing coverage gaps, checking HTML reports | [coverage.md](coverage.md) |
@@ -35,10 +35,14 @@ source "${MINICONDA_BASE}/etc/profile.d/conda.sh"
 conda activate easystack-cinder-py39  # if exists
 # or create + activate + install tox
 
-# Then run tox
+# Then run tox (always after conda activate, never directly)
 tox -e cover   # Coverage check (run first, takes ~5 min)
 tox -e pep8    # Lint check (run last, takes ~40 sec)
 ```
+
+> ⚠ **Always activate the Miniconda environment before running `tox`.** Running
+> `tox` directly from the system Python will use the wrong interpreter or miss
+> dependencies.
 
 When either fails, follow the [auto-fix loop](auto-fix.md) until both pass.
 

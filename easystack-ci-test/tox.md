@@ -1,23 +1,32 @@
 # Running tox Commands
 
+> ⚠ **Must activate the Miniconda environment first.** Do not run `tox` directly — it
+> may use the wrong Python or miss dependencies. Follow [setup.md](setup.md) to
+> activate the `easystack-<project>-py<version>` environment first.
+>
+> Miniconda is the distribution; `conda` is its CLI tool — so `conda activate` is the correct command:
+> ```bash
+> source /path/to/miniconda3/etc/profile.d/conda.sh
+> conda activate easystack-<project>-py<version>
+> ```
+
 ## pep8 Check
 
 ```bash
-tox -e pep8
-```
-
-If tox is in a specific environment:
-
-```bash
+# Activate Miniconda env first, then run tox
 MINICONDA_BASE="$HOME/miniconda3"
 source "${MINICONDA_BASE}/etc/profile.d/conda.sh"
-conda activate cinder-py39
+conda activate easystack-<project>-py<version>
 tox -e pep8
 ```
 
 ## Coverage Testing
 
 ```bash
+# Activate Miniconda env first, then run tox
+MINICONDA_BASE="$HOME/miniconda3"
+source "${MINICONDA_BASE}/etc/profile.d/conda.sh"
+conda activate easystack-<project>-py<version>
 tox -e cover
 ```
 
