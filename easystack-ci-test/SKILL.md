@@ -20,7 +20,42 @@ EasyStack OpenStack projects use tox for CI testing. This skill covers running `
 
 ## Quick Start
 
-**Before running tox, activate the conda environment.** Follow [setup.md](setup.md) to:
+### Step 0: Locate Miniconda installation
+
+Search for Miniconda3 in common locations:
+
+```bash
+# Find conda in common paths
+CONDA_PATHS=(
+  "$HOME/miniconda3"
+  "$HOME/miniconda"
+  "/opt/miniconda3"
+  "/opt/miniconda"
+  "$HOME/anaconda3"
+)
+for p in "${CONDA_PATHS[@]}"; do
+  [ -d "$p" ] && echo "found: $p" && break
+done || echo "miniconda3 not found in common paths"
+
+# Alternative: search with locate/find
+# locate -b miniconda3 2>/dev/null | head -5
+# find / -maxdepth 4 -name "conda.sh" -type f 2>/dev/null | head -5
+```
+
+- **If found** → Note the path, then follow Step 1 to activate the conda environment.
+- **If not found** → Ask the user:
+
+  > ⚠️ 未找到 Miniconda3。请确认：
+  > 1. 提供 Miniconda3 的安装路径
+  > 2. 安装 Miniconda3 后继续
+  > 3. 不使用虚拟环境直接运行 CI（使用系统 Python）
+
+  - 用户选择 **安装** → 提供安装命令或引导用户自行安装
+  - 用户选择 **不使用虚拟环境** → 确认后直接跳转到 [`tox.md`](tox.md) 运行 tox
+
+### Step 1: Activate conda environment (if available)
+
+Follow [setup.md](setup.md) to:
 1. Detect project name from current directory
 2. Find the Miniconda installation directory and source its `conda.sh`
 3. Detect Python version from `tox.ini` (`basepython` field)
