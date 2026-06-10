@@ -6,6 +6,7 @@
 
 | Skill | 描述 |
 |-------|------|
+| [windows-mcp-operation](windows-mcp-operation/) | Windows MCP 桌面操作 - 通过 windows-mcp server 操作和观察真实 Windows 桌面，包括截屏、窗口控制、鼠标键盘操作、系统管理等 |
 | [easystack-osinos-debugging](easystack-osinos-debugging/) | EasyStack OSINOS 环境调试 - 通过 SSH 跳板机访问 K8s 集群，对 OpenStack 服务进行状态检查、日志分析、Pod 诊断、代码调试等 |
 | [easystack-ci-test](easystack-ci-test/) | EasyStack OpenStack 项目通用 CI 测试 - 运行 tox cover/pep8，自动修复失败项直到测试全部通过并满足覆盖率要求 |
 
