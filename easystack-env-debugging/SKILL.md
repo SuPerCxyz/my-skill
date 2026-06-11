@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: Use when debugging EasyStack services deployed on Kubernetes. Determines SSH access method based on target IP: jump host for 172.18.x.x, direct SSH otherwise. Verifies environment access via kubectl. Covers pod operations, log search, config editing, and common debugging scenarios.
+description: "Use when debugging EasyStack services deployed on Kubernetes. Determines SSH access method based on target IP: jump host for 172.18.x.x, direct SSH otherwise. Verifies environment access via kubectl. Covers pod operations, log search, config editing, and common debugging scenarios."
 ---
 
 # EasyStack Environment Debugging
