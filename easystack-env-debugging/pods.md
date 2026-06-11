@@ -8,10 +8,13 @@ Always check containers before `exec` or `logs`:
 kubectl get pod -n openstack <pod-name> -o jsonpath='{.spec.containers[*].name}'
 ```
 
+Most service pods follow a pattern of **init container + business container**, some may have multiple business containers. Always specify `-c <container-name>` when exec'ing into non-default containers.
+
 Examples:
-- `mariadb-0` → `mariadb` (kubectl auto-defaults this, no `-c` needed for most commands)
+- `mariadb-0` → `mariadb` (single container, no `-c` needed)
 - `fluentd-0` → `httpd` (default) + `fluentd`
 - `cinder-api-*` → `cinder-api` (default) + `init` (init container)
+- `cinder-golem-*` → `golem` (default) + `init`
 
 When in doubt, use `-c <container-name>` explicitly.
 

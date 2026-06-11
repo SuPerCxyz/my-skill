@@ -8,7 +8,7 @@
 | Glance | `glance-api-0,1,2` | 9292 | Image service (StatefulSet) |
 | Nova | `nova-api-osapi-*`, `nova-compute-*`, `nova-conductor-*`, `nova-scheduler-*`, `nova-maintenance-*` | 8774 | Compute service |
 | Cinder | `cinder-api-*`, `cinder-scheduler-*`, `cinder-volume-*` | 8776 | Block storage |
-| Cinder Golem | `cinder-golem-*` | - | Cinder dashboard/management |
+| Cinder Golem | `cinder-golem-*` | 8192 | Cinder dashboard 后端 API（端口 8192） |
 | Aodh | `aodh-api-*`, `aodh-evaluator-*`, `aodh-notifier-*` | 8042 | Alarming |
 | Ceilometer | `ceilometer-api-*`, `ceilometer-collector-*` | 8777 | Telemetry |
 | Gnocchi | `gnocchi-api-*`, `gnocchi-metricd-*` | - | Metrics storage |

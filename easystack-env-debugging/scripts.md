@@ -34,33 +34,6 @@ Auxiliary scripts in `/tmp/`:
 - `<service>-bin` → mounted at `/tmp/` (scripts)
 - `<service>-etc` → mounted at `/etc/<service>/` (configs)
 
-## Startup-Time Code Overlay Debugging
-
-Do not replace workload commands with `sleep 10d` for normal service debugging.
-Instead, keep the service's normal startup path and inject a code overlay step at the
-beginning of the startup script so the pod can start normally and still emit logs through
-`kubectl logs`.
-
-Recommended pattern:
-
-```bash
-# In the startup script's beginning, before the real service launch:
-cp -rf /opt/<service>/* /path/to/site-packages/<service>/
-
-# Then continue normal startup
-exec /usr/bin/python3 -m <service>.main
-```
-
-Key points:
-
-- Edit the startup script content in the `<service>-bin` ConfigMap or its mounted file
-- Use the node-mounted `/opt/<service>/` directory as the source of debug code
-- Copy the overlay into the container's target package directory before service startup
-- Keep the original process running so `kubectl logs` remains the primary observability path
-
-If the service needs a temporary manual shell for one-off debugging, prefer an interactive
-`kubectl exec` session over changing the workload command.
-
 ## Edit Config/Script and Restart Pod
 
 ```bash

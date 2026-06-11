@@ -37,12 +37,11 @@ Ask the user for the target environment IP or hostname.
 
 ```bash
 # SSH via jump host
-sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<TARGET_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@10.20.0.3'
+sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<TARGET_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@<CONTROL_NODE_IP>'
 ```
 
 - Jump host: the `172.18.x.x` address provided
-- Inner target: K8s control node (typically 10.20.0.3)
-- If 10.20.0.3 fails, ask: "请确认 K8s 控制节点的 IP"
+- K8s 控制节点 IP：通常 **10.20.0.3**，失败时询问用户
 
 **Other IPs** → Direct SSH mode:
 
@@ -50,7 +49,13 @@ sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnown
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@<TARGET_IP>
 ```
 
-- If password required, try `easystack` first, then ask user if it fails
+- 如果密码错误，先试 `easystack`，再问用户
+
+**进入控制节点后**，通过 `ssh node-xxx` 访问其他 K8s 节点：
+
+```bash
+ssh node-3 'multipath -ll'
+```
 
 ### Step 3: Verify access
 
@@ -81,9 +86,25 @@ Wait for user to provide the correct access command, then proceed.
 # Enter busybox pod (has openstack CLI, mysql client)
 kubectl exec -it -n openstack services/busybox -- bash
 
+# 进入 busybox 后先 source 认证
+source /openrc
+
 # Restart a service
 kubectl rollout restart deployment -n openstack <service-name>
 
 # Check logs
 kubectl logs -n openstack -l service=<service-name> --tail=100
+
+# 访问其他 K8s 节点（节点间已配免密）
+ssh node-3 'multipath -ll'
 ```
+
+## Skill 维护原则
+
+不是每次调查都要更新 skill。只有满足以下条件才值得加：
+
+1. **通用性** — 多个环境都会遇到的模式或问题，而非某个特定组件的单次排查
+2. **复用性** — 下次排查同类问题时可以直接参考，不需要重新分析
+3. **跨环境** — 不依赖特定版本或配置，在不同部署中都有价值
+
+单个组件的细节、特定场景的一次性排查步骤，不要写入 skill 文件。
