@@ -19,7 +19,7 @@
 根目录: {showTitle}-{showOriginalTitle}-{showYear}/
 结构:   Season-{seasonNr2}/
 文件:   {showTitle}-S{seasonNr2}E{episodeNr2}-{title}-{videoFormat}-{videoCodec}-{hdr}-{mediaSource}-{audioChannelsDot}.mp4
-特殊:   {showTitle}-S00E{episodeNr2}-S{realSeason}-{specialType}-{videoFormat}-{videoCodec}-{hdr}-{mediaSource}-{audioChannelsDot}.mp4
+特殊:   {showTitle}-S00E{episodeNr2}-S{realSeason}E{episodeInSeasonNr2}-{specialType}-{videoFormat}-{videoCodec}-{hdr}-{mediaSource}-{audioChannelsDot}.mp4
 ```
 
 示例：
@@ -30,9 +30,9 @@
 │   │   ├── 狂飙-S01E01-高启强-2160p-HEVC-SDR-WEB-DL-2.0.nfo
 │   │   └── 狂飙-S01E01-高启强-2160p-HEVC-SDR-WEB-DL-2.0-thumb.jpg
 │   ├── Season-00/     ← 特殊内容/番外
-│   │   ├── 狂飙-S00E01-S01-加更-2160p-HEVC-SDR-WEB-DL-2.0.mp4
-│   │   ├── 狂飙-S00E02-S01-特辑-2160p-HEVC-SDR-WEB-DL-2.0.mp4
-│   │   └── 狂飙-S00E03-S01-花絮-1080p-AVC-SDR-WEB-DL-2.0.mp4
+│   │   ├── 狂飙-S00E01-S01E01-加更-2160p-HEVC-SDR-WEB-DL-2.0.mp4
+│   │   ├── 狂飙-S00E02-S01E02-特辑-2160p-HEVC-SDR-WEB-DL-2.0.mp4
+│   │   └── 狂飙-S00E03-S01E03-花絮-1080p-AVC-SDR-WEB-DL-2.0.mp4
 │   ├── tvshow.nfo
 │   ├── poster.jpg / fanart.jpg
 │   ├── banner.jpg / clearlogo.png
@@ -55,3 +55,4 @@
 | `{seasonNr2}` | 季号（2位） | 01、02 |
 | `{episodeNr2}` | 集号（2位） | 01、02 |
 | `{realSeason}` | 特殊内容所属真实季 | 01、02 |
+| `{episodeInSeasonNr2}` | 特殊内容在所属季内的集号（2位） | 01、02 |
