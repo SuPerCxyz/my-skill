@@ -10,6 +10,7 @@
 | [windows-mcp-operation](windows-mcp-operation/) | Windows MCP 桌面操作 - 通过 windows-mcp server 操作和观察真实 Windows 桌面，包括截屏、窗口控制、鼠标键盘操作、系统管理等 |
 | [easystack-env-debugging](easystack-env-debugging/) | EasyStack 环境调试 - 根据 IP 自动选择 SSH 方式（172.18.x.x 走跳板机，其他直连），验证环境可访问性后对 OpenStack 服务进行调试 |
 | [easystack-ci-test](easystack-ci-test/) | EasyStack OpenStack 项目通用 CI 测试 - 运行 tox cover/pep8，自动修复失败项直到测试全部通过并满足覆盖率要求 |
+| [media-library-organizer](media-library-organizer/) | 媒体库整理 - TMDB 刮削 + 重命名 + NFO 生成 + 图片下载，支持电影/电视剧/综艺/纪录片/动漫，含完整安全机制和回滚 |
 
 ## 使用方法
 
