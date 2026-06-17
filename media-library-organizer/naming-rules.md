@@ -31,8 +31,10 @@
 │   │   └── 狂飙-S01E01-高启强-2160p-HEVC-SDR-WEB-DL-2.0-thumb.jpg
 │   ├── Season-00/     ← 特殊内容/番外
 │   │   ├── 狂飙-S00E01-S01E01-加更-2160p-HEVC-SDR-WEB-DL-2.0.mp4
-│   │   ├── 狂飙-S00E02-S01E02-特辑-2160p-HEVC-SDR-WEB-DL-2.0.mp4
-│   │   └── 狂飙-S00E03-S01E03-花絮-1080p-AVC-SDR-WEB-DL-2.0.mp4
+│   │   ├── 狂飙-S00E02-S01E02-加更-2160p-HEVC-SDR-WEB-DL-2.0.mp4
+│   │   ├── 狂飙-S00E03-S01E03-特辑-2160p-HEVC-SDR-WEB-DL-2.0.mp4
+│   │   ├── 狂飙-S00E04-S01E04-花絮-2160p-HEVC-SDR-WEB-DL-2.0.mp4
+│   │   └── 狂飙-S00E05-S01E05-花絮-2160p-HEVC-SDR-WEB-DL-2.0.mp4
 │   ├── tvshow.nfo
 │   ├── poster.jpg / fanart.jpg
 │   ├── banner.jpg / clearlogo.png
@@ -55,4 +57,4 @@
 | `{seasonNr2}` | 季号（2位） | 01、02 |
 | `{episodeNr2}` | 集号（2位） | 01、02 |
 | `{realSeason}` | 特殊内容所属真实季 | 01、02 |
-| `{episodeInSeasonNr2}` | 特殊内容在所属季内的集号（2位） | 01、02 |
+| `{episodeInSeasonNr2}` | 特殊内容在所属季内的全局序号，跨所有特殊类型统一从 1 递增（不是按类型分组重新编号） | 01、67 |
