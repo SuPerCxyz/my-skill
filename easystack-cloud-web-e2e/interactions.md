@@ -12,6 +12,14 @@ EasyStack Cloud 使用 Angular + NG-ZORRO 组件库。本文件只记录可嵌�
 - `agent-browser` 不是 Playwright，不能直接使用 `:has-text()`、`text=` 等
   Playwright 风格伪选择器。CLI 文本定位使用 `agent-browser find text ...`；
   `eval --stdin` 内使用下方 helper。
+- EasyStack Cloud 前端大量使用 Angular + NG-ZORRO。不要把页面按钮、modal
+  footer 按钮、form submit 按钮、checkbox 当成同一种元素处理。
+- 打开/关闭 modal、切页、刷新表格、切换步骤后，旧 ref 默认失效；必须重新
+  snapshot 或重新查询可见 DOM。
+- 列表实时刷新、高频新增、切换排序/筛选后，旧行号、旧位置判断、旧 checkbox ref
+  也默认失效；不要依赖“第 1 行/第 2 行”这类位置假设。
+- `Service Catalog`、dropdown、`More` 菜单、首页配置区块等覆盖层打开后，会遮挡
+  原页面元素；此时先处理覆盖层，不要继续点被遮挡元素。
 
 ## 按钮
 
@@ -37,6 +45,47 @@ const formItemByLabel = (label, root = document) =>
     .find((node) => textOf(node).includes(label));
 const fieldInput = (label, selector = 'input, textarea', root = document) =>
   formItemByLabel(label, root)?.querySelector(selector);
+const visible = (node) => {
+  if (!node) return false;
+  const style = window.getComputedStyle(node);
+  const rect = node.getBoundingClientRect();
+  return style.display !== 'none' &&
+    style.visibility !== 'hidden' &&
+    rect.width > 0 &&
+    rect.height > 0;
+};
+const enabled = (node) => Boolean(node && !node.disabled && node.getAttribute('aria-disabled') !== 'true');
+const visibleButtons = (root = document) =>
+  [...root.querySelectorAll('button')].filter((node) => visible(node));
+const topModal = () => {
+  const wraps = [...document.querySelectorAll('.ant-modal-wrap, nz-modal-container')]
+    .filter((node) => visible(node));
+  const wrap = wraps.at(-1) || null;
+  return wrap?.querySelector('.ant-modal, .ant-modal-content') || wrap;
+};
+const modalButtonByText = (value) => {
+  const modal = topModal();
+  if (!modal) return null;
+  return visibleButtons(modal).find((node) => textOf(node) === value && enabled(node)) ||
+    visibleButtons(modal).find((node) => textOf(node).includes(value) && enabled(node));
+};
+const clickWithMouse = (node) => {
+  if (!node || !visible(node) || !enabled(node)) return false;
+  for (const type of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) {
+    node.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+  }
+  return true;
+};
+const submitNearestForm = (node) => {
+  const form = node?.closest('form') || topModal()?.querySelector('form') || document.querySelector('form');
+  if (!form) return false;
+  if (typeof form.requestSubmit === 'function') {
+    form.requestSubmit();
+    return true;
+  }
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  return true;
+};
 ```
 
 列表页按钮在页面刚打开后可能先渲染为 `disabled`，随后由权限、配额或数据
@@ -74,6 +123,18 @@ JS
 done
 ```
 
+等待规则补充：
+
+- 普通页面交互默认只做短等待，不允许把“按钮启用”“下拉加载”“modal 提交后列表刷新”
+  这类动作写成长时间循环。
+- 如果按钮连续数次检查仍 disabled，先停止等待，回查：
+  - 必填输入/下拉是否都已满足
+  - 是否有校验错误、配额提示、遮挡层或项目不对
+  - 当前动作是否实际位于 `More` 菜单而不是顶部工具栏
+- 如果点击后没有任何跳转、提示或网络请求，也要回查隐藏字段、登录类型、权限提示或
+  当前动作是否实际受覆盖层阻挡。
+- 只有迁移、数据拷贝、`fio`、用户明确说明的后台长任务，才允许扩大等待预算。
+
 如果必须在页面上下文中短等待，控制在几秒内：
 
 ```javascript
@@ -95,6 +156,35 @@ const waitButtonEnabledBriefly = async (text, timeoutMs = 5000) => {
 | 次要按钮 | `button.ant-btn-default` | 默认按钮 |
 | 危险按钮 | `button.ant-btn-dangerous` | 危险操作按钮 |
 | 禁用按钮 | `button.ant-btn[disabled]` | 禁用状态 |
+
+按钮点击优先级：
+
+1. `agent-browser click <ref/selector>` 做真实点击
+2. modal 内按钮使用 `modalButtonByText()` 限定当前最上层弹窗
+3. 表单提交优先 `form.requestSubmit()`
+4. 仅在以上都不可用时，才用 `clickWithMouse()` 作为兜底
+
+不要直接对全局 `document.querySelectorAll('button')` 的第一个同名按钮做 `.click()`。
+
+入口类型补充：
+
+- 顶部工具栏按钮通常要求目标行已选中。
+- `More` 菜单动作通常也要求目标行已选中，然后再展开菜单选择动作。
+- 行名称、详情链接、行内链接通常不依赖 checkbox 选中。
+- 也有例外页面采用“纯行内动作”模式，例如计算节点、浮动 IP；这些页面很多操作不在
+  顶部工具栏，而在每行的 Action 列。
+- 执行动作前先判断当前入口类型，避免把“行内入口”当成“批量工具栏动作”，或反过来。
+
+主操作按钮规则：
+
+- 对 `Create`、`Confirm`、`Associate`、`Attach`、`Save` 这类主操作按钮，
+  先检查按钮是否 disabled。
+- 如果按钮 disabled，优先检查当前页面或弹窗内：
+  - 必填输入是否已填值
+  - 必填下拉是否已选中
+  - 联动字段是否已刷新完成
+  - 页面是否有校验错误或配额提示
+- 只有在必填项满足、按钮变 enabled 后，才执行点击或提交。
 
 ## 文本输入
 
@@ -133,13 +223,30 @@ const selectOption = (formItemText, optionText) => {
   const text = (e) => (e.innerText || e.textContent || '').trim();
   const formItem = [...document.querySelectorAll('.ant-form-item')]
     .find((item) => text(item).includes(formItemText));
-  formItem?.querySelector('.ant-select, nz-select')?.click();
+  clickWithMouse(formItem?.querySelector('.ant-select, nz-select'));
   setTimeout(() => {
-    [...document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')]
-      .find((item) => text(item).includes(optionText))?.click();
+    clickWithMouse(
+      [...document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')]
+        .find((item) => text(item).includes(optionText))
+    );
   }, 300);
 };
 ```
+
+下拉选择完成后，必须回读当前展示值；如果展示值没有切换到目标值，就视为选择失败，
+不得继续提交后续操作。
+
+筛选输入补充：
+
+- 列表上 `Click here for filters.` 这类控件，很多页面是“打开筛选条件面板”的入口，
+  不是立即按名称过滤的数据搜索框。
+- 如果填入文本后列表没有立刻收窄，不要继续等待“结果自己出现”；应先确认该控件
+  是否需要额外的筛选字段、确认按钮、回车提交，或改用真正的列筛选/分页定位。
+- 不要把“文本已经输入到筛选框”误判为“筛选已经生效”。
+- 表格列筛选会影响当前列表展示的数据集合，不只是某一个单元格；一旦启用列筛选，
+  后续定位、分页、状态判断都必须基于筛选后的整张表重新判断。
+- 某些列表页的 `Click here for filters.` 只是筛选入口，但不是立即过滤框；
+  某些页面填入文本后不会立刻变更结果集。
 
 获取当前值：
 
@@ -149,6 +256,15 @@ const selectedText = document
   ?.textContent?.trim();
 ```
 
+列表与通知判定补充：
+
+- toast / notification 只能说明“前端收到了提交结果”或“后台开始处理”，不能替代
+  列表稳定态判定。
+- 如果 toast 仍显示 `creating`，但列表或详情页已经进入目标稳定态，应以列表或详情页
+  的当前状态为准。
+- 某些权限不足的动作不会打开 modal，而是直接在正文区域给出文本提示；这属于产品
+  权限反馈，不应误判为 click 失败。
+
 搜索并选择：
 
 ```javascript
@@ -156,15 +272,17 @@ const searchAndSelect = (formItemText, searchText, optionText) => {
   const text = (e) => (e.innerText || e.textContent || '').trim();
   const formItem = [...document.querySelectorAll('.ant-form-item')]
     .find((item) => text(item).includes(formItemText));
-  formItem?.querySelector('.ant-select, nz-select')?.click();
+  clickWithMouse(formItem?.querySelector('.ant-select, nz-select'));
   const search = document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden) input');
   if (search) {
     search.value = searchText;
     search.dispatchEvent(new Event('input', { bubbles: true }));
   }
   setTimeout(() => {
-    [...document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')]
-      .find((item) => text(item).includes(optionText))?.click();
+    clickWithMouse(
+      [...document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')]
+        .find((item) => text(item).includes(optionText))
+    );
   }, 300);
 };
 ```
@@ -172,11 +290,34 @@ const searchAndSelect = (formItemText, searchText, optionText) => {
 ## 弹窗
 
 ```javascript
-const modal = document.querySelector('.ant-modal');
+const modal = topModal();
 const title = modal?.querySelector('.ant-modal-title')?.textContent?.trim();
-[...document.querySelectorAll('.ant-modal button')]
-  .find((button) => /Confirm|OK|Create|Associate/i.test(button.innerText) && !button.disabled)
-  ?.click();
+const primary = modalButtonByText('Confirm') ||
+  modalButtonByText('Create') ||
+  modalButtonByText('Associate') ||
+  modal?.querySelector('.ant-modal-footer .ant-btn-primary:not([disabled])');
+if (primary) {
+  clickWithMouse(primary);
+}
+```
+
+弹窗操作规则：
+
+- 只在当前最上层可见 modal 内查找按钮。
+- 双确认弹窗点完第一层后，必须重新获取 `topModal()`，不能复用旧按钮引用。
+- 如果按钮语义是 `triggerOk()` / `nzModalRef.triggerOk()`，仍按真实点击该按钮处理；
+  不要试图越过 UI 直接找组件实例。
+- 对带表单的 modal，优先填值后提交 form；不要先全局搜索 `Create/Confirm`。
+
+表单优先提交：
+
+```javascript
+const modal = topModal();
+const submitted = submitNearestForm(modal?.querySelector('button.ant-btn-primary'));
+if (!submitted) {
+  const primary = modal?.querySelector('.ant-modal-footer .ant-btn-primary:not([disabled])');
+  clickWithMouse(primary);
+}
 ```
 
 填写弹窗表单：
@@ -208,8 +349,17 @@ const rowByText = (value) => [...document.querySelectorAll('.ant-table-tbody tr'
 选中行：
 
 ```javascript
-rowByText('<name>')?.querySelector('input[type="checkbox"], .ant-checkbox-input')?.click();
+const row = rowByText('<name>');
+const checkbox = row?.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, input[type="checkbox"], .ant-checkbox-input');
+clickWithMouse(checkbox);
 ```
+
+表格选择规则：
+
+- 优先点击 `label.ant-checkbox-wrapper` 或可见的包装元素，不要默认只点
+  `input[type="checkbox"]`。
+- 点击后验证 `checked`、`aria-checked="true"` 或行进入 selected 状态。
+- 如果列表刷新、筛选、翻页后 DOM 重建，必须重新定位目标行。
 
 读取行状态：
 
@@ -249,7 +399,7 @@ const setNumberInput = (selector, value) => {
 ```javascript
 const tab = [...document.querySelectorAll('.ant-tabs-tab')]
   .find((item) => item.innerText.includes('<tab-name>'));
-tab?.click();
+clickWithMouse(tab);
 ```
 
 ## 消息与通知
@@ -268,7 +418,7 @@ document.querySelectorAll('.ant-notification-notice').forEach((node) => node.rem
 ## 确认对话框
 
 ```javascript
-document.querySelector('.ant-modal-confirm-btns .ant-btn-primary')?.click();
+clickWithMouse(document.querySelector('.ant-modal-confirm-btns .ant-btn-primary'));
 ```
 
 ## 加载状态

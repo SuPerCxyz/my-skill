@@ -33,6 +33,27 @@
 4. 登录成功必须通过 URL 变化或关键页面元素确认，不能只看点击结果
 5. 登录后如出现通知、遮挡层或首次弹窗，先清理再做页面验证
 
+登录页现场规则：
+
+- 登录页可见密码框 `#id_password` 没有 `name`，真正提交的是隐藏字段
+  `#pwd[name="password"]`；因此需要让前端登录脚本完整运行。
+- 当前控制台的登录页还可能把隐藏 `login_type` 保持在 `ukey`，即使页面可见的是
+  邮箱/密码表单。出现这种情况时，直接点击 `Sign In` 可能完全不跳转。
+- 对用户名和密码优先使用真实键盘输入；输入后确认 `Sign In` 已变成真正的
+  `button`，再提交。
+- 如果 `Sign In` 仍是不可提交态容器，先不要点；继续补全输入或触发焦点切换。
+- 如果提交后页面提示 `Please input user password`，说明前端没有把密码处理到
+  隐藏字段，需重新输入并再次确认 `Sign In` 状态。
+- 如果点击提交后既没有跳转，也没有网络请求，优先检查：
+  - `#pwd[name="password"]` 是否仍为空
+  - 隐藏 `login_type` 是否错误地保持为 `ukey`
+  - 页面是否仍在 UKey 流程而不是普通账号密码流程
+- 登录失败诊断建议同时收集：
+  - 截图
+  - `agent-browser console`
+  - `agent-browser errors`
+  - `agent-browser network requests`
+
 ## 会话复用契约
 
 - 优先复用当前 `agent-browser` 会话

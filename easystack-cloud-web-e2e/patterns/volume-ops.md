@@ -63,7 +63,7 @@ const createButton = [...document.querySelectorAll('button')]
 if (!createButton) {
   ({ ok: false, resource: 'volume', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create Volume button unavailable', url: location.href });
 } else {
-  createButton.click();
+  createButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'volume', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill Volume Name, Type, Size in dialog, submit, then poll /ebs/volumes until Available', url: location.href });
 }
 ```
@@ -89,6 +89,8 @@ if (!createButton) {
   enabled 后再操作。
 - 删除弹窗存在二次确认：第一次点击 `Delete` 后，会出现
   `Unrecoverable after deletion, please confirm again.`，必须再点击 `Confirm`。
+- 两层按钮都必须限定在当前最上层可见 modal 内查找；点完第一层后重新获取
+  modal，不复用第一次的按钮引用或 ref。
 - 提交后轮询 `/ebs/volumes`，直到目标卷行完全消失。
 
 `agent-browser eval --stdin` 示例：
@@ -100,8 +102,10 @@ const row = [...document.querySelectorAll('tr')].find((item) => text(item).inclu
 if (!row) {
   ({ ok: false, resource: 'volume', action: 'delete', name: input.name, status: 'missing', message: 'volume not found', url: location.href });
 } else {
-  row.querySelector('input[type="checkbox"]')?.click();
-  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'volume', action: 'delete', name: input.name, status: 'menu_opened', message: 'click More -> Delete, then click Delete and second-step Confirm, then poll /ebs/volumes until row disappears', url: location.href });
 }
 ```
@@ -142,7 +146,8 @@ if (!row) {
 } else if (!text(row).includes('In use')) {
   ({ ok: false, resource: 'volume', action: 'detach', name: input.volume, status: 'not_attached', message: 'volume is not In use', url: location.href });
 } else {
-  row.querySelector('input[type="checkbox"]')?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   const device = text(row).match(/\/dev\/vd[b-z]/)?.[0] || null;
   ({ ok: true, resource: 'volume', action: 'detach', name: input.volume, status: 'selected', message: 'click Detach, verify instance in dialog, submit, then poll Available / No Attached', device, url: location.href });
 }
@@ -171,6 +176,8 @@ if (!row) {
   disabled；必须先点击 `Yes`，再填写快照名。
 - 快照名输入必须触发 `input/change/blur`；否则 `Create` 可能保持 disabled。
 - 弹窗提交按钮必须限定在 `Create Snapshot` 弹窗内查找。
+- 如果弹窗内存在 form，优先提交该 form；否则点击 modal footer 里的 primary
+  按钮，不要点页面底层同名 `Create`。
 - 如果 Yes/No 都未选中，重新点击 `Yes` label，并再次触发快照名输入事件。
 
 `agent-browser eval --stdin` 示例：
@@ -182,8 +189,10 @@ const row = [...document.querySelectorAll('tr')].find((item) => text(item).inclu
 if (!row) {
   ({ ok: false, resource: 'volume_snapshot', action: 'create', name: input.snapshotName, status: 'missing_volume', message: 'volume not found', url: location.href });
 } else {
-  row.querySelector('label.ant-checkbox-wrapper, label, input[type="checkbox"]')?.click();
-  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'volume_snapshot', action: 'create', name: input.snapshotName, status: 'menu_opened', message: 'click Create Snapshot, set Forced=Yes before filling name for in-use volumes, submit dialog, then poll /ebs/volume-snapshots until Available', url: location.href });
 }
 ```
@@ -216,6 +225,7 @@ if (!row) {
   2. `Confirm Snapshot RollBack` 弹窗中的 `Confirm`
 - 两层确认按钮文本相同，必须限定在当前弹窗内，或使用 snapshot 中最后一个
   `Confirm` ref，不能点击底层页面的同名按钮。
+- 第一层 `Confirm` 点击后必须重新获取当前 modal，再处理第二层 `Confirm`。
 - 提交后轮询 `/ebs/volumes`，并结合 VM 内数据校验判断是否真正生效；只看卷
   仍为 `In use` 不足以证明回滚成功。
 
@@ -230,10 +240,11 @@ if (!row) {
 } else if (!text(row).includes('Available')) {
   ({ ok: false, resource: 'volume_snapshot', action: 'rollback', name: input.snapshotName, status: 'not_ready', message: 'snapshot is not Available', url: location.href });
 } else {
-  row.querySelector('label.ant-checkbox-wrapper, label, input[type="checkbox"]')?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   const button = [...document.querySelectorAll('button')]
     .find((btn) => text(btn) === 'Roll Back Volume' && !btn.disabled);
-  button?.click();
+  button?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: Boolean(button), resource: 'volume_snapshot', action: 'rollback', name: input.snapshotName, status: button ? 'confirm_needed' : 'button_unavailable', message: 'confirm Rolling Back Data From Snapshot, then confirm Confirm Snapshot RollBack, then poll and verify data', url: location.href });
 }
 ```
@@ -258,6 +269,7 @@ if (!row) {
   如果出现 `Unrecoverable after deletion, please confirm again.`，再点击 `Confirm`。
 - 页面上有底层 `Delete` 工具栏按钮和弹窗 `Delete` 主按钮，二者同名；解析 ref
   时取弹窗内按钮，不能取第一个同名按钮。
+- 第一层删除后重新获取当前 modal，再找第二层 `Confirm`。
 - 提交后必须等待表格完整加载再判断；半加载状态下 `body` 不含目标名不能当作删除成功。
 
 `agent-browser eval --stdin` 示例：
@@ -269,10 +281,11 @@ const row = [...document.querySelectorAll('tr')].find((item) => text(item).inclu
 if (!row) {
   ({ ok: false, resource: 'volume_snapshot', action: 'delete', name: input.snapshotName, status: 'missing', message: 'snapshot not found', url: location.href });
 } else {
-  row.querySelector('label.ant-checkbox-wrapper, label, input[type="checkbox"]')?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   const button = [...document.querySelectorAll('button')]
     .find((btn) => text(btn) === 'Delete' && !btn.disabled);
-  button?.click();
+  button?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: Boolean(button), resource: 'volume_snapshot', action: 'delete', name: input.snapshotName, status: button ? 'confirm_needed' : 'button_unavailable', message: 'click modal Delete, then second Confirm if present, then poll /ebs/volume-snapshots until row disappears', url: location.href });
 }
 ```
@@ -300,7 +313,7 @@ const uploadButton = [...document.querySelectorAll('button')]
 if (!uploadButton) {
   ({ ok: false, resource: 'image', action: 'upload', name: input.name, status: 'button_unavailable', message: 'Upload Image button unavailable', url: location.href });
 } else {
-  uploadButton.click();
+  uploadButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'image', action: 'upload', name: input.name, status: 'dialog_opened', message: 'fill image fields, submit, then poll image list until row appears', url: location.href });
 }
 ```
@@ -342,8 +355,10 @@ if (!row) {
 } else if (!text(row).includes('Available')) {
   ({ ok: false, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'snapshot_not_ready', message: 'snapshot is not Available', url: location.href });
 } else {
-  row.querySelector('input[type="checkbox"]')?.click();
-  [...document.querySelectorAll('a,button')].find((item) => text(item) === 'Create Volume' && !item.disabled)?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  [...document.querySelectorAll('a,button')].find((item) => text(item) === 'Create Volume' && !item.disabled)
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'dialog_opened', message: 'fill volume name, keep Copy Full Data No unless explicitly required, then submit dialog', url: location.href });
 }
 ```

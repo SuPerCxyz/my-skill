@@ -45,7 +45,7 @@ const allocateButton = [...document.querySelectorAll('button')]
 if (!allocateButton) {
   ({ ok: false, resource: 'floating_ip', action: 'allocate', name: null, status: 'button_unavailable', message: 'Allocate button unavailable', url: location.href });
 } else {
-  allocateButton.click();
+  allocateButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'floating_ip', action: 'allocate', name: '<allocated-ip>', status: 'dialog_opened', message: 'set bandwidth, submit dialog, then poll list until a new floating IP row appears', url: location.href });
 }
 ```
@@ -73,7 +73,7 @@ const createButton = [...document.querySelectorAll('button')]
 if (!createButton) {
   ({ ok: false, resource: 'network', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create button unavailable', url: location.href });
 } else {
-  createButton.click();
+  createButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'network', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill network form, submit, then poll /ens/networks until row appears', url: location.href });
 }
 ```
@@ -101,6 +101,8 @@ Associate 按钮不可用或验证超时。
 - 资源类型保持 `Virtual NIC`。
 - 先选目标实例，再选包含目标私网 IP 的 vNIC；vNIC 下拉依赖实例选择。
 - 提交时必须限定在 `Bind to resource` 弹窗内点击 `Associate`。
+- 如果弹窗内存在 form，优先提交 form；否则只点击当前最上层 modal footer
+  中的 `Associate` 主按钮。
 - `Resource` 下拉选中实例后，等待 vNIC 下拉刷新；不要在 vNIC 仍 disabled 或仍显示
   `Select a vNIC` 时提交。
 - 目标私网 IP 只在 vNIC 选项中出现，不一定在资源选项中出现；选择逻辑应分两步
@@ -120,7 +122,8 @@ if (!row) {
   ({ ok: false, resource: 'floating_ip', action: 'associate', name: input.floatingIp || null, status: 'missing_free_ip', message: 'free floating ip not found', url: location.href });
 } else {
   const ip = text(row).match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/)?.[0] || input.floatingIp;
-  [...row.querySelectorAll('a,button')].find((item) => text(item) === 'Bind to resource')?.click();
+  [...row.querySelectorAll('a,button')].find((item) => text(item) === 'Bind to resource')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'floating_ip', action: 'associate', name: ip, status: 'dialog_opened', message: 'select instance and vNIC containing private_ip, then click Associate in dialog', url: location.href });
 }
 ```
@@ -148,7 +151,7 @@ const createButton = [...document.querySelectorAll('button')]
 if (!createButton) {
   ({ ok: false, resource: 'router', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create button unavailable', url: location.href });
 } else {
-  createButton.click();
+  createButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'router', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill router form, submit, then poll /ens/routers until row appears', url: location.href });
 }
 ```
@@ -171,6 +174,7 @@ if (!createButton) {
 - 清理前必须已获得用户确认；未确认时只在报告写 `cleanup: recommended`。
 - 只解绑本次用例创建或明确映射的浮动 IP。
 - 点击目标行 `Disassociate`，处理确认弹窗后轮询行状态。
+- 确认按钮必须限定在当前最上层 modal 内；如果出现二次确认，重新获取 modal。
 
 `agent-browser eval --stdin` 示例：
 
@@ -182,7 +186,7 @@ if (!row) {
   ({ ok: false, resource: 'floating_ip', action: 'disassociate', name: input.floatingIp, status: 'missing', message: 'floating ip not found', url: location.href });
 } else {
   const action = [...row.querySelectorAll('a,button')].find((item) => text(item) === 'Disassociate');
-  action?.click();
+  action?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: Boolean(action), resource: 'floating_ip', action: 'disassociate', name: input.floatingIp, status: action ? 'confirm_needed' : 'action_missing', message: 'confirm dialog, then poll until Bind to resource appears', url: location.href });
 }
 ```
@@ -207,6 +211,7 @@ if (!row) {
 - 只释放本次用例创建或明确映射的浮动 IP。
 - 释放前必须确认行内 Attach Resource 为空或显示 `Bind to resource`。
 - 如果释放弹窗出现二次确认，按弹窗主按钮继续确认后再轮询。
+- 不要使用页面底层 `Release` 工具栏按钮完成确认；只处理弹窗内按钮。
 
 `agent-browser eval --stdin` 示例：
 
@@ -219,8 +224,10 @@ if (!row) {
 } else if (text(row).includes('Instance:')) {
   ({ ok: false, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'still_associated', message: 'disassociate before release', url: location.href });
 } else {
-  row.querySelector('input[type="checkbox"]')?.click();
-  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'Release Floating IPs' && !btn.disabled)?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'Release Floating IPs' && !btn.disabled)
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'confirm_needed', message: 'confirm release dialog, then poll until row disappears', url: location.href });
 }
 ```

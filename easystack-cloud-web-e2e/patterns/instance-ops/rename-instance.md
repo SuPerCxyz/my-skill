@@ -24,6 +24,11 @@
 - 编辑提交完成
 - 列表中出现 `new_name`
 
+### 操作注意
+
+- 行选择优先点击可见 checkbox wrapper，不要默认只点隐藏 input。
+- 提交时必须限定在编辑弹窗内；如果弹窗内存在 form，优先提交 form。
+
 ### 执行步骤概览
 
 - 打开实例列表页并确认未跳回登录页
@@ -55,8 +60,10 @@ const row = [...document.querySelectorAll('tr')].find((item) => text(item).inclu
 if (!row) {
   ({ ok: false, resource: 'instance', action: 'rename', name: input.newName, status: 'missing', message: 'instance not found', url: location.href });
 } else {
-  row.querySelector('input[type="checkbox"]')?.click();
-  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'instance', action: 'rename', name: input.newName, status: 'menu_opened', message: 'click Edit, fill new name, submit, then poll /eec/instances until new name appears', url: location.href });
 }
 ```

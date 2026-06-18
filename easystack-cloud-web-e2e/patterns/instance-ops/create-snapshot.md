@@ -24,6 +24,12 @@
 - 创建快照请求已提交
 - 实例快照列表中出现 `snapshot_name`
 
+### 操作注意
+
+- 行选择优先点击可见 checkbox wrapper，不要默认只点隐藏 input。
+- 提交时必须限定在 `Create Snapshot` 弹窗内；如果弹窗内存在 form，优先提交
+  form。
+
 ### 执行步骤概览
 
 - 打开实例列表页并确认未跳回登录页
@@ -55,8 +61,10 @@ const row = [...document.querySelectorAll('tr')].find((item) => text(item).inclu
 if (!row) {
   ({ ok: false, resource: 'instance_snapshot', action: 'create', name: input.snapshotName, status: 'missing_instance', message: 'instance not found', url: location.href });
 } else {
-  row.querySelector('input[type="checkbox"]')?.click();
-  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'instance_snapshot', action: 'create', name: input.snapshotName, status: 'menu_opened', message: 'click Create Snapshot, fill name, submit, then poll /eec/instance-snapshots', url: location.href });
 }
 ```

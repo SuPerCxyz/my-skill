@@ -12,6 +12,8 @@
 - 已知目标路径时，优先直接用标准启动参数打开目标 URL：
   `agent-browser --args '--no-sandbox' --ignore-https-errors open <url>`
 - 不确定目标入口时，先通过“产品与服务”菜单定位
+- 当前控制台的 `Service Catalog` 是覆盖在业务页上的大型导航面板，而不是独立页；
+  打开后后续点击必须限定在目录面板中的元素。
 - 页面路径默认以“当前主路径”为执行入口
 - 历史/别名路径只作为旧文档和历史实现的对照信息
 
@@ -43,6 +45,15 @@
   - Floating IP -> 见路径基线表
 - Image Repository
   - Image -> 当前主路径 `/container-registry/image`
+- Identity & Access Management
+  - Domain Management -> `/iam/domains`
+  - Project Management -> `/iam/projects`
+  - User Management -> `/iam/users`
+  - User Group -> `/iam/groups`
+  - Role -> `/iam/roles`
+  - Policy -> `/iam/policies`
+- Computing
+  - Compute Node -> `/eec/hosts`
 
 ## 当前主路径与历史/别名路径
 
@@ -82,3 +93,10 @@ agent-browser find text "$ITEM_TEXT" click
 agent-browser wait 'main, .ant-table'
 agent-browser get url
 ```
+
+### 服务目录注意事项
+
+- 服务目录打开后，如果继续点击被覆盖的业务页元素，`agent-browser` 可能返回
+  `covered by <div#products-menu>` 或同类覆盖错误；此时不是元素不存在，而是应改点
+  目录面板内的条目。
+- 目录面板打开后不要复用打开前页面中的 `@eN` ref。

@@ -23,3 +23,19 @@
 | 虚拟网卡页 | `/ens/nics` | 无 | 当前资料一致 |
 | 路由器页 | `/ens/routers` | `/neutron/routers` | 默认执行入口使用当前主路径 |
 | 浮动 IP 页 | `/ens/floatingIPs` | `/eec/floating-ips`、`/neutron/floatingips` | 默认执行入口使用当前主路径 |
+| 计算节点页 | `/eec/hosts` | 无 | 当前控制台通过 Service Catalog -> Computing -> Compute Node 进入 |
+| 用户管理页 | `/iam/users` | 无 | 当前控制台通过 Service Catalog -> Identity & Access Management -> User Management 进入 |
+
+## 当前控制台模块分组
+
+实际探索到的 `Service Catalog` 一级分组：
+
+- Computing
+- Product Service Management
+- Block Storage
+- Observability
+- Configurations
+- Network
+- Operation
+- Identity & Access Management
+- Monitor & Management

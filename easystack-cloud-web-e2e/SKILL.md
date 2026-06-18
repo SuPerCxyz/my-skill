@@ -33,6 +33,41 @@ description: "Use when testing EasyStack Cloud Web UI resource operations, valid
   `vm1 -> <case-id>-vm1-<runid>`；后续步骤只能使用本次映射。
 - 资源创建提交后如果没有通过 UI 列表确认成功，必须记为
   `creation_unconfirmed`，重新执行时换新的 run id 创建，不沿用未确认名称。
+- 创建或操作资源后，不能因为“列表里立刻出现了资源名”就判定成功；必须继续
+  观察资源状态从中间态转为目标稳定态，例如 `Creating -> Available`、
+  `Creating -> Active`、`In use -> Available`。
+- 如果资源已经出现但仍处于 `Creating`、`Binding`、`Associating`、`Detaching`、
+  `Deleting` 等中间态，报告中应记录当前状态并继续轮询，不得提前结束为成功。
+- 顶部工具栏按钮、`More` 菜单动作通常依赖“先选中资源”；不能只因为页面上出现了
+  `Start`、`Attach`、`Detach`、`More` 就直接点击。必须先确认目标行已选中，且
+  对应动作按钮已从 disabled 变为 enabled。
+- 行名称、详情链接、行内非批量动作与顶部工具栏动作不是同一种入口；需要先判断
+  当前动作属于“行内入口”“顶部工具栏”还是“More 菜单”，再决定是否必须先选中行。
+- 对页面或弹窗内的主操作按钮（如 `Create`、`Confirm`、`Associate`、`Attach`、
+  `Save`），不能先点再看报错；必须先识别必填参数、完成填值/选择并触发页面
+  需要的 `input/change/blur` 或等价事件，再检查按钮是否从 disabled 变为 enabled。
+- 如果主按钮仍 disabled，优先回查当前页面或弹窗里尚未满足的必填项、联动下拉、
+  配额提示或校验错误，而不是重复点击失效按钮。
+- 下拉选择、实例/vNIC 选择、类型切换等操作完成后，必须回读当前展示值确认真的已
+  切换成功；不能只因为 dropdown 关闭了，就判定选择成功。
+- 等待策略不得写成长时间无区别的 `for` 循环傻等。应拆成两段：
+  1. 短窗口等待资源名出现
+  2. 资源出现后的状态轮询
+- 单段轮询必须有明确超时、间隔和提前中止条件；如果超过短窗口仍未出现资源，
+  先重新加载页面、重新定位或重新查询筛选条件，再决定是否继续。
+- 默认禁止超过几十秒的无差别页面等待。普通 UI 交互、列表刷新、按钮启用、
+  modal 提交结果、常规资源创建/绑定/解绑，应在短预算内完成诊断或结束本轮等待。
+- 只有明确属于长耗时任务时，才允许扩大等待预算，例如云硬盘迁移数据、
+  云主机迁移、`fio` 等压测或用户已明确说明的后台长任务；此时必须在报告中标注
+  “长耗时等待”原因、目标状态、预计上限和当前观测状态。
+- 如果等待目标在短预算内没有推进，例如按钮持续 disabled、资源状态不变化、
+  列表不刷新、筛选结果为空，必须停止原等待循环，转入诊断：检查必填项、项目、
+  配额、筛选条件、当前页面上下文、是否需要改走 `More` 菜单或重新选择资源。
+- 表格行、分页位置、snapshot ref 在列表实时刷新、高频新增、切换排序/筛选后都可能
+  立即失效；不得依赖“第 1 行/第 2 行”这类位置假设。必须优先按资源名、状态文本、
+  详情入口重新定位。
+- 结果判定优先级默认为：资源列表稳定态 > 资源详情页状态 > toast/notification 文案。
+  toast 只可作为“操作已提交”的弱信号，不能单独作为最终成功依据。
 - 清理测试资源前必须先向用户说明待清理资源、影响和建议顺序；未得到用户明确
   确认时，只在报告中记录 `cleanup: recommended`，不得主动删除 VM、浮动 IP、
   云硬盘、快照等资源。
@@ -54,6 +89,7 @@ description: "Use when testing EasyStack Cloud Web UI resource operations, valid
 | 页面路径、菜单入口 | [navigation.md](navigation.md) |
 | 执行流程、env、截图、报告 | [execution.md](execution.md) |
 | 组件交互 helper | [interactions.md](interactions.md) |
+| 当前控制台探索结果 | [patterns/current-console-discovery.md](patterns/current-console-discovery.md) |
 | 测试编排规则 | [patterns.md](patterns.md) |
 | 资源关系和联动 | [relationships.md](relationships.md) |
 

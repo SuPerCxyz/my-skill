@@ -123,7 +123,7 @@ const nextButton = [...document.querySelectorAll('button')].find((btn) => /next/
 if (!nextButton) {
   ({ ok: false, resource: 'instance', action: 'create', name: input.name, status: 'button_unavailable', message: 'Next button unavailable', url: location.href });
 } else {
-  nextButton.click();
+  nextButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'instance', action: 'create', name: input.name, status: 'wizard_progressing', message: 'fill one wizard step per eval, set Root Disk before network step, then submit and poll instance list', url: location.href });
 }
 ```

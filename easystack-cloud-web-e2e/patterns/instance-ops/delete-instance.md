@@ -25,6 +25,13 @@
 - 已触发删除确认
 - 刷新列表后不再找到目标实例
 
+### 操作注意
+
+- 行选择优先点击可见 checkbox wrapper，不要默认只点隐藏 input。
+- 删除弹窗可能是双确认 footer；第一层删除后必须重新获取当前 modal，再处理
+  第二层 `Confirm`。
+- 确认按钮只允许在当前最上层 modal 内定位。
+
 ### 执行步骤概览
 
 - 打开实例列表页并确认当前会话仍处于已登录状态
@@ -62,8 +69,10 @@ const row = [...document.querySelectorAll('tr')].find((item) => text(item).inclu
 if (!row) {
   ({ ok: false, resource: 'instance', action: 'delete', name: input.name, status: 'missing', message: 'instance not found', url: location.href });
 } else {
-  row.querySelector('input[type="checkbox"]')?.click();
-  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
+    ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'instance', action: 'delete', name: input.name, status: 'menu_opened', message: 'click Delete, confirm dialog, then poll /eec/instances until row disappears', url: location.href });
 }
 ```

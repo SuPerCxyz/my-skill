@@ -21,8 +21,8 @@
 
 | 按钮 | 定位方式 | 状态 |
 |------|--------|------|
-| Allocate | `agent-browser find text "Allocate" click` | 始终可用（蓝色主按钮） |
-| Actions | 工具栏 Actions 下拉 | 默认禁用，选中 1+ 行后可用 |
+| Apply For IP To Project | `agent-browser find text "Apply For IP To Project" click` | 始终可用 |
+| Release Floating IPs | 顶部批量按钮 | 默认禁用，选中 1+ 行后可用 |
 | Refresh | 工具栏 icon 按钮 | 始终可用 |
 | Export | 工具栏 Export icon | 有数据时可用 |
 | Setup | 工具栏 Setup icon | 始终可用 |
@@ -51,26 +51,40 @@
 | Project |
 | Created At |
 
-## 表格列（5 列）
+## 表格列
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
 | (选择框) | ❌ | 全选 checkbox |
-| Floating IP / Name | ✅ | 浮动 IP 地址和名称，点击进入详情 |
-| Description | ❌ | 描述信息 |
-| Port | ❌ | 绑定的端口信息（"-" 表示未绑定） |
-| Status | ❌ | 状态：Bound / Unbound |
-| Created At | ✅ | 创建时间 |
+| IP Address | ✅ | 浮动 IP 地址 |
+| Tags | ❌ | 标签 |
+| Related router | ❌ | 关联路由 |
+| Attach Resource | ✅ | 已绑定资源，如 `Instance: <name>` |
+| Bandwidth(Mbps) | ✅ | 带宽 |
+| Floating IP Pool | ✅ | 资源池 |
+| Domain/Project | ❌ | 租户/项目 |
+| Creation Time | ✅ | 创建时间 |
+| Action | ❌ | 行内动作列 |
 
-### 示例数据行
+### 行内动作实测
 
-```
-Floating IP / Name: 172.35.0.103 / fip_api_test_001
-Description: -
-Port: -
-Status: Bound
-Created At: 16 Jun 2026 22:50
-```
+- 已绑定资源行：
+  `Release Floating IPs`、`Disassociate`、`Update Bandwidth`、`More`
+- 未绑定资源行：
+  `Release Floating IPs`、`Bind to resource`、`Update Bandwidth`、`More`
+
+## 勾选与批量操作
+
+- 未勾选时，顶部 `Release Floating IPs` disabled
+- 勾选单条后，顶部 `Release Floating IPs` enabled
+- 本页同时存在“顶部批量动作”和“行内动作”，不要混淆两类入口
+
+## 权限限制
+
+- 以当前云管理员账号在某些浮动 IP 上点击 `Bind to resource` 时，页面可能不会弹出
+  绑定表单，而是直接提示：
+  `Please do this by re-logging into the console as the project administrator/user to which the resource belongs`
+- 这属于产品权限反馈，不应误判为自动化 click 失败。
 
 ## Setup 列配置
 

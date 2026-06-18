@@ -41,6 +41,7 @@
   做真实点击；单纯 DOM `.click()` 可能不会触发 ng-zorro 表格选择状态。
 - 点击 `Start` 后确认弹窗里的主按钮文本仍为 `Start`，不是 `Confirm`；点击时
   必须限定在弹窗内或使用弹窗里的最后一个 `Start` ref。
+- 如果弹窗内带 form，优先提交 form；否则只点击当前最上层 modal 内的主按钮。
 - 如果选中后目标动作按钮仍 disabled，重新获取 snapshot；不要继续空轮询状态，
   因为操作可能根本没有提交。
 
@@ -67,9 +68,11 @@ const row = [...document.querySelectorAll('tr')].find((item) => text(item).inclu
 if (!row) {
   ({ ok: false, resource: 'instance', action: input.action, name: input.name, status: 'missing', message: 'instance not found', url: location.href });
 } else {
-  row.querySelector('label.ant-checkbox-wrapper, label, input[type="checkbox"]')?.click();
+  row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')?.dispatchEvent(
+    new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
+  );
   const direct = [...document.querySelectorAll('button')].find((btn) => new RegExp(input.action, 'i').test(text(btn)) && !btn.disabled);
-  direct?.click();
+  direct?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   ({ ok: true, resource: 'instance', action: input.action, name: input.name, status: direct ? 'submitted_or_confirm_needed' : 'selected', message: 'use direct button or More menu, confirm dialog, then poll instance status', url: location.href });
 }
 ```

@@ -99,6 +99,18 @@ EasyStack Cloud 常见为自签名证书场景，浏览器上下文应允许忽�
 4. 若会话不可复用，再访问登录页并填写表单
 5. 登录成功必须通过 URL 与稳定页面标记联合验证
 
+登录页特殊注意：
+
+- 当前 EasyStack 登录页的可见密码框 `#id_password` 本身没有 `name`；真正提交到
+  后端的是隐藏字段 `#pwd[name="password"]`。
+- 因此不要只依赖“字段里看起来有值”就立刻提交；必须确认 `Sign In` 已从不可提交
+  的普通容器/占位态切换为真正的可点击 `button`。
+- 现场验证中，先对用户名和密码做真实输入，再触发一次 `Tab` 或等价焦点切换，
+  能更稳定地让前端校验和密码处理逻辑完成。
+- 如果提交后仍停在 `/auth_login/` 或 `/ems_dashboard_api/auth_login/`，先检查
+  页面是否出现 `Please input user password`、`Invalid credentials.` 或 captcha，
+  不要立即假定是 ref 失效或按钮点击失败。
+
 登录表单的稳定定位方式基线：
 
 | 字段 | 定位方式 |
@@ -123,6 +135,13 @@ EasyStack Cloud 常见为自签名证书场景，浏览器上下文应允许忽�
 项目上下文错误会导致页面按钮被置为 disabled，或者列表资源为空。例如当前用户
 菜单显示为 `pgc` 不代表左上角项目也是 `pgc`；必须以 `.projects-switch-wrapper`
 显示值为准。
+
+现场验证补充：
+
+- `/tmp/easystack-env.json` 未显式提供 `resources.project_name` 时，也应先检查
+  左上角项目。
+- 如果当前项目没有创建目标资源所需的配额、网络、镜像或卷类型，必须先切到
+  正确项目，再执行资源创建、挂载、绑定等操作。
 
 项目切换示例：
 
