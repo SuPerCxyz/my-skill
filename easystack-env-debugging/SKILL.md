@@ -5,12 +5,12 @@ description: "Use when debugging EasyStack services deployed on Kubernetes. Dete
 
 # EasyStack Environment Debugging
 
-## Overview
+## Overview 概览
 
 OpenStack services run on Kubernetes (Helm-deployed) in the `openstack` namespace.
 This skill automates SSH access based on the target environment IP pattern.
 
-## Quick Reference - File Index
+## Quick Reference 快速参考 - 文件索引
 
 | When you need... | Read |
 |------------------|------|
@@ -25,13 +25,13 @@ This skill automates SSH access based on the target environment IP pattern.
 | Service failing to start, database issues, config debugging, helm rollback | [scenarios.md](scenarios.md) |
 | Essential commands, environment constants, namespaces | [reference.md](reference.md) |
 
-## Environment Access Flow
+## Environment Access Flow 环境访问流程
 
-### Step 1: Determine target IP
+### Step 1: Determine Target IP 确定目标 IP
 
 Ask the user for the target environment IP or hostname.
 
-### Step 2: Check IP pattern and SSH in
+### Step 2: Check IP Pattern and SSH In 检查 IP 模式并 SSH 接入
 
 **If IP starts with `172.18.`** → Jump host mode:
 
@@ -57,7 +57,7 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeou
 ssh node-3 'multipath -ll'
 ```
 
-### Step 3: Verify access
+### Step 3: Verify Access 验证可访问性
 
 After SSH, run:
 
@@ -72,7 +72,7 @@ kubectl get namespaces | grep openstack
   ```
 - **Still fails** → Report SSH succeeded but kubectl unavailable. Ask user for correct node or access method.
 
-### Step 4: Fallback
+### Step 4: Fallback 回退方案
 
 If neither jump host mode nor direct SSH mode work:
 
@@ -80,7 +80,7 @@ If neither jump host mode nor direct SSH mode work:
 
 Wait for user to provide the correct access command, then proceed.
 
-## Quick Start - Once Inside
+## Quick Start 快速开始 - 进入环境后
 
 ```bash
 # Enter busybox pod (has openstack CLI, mysql client)
@@ -99,7 +99,7 @@ kubectl logs -n openstack -l service=<service-name> --tail=100
 ssh node-3 'multipath -ll'
 ```
 
-## Skill 维护原则
+## Skill Maintenance Principles Skill 维护原则
 
 不是每次调查都要更新 skill。只有满足以下条件才值得加:
 

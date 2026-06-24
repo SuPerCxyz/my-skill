@@ -7,11 +7,11 @@ description: "Context-efficient agent rules for Claude Code / Claude Code Router
 
 适用于 Claude Code / Claude Code Router / ccswitch 场景的精简 Agent 规则集。核心目标:控制上下文膨胀，避免 Autocompact thrashing 和 Input too long。
 
-## 核心硬规则
+## Core Hard Rules 核心硬规则
 
 以下规则优先级最高，任何任务开始前必须遵守。
 
-### 工具调用限制
+### Tool Call Limits 工具调用限制
 
 1. **默认不调用 MCP** — 仅在以下情况才允许调用 MCP 工具:
    - 用户明确要求使用某个 MCP 工具
@@ -33,7 +33,7 @@ description: "Context-efficient agent rules for Claude Code / Claude Code Router
    - 超长输出必须先摘要(提取关键行)再继续
    - 禁止将完整日志 / 完整文件内容贴入上下文
 
-### Autocompact 防护
+### Autocompact Protection Autocompact 防护
 
 当出现以下信号时，立即执行应急措施:
 - 系统提示 `Autocompact` 或 `compacting context`
@@ -46,7 +46,7 @@ description: "Context-efficient agent rules for Claude Code / Claude Code Router
 3. **建议用户执行 `/clear`** 或缩小任务范围
 4. 若用户拒绝 `/clear`，切换为极简模式:只做当前步骤，不做任何额外探索
 
-### 大输出处理流程
+### Large Output Handling 大输出处理流程
 
 ```
 工具输出 > 200 行?

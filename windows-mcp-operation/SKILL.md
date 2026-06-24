@@ -7,7 +7,7 @@ description: "Use when the user asks to operate a real Windows desktop via the w
 
 通过 windows-mcp server 操作和观察真实 Windows 桌面，包括截屏、窗口控制、鼠标键盘操作、系统管理等。
 
-## Quick Decision
+## Quick Decision 快速决策
 
 | 场景 | 首选工具 | 备注 |
 |------|----------|------|
@@ -33,7 +33,7 @@ description: "Use when the user asks to operate a real Windows desktop via the w
 | 多选 UI 元素 | `MultiSelect` | 支持 press_ctrl |
 | 抓取网页 | `Scrape` | 可选 DOM 模式 |
 
-## Quick Reference - File Index
+## Quick Reference 快速参考 - 文件索引
 
 | 当需要... | 阅读 |
 |-----------|------|
@@ -47,14 +47,14 @@ description: "Use when the user asks to operate a real Windows desktop via the w
 | 推荐工作流(启动应用、填表、键盘操作等) | [workflows.md](reference/workflows.md) |
 | 安全规则和接口注意事项 | [safety.md](reference/safety.md) |
 
-## When NOT to Use This Skill
+## When NOT to Use This Skill 何时不应使用本 skill
 
 - 浏览器内操作(导航、填表、点击网页元素)→ 用 Playwright MCP
 - 纯命令行 / shell 操作 → 直接用 Bash
 - 不需要与 Windows 桌面交互的任何任务
 - 判断标准:是否需要操作真实的 Windows 窗口、图标、桌面应用
 
-## Key Reminders
+## Key Reminders 关键提醒
 
 - 操作前先 `Snapshot` 确认桌面状态
 - `Type` / `Move` / `Click` 的 `label` 必须为整数 ID，非字符串

@@ -7,7 +7,7 @@ description: "Use when the user wants to organize a media library: TMDB scraping
 
 媒体库整理
 
-## 核心原则
+## Core Principles 核心原则
 
 ```
 自动扫描 + 自动匹配 + 自动预览
@@ -29,7 +29,7 @@ description: "Use when the user wants to organize a media library: TMDB scraping
 但真实文件修改必须经过明确确认
 ```
 
-## 关键安全规则
+## Key Safety Rules 关键安全规则
 
 1. **默认永远 dry-run**，不允许直接修改文件。
 2. 只有用户明确回复「确认执行 / 执行 / apply / run」后，才允许执行真实重命名。
@@ -48,7 +48,7 @@ description: "Use when the user wants to organize a media library: TMDB scraping
 
 ---
 
-## 输入
+## Input 输入
 
 用户提供一个**文件夹路径**，可以是:
 
@@ -59,7 +59,7 @@ Skill 会自动扫描并逐个处理。
 
 ---
 
-## 配置参数
+## Configuration Parameters 配置参数
 
 ```yaml
 options:
@@ -95,7 +95,7 @@ options:
 
 ---
 
-## 媒体库根目录规则
+## Media Root Rules 媒体库根目录规则
 
 - 如果 `media_root` 未设置，则默认使用用户输入路径的父目录作为安全边界
 - `target_root` 必须位于 `media_root` 内
@@ -105,7 +105,7 @@ options:
 
 ---
 
-## 执行门禁
+## Execution Gate 执行门禁
 
 ```
 默认永远 dry-run，不允许直接修改文件。
@@ -128,7 +128,7 @@ options:
 
 ---
 
-## Dry-Run 行为规则
+## Dry-Run Behavior Rules Dry-Run 行为规则
 
 dry-run 模式下允许的操作:
 - 扫描文件
@@ -147,9 +147,9 @@ dry-run 模式下禁止的操作:
 
 ---
 
-## 文件类型识别
+## File Type Recognition 文件类型识别
 
-### 视频文件扩展名
+### Video File Extensions 视频文件扩展名
 
 ```
 .mp4 .mkv .avi .mov .wmv .flv .ts .m2ts .mts .webm .rmvb .mpg .mpeg .iso
@@ -157,7 +157,7 @@ dry-run 模式下禁止的操作:
 
 只有视频文件参与 movie / episode 判断。
 
-### 字幕文件扩展名
+### Subtitle File Extensions 字幕文件扩展名
 
 ```
 .srt .ass .ssa .sub .idx .sup .vtt
@@ -165,7 +165,7 @@ dry-run 模式下禁止的操作:
 
 字幕文件必须绑定主视频，不单独作为资源。跟随主视频重命名，保留语言后缀。
 
-### 图片 / NFO / 附属文件扩展名
+### Image / NFO / Accessory Extensions 图片 / NFO / 附属文件扩展名
 
 ```
 .nfo .jpg .jpeg .png .webp .txt .url
@@ -173,13 +173,13 @@ dry-run 模式下禁止的操作:
 
 NFO / 图片 / txt / url 默认作为附属文件处理，不参与媒体类型判断。
 
-### 未识别扩展名
+### Unrecognized Extensions 未识别扩展名
 
 默认保留，不删除、不移动，除非用户明确要求。
 
 ---
 
-## 子文件索引
+## Sub-file Index 子文件索引
 
 | 文件 | 内容 | 何时查阅 |
 |------|------|---------|

@@ -5,24 +5,24 @@ description: "Use when running CI tests for EasyStack OpenStack projects: tox co
 
 # EasyStack CI Test
 
-EasyStack OpenStack projects use tox for CI testing. This skill covers running `tox -e pep8` (flake8 linting) and `tox -e cover` (unit test coverage), plus auto-fixing failures until both pass.
+EasyStack OpenStack 项目使用 tox 进行 CI 测试。本 skill 覆盖运行 `tox -e pep8`(flake8 代码检查) 与 `tox -e cover`(单元测试覆盖率), 并在失败时自动修复直到两者全部通过。
 
-## Quick Reference - File Index
+## Quick Reference 快速参考 - 文件索引
 
-| When you need... | Read |
-|------------------|------|
-| Environment setup (Miniconda env auto-create/activate) | [setup.md](setup.md) |
-| Running tox commands (pep8, cover, stestr) | [tox.md](tox.md) |
-| Fixing pep8 / flake8 errors | [pep8.md](pep8.md) |
-| Fixing coverage gaps, checking HTML reports | [coverage.md](coverage.md) |
-| Testing privsep entrypoint-decorated functions | [privsep.md](privsep.md) |
-| Auto-fix loop workflow (cover → pep8 cycle) | [auto-fix.md](auto-fix.md) |
+| 需要做什么 | 阅读 |
+|------------|------|
+| 环境配置(Miniconda 虚拟环境自动创建/激活) | [setup.md](setup.md) |
+| 运行 tox 命令(pep8, cover, stestr) | [tox.md](tox.md) |
+| 修复 pep8 / flake8 错误 | [pep8.md](pep8.md) |
+| 修复覆盖率缺口, 查看 HTML 报告 | [coverage.md](coverage.md) |
+| 测试 privsep entrypoint 装饰的函数 | [privsep.md](privsep.md) |
+| 自动修复循环工作流(cover -> pep8 循环) | [auto-fix.md](auto-fix.md) |
 
-## Quick Start
+## Quick Start 快速开始
 
-### Step 0: Locate Miniconda installation
+### Step 0: 定位 Miniconda 安装位置
 
-Search for Miniconda3 in common locations:
+在常见路径搜索 Miniconda3:
 
 ```bash
 # Find conda in common paths
@@ -42,25 +42,25 @@ done || echo "miniconda3 not found in common paths"
 # find / -maxdepth 4 -name "conda.sh" -type f 2>/dev/null | head -5
 ```
 
-- **If found** → Note the path, then follow Step 1 to activate the conda environment.
-- **If not found** → Ask the user:
+- **找到** -> 记录路径, 然后按 Step 1 激活 conda 环境。
+- **未找到** -> 向用户确认:
 
-  > ⚠️ 未找到 Miniconda3。请确认:
+  > 未找到 Miniconda3。请确认:
   > 1. 提供 Miniconda3 的安装路径
   > 2. 安装 Miniconda3 后继续
   > 3. 不使用虚拟环境直接运行 CI(使用系统 Python)
 
-  - 用户选择 **安装** → 提供安装命令或引导用户自行安装
-  - 用户选择 **不使用虚拟环境** → 确认后直接跳转到 [`tox.md`](tox.md) 运行 tox
+  - 用户选择 **安装** -> 提供安装命令或引导用户自行安装
+  - 用户选择 **不使用虚拟环境** -> 确认后直接跳转到 [`tox.md`](tox.md) 运行 tox
 
-### Step 1: Activate conda environment (if available)
+### Step 1: 激活 conda 环境(如可用)
 
-Follow [setup.md](setup.md) to:
-1. Detect project name from current directory
-2. Find the Miniconda installation directory and source its `conda.sh`
-3. Detect Python version from `tox.ini` (`basepython` field)
-4. Activate or create env named `easystack-<project>-py<version>` (e.g. `py39`, `py312`)
-5. Install `tox` in the env
+按 [setup.md](setup.md) 执行:
+1. 从当前目录推断项目名
+2. 找到 Miniconda 安装目录并 source 其 `conda.sh`
+3. 从 `tox.ini` 的 `basepython` 字段检测 Python 版本
+4. 激活或创建名为 `easystack-<project>-py<version>` 的环境(例如 `py39`, `py312`)
+5. 在环境中安装 `tox`
 
 ```bash
 # Example: in a cinder project with python3.9
@@ -71,21 +71,19 @@ conda activate easystack-cinder-py39  # if exists
 # or create + activate + install tox
 
 # Then run tox (always after conda activate, never directly)
-tox -e cover   # Coverage check (run first, takes ~5 min)
-tox -e pep8    # Lint check (run last, takes ~40 sec)
+tox -e cover   # 覆盖率检查(先跑, 约 5 分钟)
+tox -e pep8    # 代码风格检查(后跑, 约 40 秒)
 ```
 
-> ⚠ **Always activate the Miniconda environment before running `tox`.** Running
-> `tox` directly from the system Python will use the wrong interpreter or miss
-> dependencies.
+> 永远先激活 Miniconda 环境再运行 `tox`。直接用系统 Python 运行 `tox` 会用错解释器或缺失依赖。
 
-When either fails, follow the [auto-fix loop](auto-fix.md) until both pass.
+任一失败时, 按 [auto-fix.md](auto-fix.md) 中的自动修复循环处理, 直到两者全部通过。
 
-## Code Scope
+## Code Scope 代码范围
 
-When running `tox -e pep8` or `tox -e cover`, the scope is the **combined state** of:
+运行 `tox -e pep8` 或 `tox -e cover` 时, 测试范围是以下**合并状态**:
 
-1. The latest unmerged commit shown by `git log` on the current branch
-2. All uncommitted changes (both staged via `git add` and unstaged working tree modifications)
+1. 当前分支上 `git log` 所示最近一个未合并 commit
+2. 全部未提交改动(已 `git add` 暂存 + 工作区未暂存)
 
-During development, code may be partially `git add`ed or still being modified. The tests should cover the integrated state of all these changes together - treat the working tree as the complete codebase to validate.
+开发过程中代码可能部分已 `git add` 或仍在修改中。测试应覆盖这些改动的整合状态 - 把工作区视为待验证的完整代码库。

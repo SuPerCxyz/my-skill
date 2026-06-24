@@ -5,7 +5,7 @@ description: "Use when testing EasyStack Cloud Web UI resource operations, valid
 
 # EasyStack Cloud Web E2E
 
-## 执行硬规则
+## Hard Rules 执行硬规则
 
 - 必须通过 `agent-browser` 操作 EasyStack Cloud Web 页面。
 - UI 测试必须优先使用 `agent-browser` CLI;如果本机没有该命令，先安装:
@@ -81,7 +81,7 @@ description: "Use when testing EasyStack Cloud Web UI resource operations, valid
   `ready-validated`，`ready-template` 执行时必须现场确认页面状态，
   `planned` 不作为当前执行入口。
 
-## 入口选择
+## Entry Selection 入口选择
 
 | 用户目标 | 先读 |
 |----------|------|
@@ -93,7 +93,7 @@ description: "Use when testing EasyStack Cloud Web UI resource operations, valid
 | 测试编排规则 | [patterns.md](patterns.md) |
 | 资源关系和联动 | [relationships.md](relationships.md) |
 
-## 原子操作库
+## Atomic Operations 原子操作库
 
 | 资源域 | 文档 |
 |--------|------|
@@ -107,7 +107,7 @@ description: "Use when testing EasyStack Cloud Web UI resource operations, valid
 | 操作模板 | [patterns/operation-template.md](patterns/operation-template.md) |
 | 平台信息和主路径 | [patterns/platform-info.md](patterns/platform-info.md) |
 
-## 页面知识库
+## Page Knowledge Base 页面知识库
 
 | 资源域 | 文档 |
 |--------|------|
@@ -128,7 +128,7 @@ description: "Use when testing EasyStack Cloud Web UI resource operations, valid
 | 路由器 | [network/router.md](network/router.md) |
 | 浮动 IP | [network/floating-ip.md](network/floating-ip.md) |
 
-## 决策路径
+## Decision Path 决策路径
 
 1. 直接创建、删除、挂载、绑定资源:读 `patterns/login.md` 和对应 `patterns/*-ops.md`。
 2. 执行测试用例:读 `execution.md`、`patterns.md` 和相关原子操作文档。
