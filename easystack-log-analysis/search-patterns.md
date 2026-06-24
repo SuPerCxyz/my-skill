@@ -187,6 +187,10 @@ grep -i "error\|fail\|critical\|i/o error\|kernel.*panic" os/messages.*.log | ta
 # SCSI/iSCSI
 grep -i "iscsi\|scsi\|multipath\|dm-" os/messages.*.log
 
+# iSCSI target reachability — Connection refused is the most direct signal
+# that the iSCSI target backend is not serving the portal
+grep -iE "iscsid.*connect to.*failed \(Connection refused\)" os/messages.*.log
+
 # Network
 grep -i "link.*down\|link.*up\|carrier\|nic\|eth" os/messages.*.log
 
@@ -195,6 +199,37 @@ grep -i "oom\|out of memory\|kill" os/messages.*.log
 
 # Filesystem
 grep -i "filesystem.*error\|fsck\|journal\|corrupt" os/messages.*.log
+```
+
+## Boot Log (os/boot.*.log)
+
+The boot log captures systemd's view of the boot sequence — when each OS-level
+service (iscsid, kubelet, containerd, OVS, chronyd, sshd) actually started.
+Useful for:
+
+- Determining the **exact reboot time** of a physical node
+- **Service startup order** — whether kubelet/iscsid started before or after
+  nova-compute tried to reconnect volumes
+- Identifying **failed systemd units** during boot
+
+```bash
+# Extract the full boot timeline (systemd journal-style)
+cat os/boot.*.log
+
+# Focus on specific service start times
+grep -iE "Starting|Started|FAILED" os/boot.*.log
+
+# Check iscsid / iSCSI readiness
+grep -iE "iscsi|open-iscsi" os/boot.*.log
+
+# Check container runtime readiness
+grep -iE "containerd|kubelet|docker" os/boot.*.log
+
+# Check storage services
+grep -iE "ceph|rbd|multipath" os/boot.*.log
+
+# Check network services
+grep -iE "open.?vswitch|ovs|network|ethernet" os/boot.*.log
 ```
 
 ## Ceph
@@ -452,16 +487,42 @@ done
 
 ### 服务可用时间线（节点重启后）
 
+> `os/boot.*.log` 比 `os/messages.*.log` 更准确地给出系统级服务的启动时序。
+> 优先从 boot.log 提取 iscsid/containerd/kubelet/OVS 的 ready 时间。
+
 ```bash
 # 一个节点上各关键服务的 "Starting" 时间
-NODE_DIR=ecs.node-X.20260618.0
+NODE_DIR=ecs.node-X.YYYYMMDD.N
+
+# kernel boot 时间（messages 第一条）
 echo "== kernel boot =="
-zgrep -h "Linux version" $NODE_DIR/os/messages.*.log* | head -1 | awk -F' ¦ ' '{print $1}'
-for svc in nova-compute cinder-volume alcubierre-target alcubierre-node alcubierre-manager libvirt; do
-  f=$(ls $NODE_DIR/**/$svc.node-*.log 2>/dev/null | head -1)
+head -1 "$NODE_DIR/os/messages."*.log | awk -F' ¦ ' '{print $1}'
+
+# systemd multi-user target 时间（boot.log 结尾）
+echo "== systemd boot complete =="
+grep -E "Reached target.*Multi-User\|Reached target.*Graphical" \
+  "$NODE_DIR/os/boot."*.log | tail -1 | awk -F' ¦ ' '{print $1}'
+
+# 各服务启动时间
+for svc in nova-compute cinder-volume alcubierre-target alcubierre-node \
+           alcubierre-manager libvirtd kubelet containerd iscsid; do
+  f=$(ls "$NODE_DIR"/**/$svc.node-*.log 2>/dev/null | head -1)
   [ -z "$f" ] && continue
   ts=$(grep -iE "Starting|started" "$f" | head -1 | awk -F' ¦ ' '{print $1}')
-  printf "%-22s ready: %s\n" "$svc" "$ts"
+  [ -n "$ts" ] && printf "%-22s %s\n" "$svc" "$ts"
+done
+```
+
+跨节点对比：
+
+```bash
+for d in ecs.*/; do
+  node=$(basename "$d" | cut -d. -f2)
+  for svc in nova-compute cinder-volume alcubierre-target; do
+    f=$(ls "$d"/**/$svc.node-*.log 2>/dev/null | head -1)
+    ts=$(grep -iE "Starting|started" "$f" 2>/dev/null | head -1 | awk -F' ¦ ' '{print $1}')
+    [ -n "$ts" ] && printf "%-10s %-22s %s\n" "$node" "$svc" "$ts"
+  done
 done
 ```
 

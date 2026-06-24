@@ -328,33 +328,59 @@ grep -E "Instance rebooted successfully|Failed to resume instance" \
 - 全部失败 → 节点级 / 基础设施问题（去 Step 5）
 - 只这一台失败 → VM 个体问题（卷 / BDM / 镜像），直接出报告
 
-### Step 5：上游基础设施快查（30 秒）
+### Step 5：上游基础设施脉冲检查（30 秒）
+
+在聚焦 VM 之前，先确认基础设施层是否健康。基础设施异常往往是 VM 问题的上游根因。
 
 ```bash
-# OS 层 + 基础设施 + 操作审计 三联打
-grep -iE "panic|softlockup|Out of memory|i/o error|link is (up|down)|iscsi.*recovery|multipath" \
+# (a) OS 层：内核错误、OOM、磁盘 I/O、网络链路
+grep -iE "panic|softlockup|Out of memory|i/o error|link is (up|down)|iscsi.*recovery|iscsid.*connect to.*failed \(Connection refused\)|multipath" \
   ecs.<node>/os/messages.*.log | head -20
+
+# (b) 控制面基础设施：Galera 集群、RabbitMQ 分区、chrony 时钟漂移
 grep -iE "WSREP|non-primary|partition|HEALTH_(WARN|ERR)" \
-  ecs.<node>/openstack/{mariadb,rabbitmq}/*.log ecs.<node>/os/chrony.*.log ecs.<node>/ceph/*.log 2>/dev/null | head -20
-grep -E "systemctl|reboot|shutdown|drain|reset" \
+  ecs.<node>/openstack/mariadb/*.log ecs.<node>/openstack/rabbitmq/*.log \
+  ecs.<node>/os/chrony.*.log 2>/dev/null | head -20
+
+# (c) Ceph 集群健康
+grep -E "HEALTH_(WARN|ERR)" ecs.<node>/ceph/host.ceph.*.log 2>/dev/null | tail -5
+
+# (d) Ceph CSI driver 是否注册（影响 RBD PVC 挂载）
+grep -iE "rbd.csi.ceph.com not found in the list of registered CSI drivers" \
+  ecs.<node>/os/messages.*.log | head -5
+
+# (e) 操作审计：近期人工操作
+grep -E "systemctl|reboot|shutdown|drain|reset|kubectl delete" \
   ecs.<node>/openstack/dozer/bash-history.*.log | tail -20
 ```
 
-任何一行强信号都要纳入根因候选。
+**任何一行强信号都要纳入根因候选。** 如果基础设施层（Galera/RabbitMQ/Ceph/CSI）有异常，VM 问题往往是表象而非根因。
+
+**快速判断分支：**
+- 基础设施无异常，仅个别 VM 失败 → 聚焦 VM 个体（卷 / BDM / 镜像）
+- 基础设施有异常 + 多个服务同时报错 → 先解基础设施问题，再回看 VM
+- 仅 iSCSI target `Connection refused` → 检查 Alcubierre 节点状态和启动时序
 
 ### Step 6：节点重启时间 + 服务可用时间对齐
+
+> `os/boot.*.log` 比 `os/messages.*.log` 更准确。boot.log 记录 systemd 启动序列，
+> 可以精确看到 iscsid/containerd/kubelet 各在什么时间点 ready。
 
 ```bash
 # 节点真实启动时间（kernel 起来）
 zgrep -h "Linux version\|Command line: BOOT_IMAGE" ecs.<node>/os/messages.*.log* | head -3 \
   | awk -F' ¦ ' '{print $1, "|", substr($5,1,150)}'
 
+# systemd boot complete（更准确）
+grep -E "Reached target.*Multi-User\|Reached target.*Graphical" \
+  ecs.<node>/os/boot.*.log | tail -1 | awk -F' ¦ ' '{print $1}'
+
 # 各 OpenStack/存储/网络服务可用时间
-for svc in nova-compute cinder-volume alcubierre-target alcubierre-node libvirt; do
+for svc in nova-compute cinder-volume alcubierre-target alcubierre-node libvirt kubelet containerd iscsid; do
   f=$(ls ecs.<node>/**/$svc.node-*.log 2>/dev/null | head -1)
   [ -z "$f" ] && continue
-  ts=$(grep -i "Starting\|started" "$f" | head -1 | awk -F' ¦ ' '{print $1}')
-  echo "$svc ready: $ts"
+  ts=$(grep -iE "Starting|started" "$f" | head -1 | awk -F' ¦ ' '{print $1}')
+  [ -n "$ts" ] && echo "$svc ready: $ts"
 done
 ```
 
