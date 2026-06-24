@@ -1,8 +1,8 @@
-# SSH 密钥对（SSH Key Pair）
+# SSH 密钥对(SSH Key Pair)
 
 ## agent-browser 迁移说明
 
-本文件保留页面字段、步骤和断言知识；执行入口统一迁移到 agent-browser。
+本文件保留页面字段、步骤和断言知识;执行入口统一迁移到 agent-browser。
 文中的历史代码块已替换为 agent-browser 迁移说明，新增用例必须使用 `agent-browser eval --stdin` 或 `agent-browser batch` 示例。
 
 ## 页面信息
@@ -33,7 +33,7 @@ SSH 密钥对基于非对称加密，用于安全访问云主机。创建云主�
 
 Name、Tags、User、Fingerprint
 
-## 表格列（5 列）
+## 表格列(5 列)
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
@@ -44,27 +44,27 @@ Name、Tags、User、Fingerprint
 | User | ✅ | 创建用户 |
 | Fingerprint | ✅ | MD5 指纹 |
 
-### 展开行（子表格）
+### 展开行(子表格)
 
-点击展开按钮显示公钥内容：
+点击展开按钮显示公钥内容:
 
 | 列名 | 说明 |
 |------|------|
-| Public Key | 完整公钥文本（如 ssh-ed25519 AAAA...） |
+| Public Key | 完整公钥文本(如 ssh-ed25519 AAAA...) |
 
 ## Setup 列配置
 
-可配置列：Name、Tags、User、Fingerprint
+可配置列:Name、Tags、User、Fingerprint
 
-按钮：Restore Defaults、Select All、Cancel、Confirm
+按钮:Restore Defaults、Select All、Cancel、Confirm
 
 ## Export 行为
 
 点击 Export 立即下载 CSV 文件
 
-文件名格式：`SSH Key Pair_YYYYMMDDHHmmss.csv`
+文件名格式:`SSH Key Pair_YYYYMMDDHHmmss.csv`
 
-CSV 列：Name、Tags、User、Fingerprint、Public Key
+CSV 列:Name、Tags、User、Fingerprint、Public Key
 
 ## 创建 Key Pair 弹窗
 
@@ -72,7 +72,7 @@ CSV 列：Name、Tags、User、Fingerprint、Public Key
 |------|------|--------|------|
 | Key Pair Name | ✅ | `input[placeholder="Enter 1 to 128 characters in length"]` | 1-128 字符 |
 
-弹窗按钮：Cancel、Create
+弹窗按钮:Cancel、Create
 
 > 创建后会显示私钥下载对话框，需立即保存私钥。
 
@@ -83,14 +83,14 @@ CSV 列：Name、Tags、User、Fingerprint、Public Key
 | Key Pair Name | ✅ | `input[placeholder="Enter 1 to 128 characters in length"]` | 1-128 字符 |
 | Public Key | ✅ | `input[placeholder="Please public Key is required."]` | 完整公钥文本 |
 
-弹窗按钮：Cancel、Import
+弹窗按钮:Cancel、Import
 
 ## 测试用例
 
 ### TC-K001: 创建 Key Pair
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -100,7 +100,7 @@ agent-browser 执行说明：
 ### TC-K002: 导入 Key Pair
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -110,7 +110,7 @@ agent-browser 执行说明：
 ### TC-K003: 删除 Key Pair
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。

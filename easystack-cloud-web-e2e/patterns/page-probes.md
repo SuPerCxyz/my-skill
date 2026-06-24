@@ -20,30 +20,30 @@ URL，不提交表单、不创建资源、不修改环境。
 
 ## `probe_resource_list_pages`
 
-用途：登录后只读探测实例、云硬盘、浮动 IP 页面上的按钮和表格文本，确认
+用途:登录后只读探测实例、云硬盘、浮动 IP 页面上的按钮和表格文本，确认
 当前 UI 语言、路径和列表结构。
 
-参数：
+参数:
 
-- 环境默认参数：`platform.url`
-- 显式可选参数：`paths`
+- 环境默认参数:`platform.url`
+- 显式可选参数:`paths`
 
-前置条件：
+前置条件:
 
 - 已登录
 - 目标页面可访问
 
-成功判定：
+成功判定:
 
 - 返回每个页面的 URL、按钮文本、表头文本和前几行表格文本。
 
-失败信号：
+失败信号:
 
 - 页面跳回登录页
 - 页面主表格不可见
 - 探测脚本返回空结果
 
-返回值约定：
+返回值约定:
 
 ```json
 {
@@ -54,7 +54,7 @@ URL，不提交表单、不创建资源、不修改环境。
 }
 ```
 
-`agent-browser eval --stdin` 示例：
+`agent-browser eval --stdin` 示例:
 
 ```bash
 agent-browser eval --stdin <<'JS'
@@ -75,18 +75,18 @@ JS
 
 ## `probe_create_instance_page`
 
-用途：只读探测创建实例页面的向导步骤、底部按钮、表格和关键输入字段。
+用途:只读探测创建实例页面的向导步骤、底部按钮、表格和关键输入字段。
 
-页面路径：`/eec/instances/create-instance`
+页面路径:`/eec/instances/create-instance`
 
-字段基线：`instance/instance-details/create-wizard.md`
+字段基线:`instance/instance-details/create-wizard.md`
 
-成功判定：
+成功判定:
 
 - 能读取向导步骤按钮。
 - 能读取镜像、规格、根盘、网络、系统配置字段的可见文本或定位方式存在性。
 
-只读探测示例：
+只读探测示例:
 
 ```bash
 agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/eec/instances/create-instance"
@@ -117,19 +117,19 @@ JS
 
 ## `probe_create_volume_modal`
 
-用途：只读打开创建云硬盘弹窗，读取字段、按钮和默认值；探测结束后关闭弹窗。
+用途:只读打开创建云硬盘弹窗，读取字段、按钮和默认值;探测结束后关闭弹窗。
 
-页面路径：`/ebs/volumes`
+页面路径:`/ebs/volumes`
 
-字段基线：`volume/volume-details/form-fields.md`
+字段基线:`volume/volume-details/form-fields.md`
 
-成功判定：
+成功判定:
 
 - 能打开创建弹窗。
 - 能读取 `Volume Name`、`Volume Source`、`Type`、`Size` 等字段。
 - 探测结束关闭弹窗，不提交创建。
 
-只读探测示例：
+只读探测示例:
 
 ```bash
 agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/ebs/volumes"

@@ -1,6 +1,6 @@
 # start_stop_reboot_instance
 
-> 来源：`patterns/instance-ops.md`，按原子操作拆分。
+> 来源:`patterns/instance-ops.md`，按原子操作拆分。
 
 ## `start_stop_reboot_instance`
 
@@ -23,7 +23,7 @@
 ### 成功判定
 
 - 操作提交成功
-- 实例状态达到 `target_status`；未显式传入时，`start` 对应 `Active`，`stop` 对应 `Shutoff`，`reboot` 对应 `Active`
+- 实例状态达到 `target_status`;未显式传入时，`start` 对应 `Active`，`stop` 对应 `Shutoff`，`reboot` 对应 `Active`
 
 ### 执行步骤概览
 
@@ -35,14 +35,14 @@
 
 ### 操作注意事项
 
-- 实例列表可能先渲染导航和标题，表格稍后才出现；必须等目标实例名称在
+- 实例列表可能先渲染导航和标题，表格稍后才出现;必须等目标实例名称在
   `document.body.innerText` 或 snapshot 中可见后再解析 refs。
 - 行复选框优先使用 `agent-browser snapshot` 中目标行的 `LabelText [ref=...]`
-  做真实点击；单纯 DOM `.click()` 可能不会触发 ng-zorro 表格选择状态。
-- 点击 `Start` 后确认弹窗里的主按钮文本仍为 `Start`，不是 `Confirm`；点击时
+  做真实点击;单纯 DOM `.click()` 可能不会触发 ng-zorro 表格选择状态。
+- 点击 `Start` 后确认弹窗里的主按钮文本仍为 `Start`，不是 `Confirm`;点击时
   必须限定在弹窗内或使用弹窗里的最后一个 `Start` ref。
-- 如果弹窗内带 form，优先提交 form；否则只点击当前最上层 modal 内的主按钮。
-- 如果选中后目标动作按钮仍 disabled，重新获取 snapshot；不要继续空轮询状态，
+- 如果弹窗内带 form，优先提交 form;否则只点击当前最上层 modal 内的主按钮。
+- 如果选中后目标动作按钮仍 disabled，重新获取 snapshot;不要继续空轮询状态，
   因为操作可能根本没有提交。
 
 ### 失败信号

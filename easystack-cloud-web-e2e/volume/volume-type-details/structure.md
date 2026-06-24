@@ -1,6 +1,6 @@
 # 云硬盘类型页面结构与表单
 
-> 来源：`easystack-cloud-web-e2e/volume/volume-type.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/volume/volume-type.md`，按原文标题边界拆分。
 
 ## 页面信息
 
@@ -48,9 +48,9 @@
 | Associated QoS Spec | 关联的 QoS 规格 |
 | Support shared volume | 是否支持共享卷 |
 
-### Extra Specs（扩展规格）
+### Extra Specs(扩展规格)
 
-每个 Volume Type 可以有多个 Extra Specs，以 Key-Value 形式存储：
+每个 Volume Type 可以有多个 Extra Specs，以 Key-Value 形式存储:
 
 | 常用 Key | 说明 | 示例值 |
 |----------|------|--------|
@@ -65,7 +65,7 @@
 | 列名 | 说明 |
 |------|------|
 | Name | QoS 规格名称 |
-| Consume | 消费类型（如 front-end） |
+| Consume | 消费类型(如 front-end) |
 
 ## 创建 Volume Type 表单
 
@@ -77,7 +77,7 @@
 | Extra Specs | 标签页 | ❌ | 扩展规格配置 |
 | - Pre Define | 标签页 | ❌ | 预定义规格 |
 | - Self Define | 标签页 | ❌ | 自定义规格 |
-| Key | 下拉选择 | ❌ | 规格键（选择 Pre Define 时） |
+| Key | 下拉选择 | ❌ | 规格键(选择 Pre Define 时) |
 | Value | 文本输入 | ❌ | 规格值 |
 | Description | 文本输入 | ❌ | 描述 |
 | Support shared volume | 复选框 | ❌ | 是否支持共享卷 |
@@ -88,5 +88,5 @@
 |------|------|------|------|
 | Name | 文本输入 | ✅ | QoS 规格名称 |
 
-> 注意：QoS 规格需要与 Volume Type 关联后才能生效。关联或编辑 QoS 规则不会对已挂载的卷生效，需要重新挂载才能使 QoS 规则生效。
+> 注意:QoS 规格需要与 Volume Type 关联后才能生效。关联或编辑 QoS 规则不会对已挂载的卷生效，需要重新挂载才能使 QoS 规则生效。
 

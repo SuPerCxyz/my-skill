@@ -28,7 +28,7 @@
 
 ## 待迁移操作
 
-以下名称当前仅保留为待迁移操作清单（`planned`），不作为当前可执行入口：
+以下名称当前仅保留为待迁移操作清单(`planned`)，不作为当前可执行入口:
 
 - `resize_instance`
 - `suspend_or_pause_instance`

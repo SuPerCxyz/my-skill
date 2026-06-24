@@ -1,6 +1,6 @@
 # rename_instance
 
-> 来源：`patterns/instance-ops.md`，按原子操作拆分。
+> 来源:`patterns/instance-ops.md`，按原子操作拆分。
 
 ## `rename_instance`
 
@@ -27,7 +27,7 @@
 ### 操作注意
 
 - 行选择优先点击可见 checkbox wrapper，不要默认只点隐藏 input。
-- 提交时必须限定在编辑弹窗内；如果弹窗内存在 form，优先提交 form。
+- 提交时必须限定在编辑弹窗内;如果弹窗内存在 form，优先提交 form。
 
 ### 执行步骤概览
 

@@ -176,13 +176,13 @@ Write a section with:
 
 ### 参数
 
-- `name`：必填，实例名
-- `image`：选填，默认取 `resources.image_name`
-- `flavor`：选填，默认取 `resources.flavor`
-- `network`：选填，默认取 `resources.network_name`
-- `subnet`：选填，默认取 `resources.subnet_name`
-- `system_disk_size`：选填，默认取平台默认值
-- `key_name`：选填，默认取 `ssh.key_name`
+- `name`:必填，实例名
+- `image`:选填，默认取 `resources.image_name`
+- `flavor`:选填，默认取 `resources.flavor`
+- `network`:选填，默认取 `resources.network_name`
+- `subnet`:选填，默认取 `resources.subnet_name`
+- `system_disk_size`:选填，默认取平台默认值
+- `key_name`:选填，默认取 `ssh.key_name`
 
 ### 前置条件
 
@@ -272,7 +272,7 @@ Add a compact section like:
 ```md
 ## 待迁移操作
 
-以下操作仍保留旧格式示例，后续按统一模板迁移：
+以下操作仍保留旧格式示例，后续按统一模板迁移:
 
 - start / stop / reboot_instance
 - clone_instance
@@ -330,9 +330,9 @@ Add an opening like:
 
 ## 状态说明
 
-- `ready`：已按统一契约整理
-- `legacy`：仍为旧格式示例
-- `planned`：已纳入后续迁移范围
+- `ready`:已按统一契约整理
+- `legacy`:仍为旧格式示例
+- `planned`:已纳入后续迁移范围
 ```
 ```
 

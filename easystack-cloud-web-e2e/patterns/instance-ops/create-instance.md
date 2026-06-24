@@ -1,6 +1,6 @@
 # create_instance
 
-> 来源：`patterns/instance-ops.md`，按原子操作拆分。
+> 来源:`patterns/instance-ops.md`，按原子操作拆分。
 
 ## `create_instance`
 
@@ -28,7 +28,7 @@
 - 目标镜像、规格、网络在当前项目中可见
 - 若页面要求显式选择子网，则目标子网在当前项目中可见
 - 已按 `connection.md` 校验左上角项目上下文
-- 如果环境存在多个项目，优先显式使用 `resources.project_name`；未配置时，如
+- 如果环境存在多个项目，优先显式使用 `resources.project_name`;未配置时，如
   创建页出现 `Quota exceeded`，先切换到有目标镜像/网络/配额的项目再重试，不要
   直接判定创建能力不可用。
 
@@ -53,24 +53,24 @@
 
 ### 系统盘大小设置规则
 
-- `system_disk_size` 属于基础配置页，不属于系统配置页；进入网络配置页后再设置
+- `system_disk_size` 属于基础配置页，不属于系统配置页;进入网络配置页后再设置
   已经无效。
 - 定位范围必须限定在 `*Root Disk` / `.system-disk` 区域，避免误改实例数量、
   数据盘数量或镜像最小盘字段。
-- 设置 `Size GiB` 时不能只改 DOM `value`；必须通过页面输入事件触发表单：
+- 设置 `Size GiB` 时不能只改 DOM `value`;必须通过页面输入事件触发表单:
   聚焦输入框 -> 全选/清空 -> 输入目标值 -> 触发 `input`、`change`、`blur`。
-- 设置后立即读取 `*Root Disk` 区域展示值；最终确认页必须再次核对系统盘大小。
+- 设置后立即读取 `*Root Disk` 区域展示值;最终确认页必须再次核对系统盘大小。
 - 如果最终确认页或实例列表显示仍为镜像最小盘，判定为系统盘大小未被页面接受，
   不得在需要严格前置的用例中继续。
 
 ### 登录凭证优先级
 
-系统配置页必须按以下顺序选择登录凭证：
+系统配置页必须按以下顺序选择登录凭证:
 
-1. 同时存在 `vm_defaults.password` 和 `ssh.key_name`：选择 `Both`
-2. 仅存在 `vm_defaults.password`：选择 `Password`
-3. 仅存在 `ssh.key_name`：选择 `SSH Key Pair`
-4. 都不存在：运行时生成密码，选择 `Password`
+1. 同时存在 `vm_defaults.password` 和 `ssh.key_name`:选择 `Both`
+2. 仅存在 `vm_defaults.password`:选择 `Password`
+3. 仅存在 `ssh.key_name`:选择 `SSH Key Pair`
+4. 都不存在:运行时生成密码，选择 `Password`
 
 自动生成的密码只允许写入本次运行报告，不能写回 `/tmp/easystack-env.json`。
 
@@ -79,13 +79,13 @@
 - 缺少名称、镜像、规格、网络或平台地址等必填输入
 - 页面跳转到登录页，说明当前会话失效
 - 镜像、规格、网络、子网或密钥对在页面中不可见或无法选中
-- 当前项目配额不足；这时应记录项目名并尝试按 `resources.project_name` 或项目
+- 当前项目配额不足;这时应记录项目名并尝试按 `resources.project_name` 或项目
   切换器选择正确项目。
 - 轮询超时后，实例仍未出现或未达到目标状态
 
 ### 控件选择注意事项
 
-- 镜像和规格表格行点击可能不会选中 radio；优先点击目标行内的
+- 镜像和规格表格行点击可能不会选中 radio;优先点击目标行内的
   `label.ant-radio-wrapper`。
 - 环境中的 `resources.flavor` 可能带系统盘后缀，例如 `4C-8G-100G`，而页面
   flavor 只显示 `4C-8G`。匹配时先尝试完整值，再尝试去掉末尾磁盘大小后的规格名，

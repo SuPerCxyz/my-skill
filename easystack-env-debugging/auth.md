@@ -1,26 +1,26 @@
 # OpenStack Authentication
 
-## 重要：执行 OpenStack 命令前必须先 source 认证
+## 重要:执行 OpenStack 命令前必须先 source 认证
 
 **busybox pod 没有预设的 OS_ 环境变量，所有 openstack 命令必须在 source 之后执行。**
 
 ```bash
-# ✅ 正确方式一：交互式 shell
+# ✅ 正确方式一:交互式 shell
 kubectl exec -it -n openstack services/busybox -- bash
 source /openrc
 openstack volume list
 
-# ✅ 正确方式二：一次性命令
+# ✅ 正确方式二:一次性命令
 kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack volume list'
 
-# ❌ 错误方式（会报错：missing auth-url / missing OS_USERNAME）
+# ❌ 错误方式(会报错:missing auth-url / missing OS_USERNAME)
 kubectl exec -n openstack services/busybox -- openstack volume list
 kubectl exec -n openstack services/busybox -- cinder show <volume-id>
 ```
 
 ## 两种用户身份
 
-busybox 内可以通过不同认证方式切换身份：
+busybox 内可以通过不同认证方式切换身份:
 
 | 用户 | 认证方式 | 用途 |
 |------|---------|------|
@@ -31,7 +31,7 @@ busybox 内可以通过不同认证方式切换身份：
 # 切到 drone 用户
 source /openrc
 
-# 切到 admin 用户（手动 export）
+# 切到 admin 用户(手动 export)
 export OS_IDENTITY_API_VERSION=3
 export OS_USERNAME=admin
 export OS_PASSWORD='<PASSWORD>'

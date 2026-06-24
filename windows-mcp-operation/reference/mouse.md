@@ -9,7 +9,7 @@
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `loc` | [int, int] | 目标坐标 `[x, y]` |
-| `label` | int | UI 元素 ID（SnapShot 返回的整数，非字符串） |
+| `label` | int | UI 元素 ID(SnapShot 返回的整数，非字符串) |
 | `button` | string | `left` / `right` / `middle` |
 | `clicks` | int | 0=悬停, 1=单击, 2=双击 |
 
@@ -49,7 +49,7 @@
 |------|------|------|
 | `direction` | string | `up` / `down` / `left` / `right` |
 | `type` | string | `vertical` / `horizontal` |
-| `wheel_times` | int | 滚动量（1 wheel ≈ 3-5 行） |
+| `wheel_times` | int | 滚动量(1 wheel ≈ 3-5 行) |
 | `loc` | [int, int] | 滚动位置坐标 |
 | `label` | int | UI 元素 ID |
 
@@ -61,7 +61,7 @@
 
 ## MultiSelect
 
-多选 UI 元素（如文件、复选框）。
+多选 UI 元素(如文件、复选框)。
 
 ### 参数
 

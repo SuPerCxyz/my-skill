@@ -1,8 +1,8 @@
 # 实例 More 菜单操作
 
-> 来源：`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
 
-## More 菜单操作（Active 状态下 31 项）
+## More 菜单操作(Active 状态下 31 项)
 
 ### 顶部按钮状态
 
@@ -11,9 +11,9 @@
 | Start | `buttonByText("Start")` | disabled | - |
 | Shutoff | `buttonByText("Shutoff")` | enabled | 确认对话框 |
 | Reboot | `buttonByText("Reboot")` | enabled | 确认对话框 + Hard Reboot 复选框 |
-| More | `buttonByText("More")` | enabled | 下拉菜单（31 项） |
+| More | `buttonByText("More")` | enabled | 下拉菜单(31 项) |
 
-### Status（状态管理）
+### Status(状态管理)
 
 | 操作 | 定位方式 | Active 状态 | 弹窗 |
 |------|--------|-------------|------|
@@ -22,12 +22,12 @@
 | Suspend | `byText(".ant-dropdown-menu-item", "Suspend")` | enabled | 确认对话框 |
 | Unsuspend | `byText(".ant-dropdown-menu-item", "Unsuspend")` | disabled | - |
 
-### Configuration（配置管理）
+### Configuration(配置管理)
 
 | 操作 | 定位方式 | Active 状态 | 弹窗/字段 |
 |------|--------|-------------|-----------|
 | Edit Name | `byText(".ant-dropdown-menu-item", "Edit Name")` | enabled | Instance Name (必填, 1-128字符) |
-| Resize | `byText(".ant-dropdown-menu-item", "Resize")` | enabled | 完整表单（见下方） |
+| Resize | `byText(".ant-dropdown-menu-item", "Resize")` | enabled | 完整表单(见下方) |
 | Modify Boot Order | `byText(".ant-dropdown-menu-item", "Modify Boot Order")` | disabled | - |
 | Reset Password | `byText(".ant-dropdown-menu-item", "Reset Password")` | disabled | - |
 | Enable Agent | `byText(".ant-dropdown-menu-item", "Enable Agent")` | enabled | 确认对话框 |
@@ -41,12 +41,12 @@
 - **Flavor 列表表格**: checkbox, Flavor Name, vCPU, RAM, vCPU Model
 - 按钮: Cancel, Confirm (选择 flavor 后启用)
 
-### Operation（操作）
+### Operation(操作)
 
 | 操作 | 定位方式 | Active 状态 | 弹窗/字段 |
 |------|--------|-------------|-----------|
-| Clone | `byText(".ant-dropdown-menu-item", "Clone")` | enabled | **完整页面**（见下方） |
-| Create Snapshot | `byText(".ant-dropdown-menu-item", "Create Snapshot")` | enabled | 表单（见下方） |
+| Clone | `byText(".ant-dropdown-menu-item", "Clone")` | enabled | **完整页面**(见下方) |
+| Create Snapshot | `byText(".ant-dropdown-menu-item", "Create Snapshot")` | enabled | 表单(见下方) |
 | Snapshot Rollback | `byText(".ant-dropdown-menu-item", "Snapshot Rollback")` | disabled | - |
 | Edit Tags | `byText(".ant-dropdown-menu-item", "Edit Tags")` | enabled | 输入框: Type to search..., 最多 20 个标签 |
 
@@ -56,7 +56,7 @@
 - **Snapshot Name** (必填, 1-128 字符)
 - **Description** (可选)
 
-#### Clone Instance（完整页面）
+#### Clone Instance(完整页面)
 
 - **Basic Configuration**: Source Instance Name/Flavor (disabled), AZ (必填)
 - **Network Configuration**: Virtual NIC, Type (IPv4/IPv6/Dual Stack), Network (必填), IPv4 Subnet (必填)
@@ -64,15 +64,15 @@
 - **Number of Clones**: 数字定位方式
 - **Quota** 链接
 
-### Network（网络管理）
+### Network(网络管理)
 
 | 操作 | 定位方式 | Active 状态 | 弹窗/字段 |
 |------|--------|-------------|-----------|
-| Associate Floating IP | `byText(".ant-dropdown-menu-item", "Associate Floating IP")` | enabled | 表单（见下方） |
+| Associate Floating IP | `byText(".ant-dropdown-menu-item", "Associate Floating IP")` | enabled | 表单(见下方) |
 | Disassociate Floating IP | `byText(".ant-dropdown-menu-item", "Disassociate Floating IP")` | enabled | 确认对话框 |
 | Associate Network | `byText(".ant-dropdown-menu-item", "Associate Network")` | enabled | 表单 |
 | Disassociate Network | `byText(".ant-dropdown-menu-item", "Disassociate Network")` | enabled | 确认对话框 |
-| Edit Security Group | `byText(".ant-dropdown-menu-item", "Edit Security Group")` | enabled | 穿梭框（见下方） |
+| Edit Security Group | `byText(".ant-dropdown-menu-item", "Edit Security Group")` | enabled | 穿梭框(见下方) |
 | Manage Virtual IP | `byText(".ant-dropdown-menu-item", "Manage Virtual IP")` | enabled | 表单 |
 
 #### Associate Floating IP 对话框
@@ -90,11 +90,11 @@
 - 表格列: Security Groups, Stateful, Creation Time
 - 操作: 勾选后通过中间箭头按钮在两栏间移动
 
-### Storage（存储管理）
+### Storage(存储管理)
 
 | 操作 | 定位方式 | Active 状态 | 弹窗/字段 |
 |------|--------|-------------|-----------|
-| Attach Volume | `byText(".ant-dropdown-menu-item", "Attach Volume")` | enabled | 表单（见下方） |
+| Attach Volume | `byText(".ant-dropdown-menu-item", "Attach Volume")` | enabled | 表单(见下方) |
 | Detach Volume | `byText(".ant-dropdown-menu-item", "Detach Volume")` | enabled | 确认对话框 |
 | Mount ISO | `byText(".ant-dropdown-menu-item", "Mount ISO")` | enabled | 表单 |
 | Unmount ISO | `byText(".ant-dropdown-menu-item", "Unmount ISO")` | enabled | 确认对话框 |
@@ -108,7 +108,7 @@
 - **Instance Name** (disabled, 预填)
 - **Volume** (必填, 下拉选择可用卷)
 
-### Maintenance（维护管理）
+### Maintenance(维护管理)
 
 | 操作 | 定位方式 | Active 状态 | 弹窗 |
 |------|--------|-------------|------|
@@ -174,11 +174,11 @@
 - **Image** (必填, 下拉选择)
 - **Confirm Password** (必填)
 
-### Deletion（删除）
+### Deletion(删除)
 
 | 操作 | 定位方式 | Active 状态 | 弹窗 |
 |------|--------|-------------|------|
-| Delete | `byText(".ant-dropdown-menu-item", "Delete")` | enabled | 确认对话框（见下方） |
+| Delete | `byText(".ant-dropdown-menu-item", "Delete")` | enabled | 确认对话框(见下方) |
 
 #### Delete Instance 对话框
 

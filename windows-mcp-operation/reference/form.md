@@ -13,7 +13,7 @@
 
 ### 规则
 
-- 操作前先 `Snapshot`（`use_ui_tree: true`）确认字段位置
+- 操作前先 `Snapshot`(`use_ui_tree: true`)确认字段位置
 - 优先用 `labels` 模式，`locs` 仅在标签不可用时使用
 - 空数组 `[]` 为安全 no-op
 - 禁止输入密钥 / 密码 / 破坏性命令
@@ -26,7 +26,7 @@
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `app_id` | string | 应用标识（如 `"Windows PowerShell"`） |
+| `app_id` | string | 应用标识(如 `"Windows PowerShell"`) |
 | `title` | string | 通知标题 |
 | `message` | string | 通知正文 |
 

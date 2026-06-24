@@ -4,11 +4,11 @@
 
 - 默认记录 `size` + `mtime`
 - mapping 中使用 `hash_type` + `hash` 字段，不固定使用 sha256
-- `hash_type` 取值：`none` / `quick_hash` / `sha256`
-- 小于 1GB 的文件可计算完整 sha256（`hash_type=sha256`）
-- 大于 1GB 的文件默认使用 quick_hash，读取文件头尾各 64MB（`hash_type=quick_hash`）
+- `hash_type` 取值:`none` / `quick_hash` / `sha256`
+- 小于 1GB 的文件可计算完整 sha256(`hash_type=sha256`)
+- 大于 1GB 的文件默认使用 quick_hash，读取文件头尾各 64MB(`hash_type=quick_hash`)
 - 用户设置 `full_hash=true` 时统一使用 sha256
-- 如果只记录 size + mtime：`hash_type=none`, `hash=null`
+- 如果只记录 size + mtime:`hash_type=none`, `hash=null`
 
 ## 回滚要求
 
@@ -42,10 +42,10 @@
 
 - 目标路径已存在时禁止覆盖
 - 自动生成冲突报告
-- 可选策略：
-  1. `skip`：跳过（默认）
-  2. `suffix`：追加 `-dup1` / `-dup2`
-  3. `replace`：只有用户明确确认后才允许覆盖
+- 可选策略:
+  1. `skip`:跳过(默认)
+  2. `suffix`:追加 `-dup1` / `-dup2`
+  3. `replace`:只有用户明确确认后才允许覆盖
 
 ## 附属文件备份规则
 

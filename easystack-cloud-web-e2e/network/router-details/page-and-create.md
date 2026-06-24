@@ -1,12 +1,12 @@
 # 路由器页面与创建页
 
-> 来源：`easystack-cloud-web-e2e/network/router.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/network/router.md`，按原文标题边界拆分。
 
 ## 页面信息
 
 | 项目 | 值 |
 |------|-----|
-| URL | 当前主路径：`https://<IP>/ens/routers` |
+| URL | 当前主路径:`https://<IP>/ens/routers` |
 | 历史/别名路径 | `https://<IP>/neutron/routers` |
 | 导航路径 | Network → Router |
 | 页面标题 | Routers |
@@ -19,7 +19,7 @@
 
 | 按钮 | 定位方式 | 状态 |
 |------|--------|------|
-| Create Router | `buttonByText("Create Router")` | 始终可用（蓝色主按钮） |
+| Create Router | `buttonByText("Create Router")` | 始终可用(蓝色主按钮) |
 | Refresh | 工具栏 icon 按钮 | 始终可用 |
 | Delete Router | `buttonByText("Delete Router")` | 默认禁用，选中 1+ 行后可用 |
 | Export | 工具栏 Export icon | 有数据时可用 |
@@ -27,7 +27,7 @@
 
 ## 过滤器字段
 
-定位方式：`input[placeholder="Click here for filters."]`
+定位方式:`input[placeholder="Click here for filters."]`
 
 | 过滤字段 |
 |----------|
@@ -43,21 +43,21 @@
 | Project |
 | Creation Time |
 
-## 表格列（11 列）
+## 表格列(11 列)
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
 | (选择框) | ❌ | 全选 checkbox |
 | Name | ✅ | 路由器名称，点击进入详情 |
 | Tags | ❌ | 标签信息 |
-| Availability Zone / Node | ✅ | 可用域和计算节点（两行显示） |
+| Availability Zone / Node | ✅ | 可用域和计算节点(两行显示) |
 | External Network / IP | ✅ | 外部网络名和 IPv4/IPv6 地址 |
 | Bandwidth (Mbps) | ✅ | 带宽，值如 "825" 或 "No limit" |
 | Gateway Firewall | ✅ | 网关防火墙状态 |
 | NAT Gateway | ✅ | NAT 网关状态 |
 | Domain / Project | ❌ | 域和项目 |
 | Creation Time | ✅ | 创建时间 |
-| Action | ❌ | 行内操作：Clear Gateway / Edit / More |
+| Action | ❌ | 行内操作:Clear Gateway / Edit / More |
 
 ### 行内操作按钮
 
@@ -65,21 +65,21 @@
 |------|------|
 | Clear Gateway | 清除网关 |
 | Edit | 编辑路由器 |
-| More | 更多操作（下拉菜单） |
+| More | 更多操作(下拉菜单) |
 
-> **注意**：路由器页面没有独立的 Status 列。路由器状态通过外部网络/IP 关联情况、Gateway Firewall / NAT Gateway 列值体现。
+> **注意**:路由器页面没有独立的 Status 列。路由器状态通过外部网络/IP 关联情况、Gateway Firewall / NAT Gateway 列值体现。
 
 ## Setup 列配置
 
-可配置列：Name、Tags、Availability Zone / Node、External Network / IP、Bandwidth(Mbps)、Gateway Firewall、NAT Gateway、Domain / Project、Creation Time、Action
+可配置列:Name、Tags、Availability Zone / Node、External Network / IP、Bandwidth(Mbps)、Gateway Firewall、NAT Gateway、Domain / Project、Creation Time、Action
 
-按钮：Restore Defaults、Select All、Cancel、Confirm
+按钮:Restore Defaults、Select All、Cancel、Confirm
 
 ## Create Router 页面
 
-URL：当前主路径 `/ens/routers/creator`（独立页面，非弹窗）
+URL:当前主路径 `/ens/routers/creator`(独立页面，非弹窗)
 
-历史/别名路径：`/neutron/routers/create`（仅作旧路径对照，不作为默认执行入口）
+历史/别名路径:`/neutron/routers/create`(仅作旧路径对照，不作为默认执行入口)
 
 ### 基础字段
 
@@ -90,7 +90,7 @@ URL：当前主路径 `/ens/routers/creator`（独立页面，非弹窗）
 | Availability Zone | ✅ | 下拉选择 | 默认 default-az |
 | Set the router gateway | ❌ | 开关 | 开启后显示网关配置区域 |
 
-### 网关配置区域（开启网关后展开）
+### 网关配置区域(开启网关后展开)
 
 | 字段 | 必填 | 类型 | 说明 |
 |------|------|------|------|
@@ -115,15 +115,15 @@ URL：当前主路径 `/ens/routers/creator`（独立页面，非弹窗）
 
 ### Container Router 模式额外字段
 
-选择 Container Router 时，表单切换为 VPC 模式：
+选择 Container Router 时，表单切换为 VPC 模式:
 
 | 字段 | 必填 | 说明 |
 |------|------|------|
 | VPC Name | ❌ | VPC 名称 |
-| Connect Subnet List | ❌ | 容器子网列表（Name、CIDR） |
+| Connect Subnet List | ❌ | 容器子网列表(Name、CIDR) |
 | Add Container Subnet | ❌ | 添加容器子网 |
 
 ### 操作按钮
 
-Cancel、Create Router（初始禁用，填写必填项后启用）
+Cancel、Create Router(初始禁用，填写必填项后启用)
 

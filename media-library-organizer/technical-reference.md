@@ -29,9 +29,9 @@ def parse_filename(filename):
     return info
 ```
 
-## 从文件检测技术信息（ffprobe 优先）
+## 从文件检测技术信息(ffprobe 优先)
 
-**ffprobe 优化规则：**
+**ffprobe 优化规则:**
 - 每个媒体文件只执行一次 ffprobe
 - ffprobe JSON 结果必须缓存
 - 分辨率、编码、HDR、声道、音频编码都从同一份 ffprobe 结果中读取
@@ -69,7 +69,7 @@ def get_hdr(filepath):
         if s.get("codec_type") == "video":
             ct = s.get("color_transfer", "")
             pix = s.get("pix_fmt", "")
-            # Dolby Vision 检测（优先级最高）
+            # Dolby Vision 检测(优先级最高)
             if "dovi" in pix.lower() or "dolby" in str(s.get("side_data_list", [])).lower():
                 return "DV"
             # HDR10+ 检测
@@ -128,8 +128,8 @@ def get_resolution(filepath):
 ## 技术信息优先级
 
 ```
-技术信息优先级：
-1. ffprobe 实际检测结果（prefer_ffprobe=true 时）
+技术信息优先级:
+1. ffprobe 实际检测结果(prefer_ffprobe=true 时)
 2. 文件名标签
 3. 默认值
 

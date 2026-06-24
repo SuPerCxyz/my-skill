@@ -1,6 +1,6 @@
 # delete_instance
 
-> 来源：`patterns/instance-ops.md`，按原子操作拆分。
+> 来源:`patterns/instance-ops.md`，按原子操作拆分。
 
 ## `delete_instance`
 
@@ -28,7 +28,7 @@
 ### 操作注意
 
 - 行选择优先点击可见 checkbox wrapper，不要默认只点隐藏 input。
-- 删除弹窗可能是双确认 footer；第一层删除后必须重新获取当前 modal，再处理
+- 删除弹窗可能是双确认 footer;第一层删除后必须重新获取当前 modal，再处理
   第二层 `Confirm`。
 - 确认按钮只允许在当前最上层 modal 内定位。
 

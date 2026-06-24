@@ -45,7 +45,7 @@ Replace the file with a structure like:
 ## 环境配置来源
 
 - 统一从 `/tmp/easystack-env.json` 读取
-- 必填字段：
+- 必填字段:
   - `platform.url`
   - `platform.username`
   - `platform.password`
@@ -231,7 +231,7 @@ Update the relevant sections so they say things like:
 | 环境配置、登录契约、会话复用 | [connection.md](connection.md) |
 | 菜单导航、页面入口、路径基线 | [navigation.md](navigation.md) |
 
-### 环境配置文件（/tmp/easystack-env.json）
+### 环境配置文件(/tmp/easystack-env.json)
 
 使用 `platform.url`、`platform.username`、`platform.password` 作为基础登录字段。
 示例值统一使用占位值或由用户运行时提供，不在 skill 中保存真实凭证。
@@ -297,9 +297,9 @@ Expected: collect the exact lines that need dual-track wording or direct path co
 Update these files so path lines look like:
 
 ```md
-| 网络管理页 | 当前主路径：`/ens/networks`；历史/别名路径：`/neutron/networks` |
-| 路由器页 | 当前主路径：`/ens/routers`；历史/别名路径：`/neutron/routers` |
-| 镜像管理页 | 当前主路径：`/container-registry/image`；历史/别名路径：`/glance/images` |
+| 网络管理页 | 当前主路径:`/ens/networks`;历史/别名路径:`/neutron/networks` |
+| 路由器页 | 当前主路径:`/ens/routers`;历史/别名路径:`/neutron/routers` |
+| 镜像管理页 | 当前主路径:`/container-registry/image`;历史/别名路径:`/glance/images` |
 ```
 
 Expected: these bridging docs no longer state a single conflicting path as absolute fact.
@@ -309,14 +309,14 @@ Expected: these bridging docs no longer state a single conflicting path as absol
 For example, update introductory URL blocks to include both path types:
 
 ```md
-| URL | 当前主路径：`https://<IP>/ens/networks` |
+| URL | 当前主路径:`https://<IP>/ens/networks` |
 | 历史/别名路径 | `https://<IP>/neutron/networks` |
 ```
 
 and:
 
 ```md
-| URL | 当前主路径：`https://<IP>/container-registry/image` |
+| URL | 当前主路径:`https://<IP>/container-registry/image` |
 | 历史/别名路径 | `https://<IP>/glance/images` |
 ```
 

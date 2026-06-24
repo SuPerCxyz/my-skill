@@ -1,12 +1,12 @@
 # 镜像管理页面与弹窗
 
-> 来源：`easystack-cloud-web-e2e/image/image.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/image/image.md`，按原文标题边界拆分。
 
 ## 页面信息
 
 | 项目 | 值 |
 |------|-----|
-| URL | 当前主路径：`https://<IP>/container-registry/image` |
+| URL | 当前主路径:`https://<IP>/container-registry/image` |
 | 历史/别名路径 | `https://<IP>/glance/images` |
 | 导航路径 | Service Catalog → Image Repository → Image Management |
 | 页面标题 | Image Management |
@@ -17,7 +17,7 @@
 
 ### 左侧导航
 
-在"Image Repository"标题下：
+在"Image Repository"标题下:
 
 | 菜单项 | 定位方式 | 说明 |
 |--------|--------|------|
@@ -36,7 +36,7 @@
 
 ## 过滤器字段
 
-定位方式：`input[placeholder="Click here for filters."]`
+定位方式:`input[placeholder="Click here for filters."]`
 
 | 过滤字段 |
 |----------|
@@ -48,7 +48,7 @@
 | Tags |
 | Create Time |
 
-## 表格列（9 列）
+## 表格列(9 列)
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
@@ -57,43 +57,43 @@
 | Domain | ✅ | 域名 |
 | Project | ✅ | 项目 |
 | Workspace | ✅ | 工作空间 |
-| Access Level | ✅ | 访问级别：Private / Public |
-| Tags | ✅ | 标签数量（徽章） |
-| Create Time | ✅ | 格式：`16 Jun 2026 at 11:40:21` |
-| Operation | ❌ | 行内操作：Edit、Delete |
+| Access Level | ✅ | 访问级别:Private / Public |
+| Tags | ✅ | 标签数量(徽章) |
+| Create Time | ✅ | 格式:`16 Jun 2026 at 11:40:21` |
+| Operation | ❌ | 行内操作:Edit、Delete |
 
 ## Setup 列配置
 
-可配置列：Name、Domain、Project、Workspace、Access Level、Tags、Create Time、Operation
+可配置列:Name、Domain、Project、Workspace、Access Level、Tags、Create Time、Operation
 
-按钮：Restore Defaults、Select All、Cancel、Confirm
+按钮:Restore Defaults、Select All、Cancel、Confirm
 
 ## Upload Image 弹窗
 
 | 字段 | 必填 | 定位方式 | 说明 |
 |------|------|--------|------|
-| Domain | ❌ | `input`（disabled） | 默认值 "default"，不可编辑 |
-| Project | ❌ | `input`（disabled） | 默认值 "admin"，不可编辑 |
+| Domain | ❌ | `input`(disabled) | 默认值 "default"，不可编辑 |
+| Project | ❌ | `input`(disabled) | 默认值 "admin"，不可编辑 |
 | Workspace | ✅ | `nz-select` 下拉 | 选择工作空间 |
 | Image | ✅ | 文件上传按钮 | `.tar` 或 `.tar.gz` 格式，≤ 2GB |
 
-Workspace 下拉选项（示例）：admin_workspace、devops、library、normal_public、test、zxy-lib
+Workspace 下拉选项(示例):admin_workspace、devops、library、normal_public、test、zxy-lib
 
-弹窗按钮：Cancel、Upload
+弹窗按钮:Cancel、Upload
 
-> ⚠️ 帮助文本："It is recommended to upload a image package made with the container engine client version 1.10.0 or later. The files must be in .tar or .tar.gz formats and their file size must be less than or equal to 2 GB."
-> ⚠️ 警告："If the image version you uploaded already exists, the existing image version will be overwritten, please be careful."
+> ⚠️ 帮助文本:"It is recommended to upload a image package made with the container engine client version 1.10.0 or later. The files must be in .tar or .tar.gz formats and their file size must be less than or equal to 2 GB."
+> ⚠️ 警告:"If the image version you uploaded already exists, the existing image version will be overwritten, please be careful."
 
 ## Push Image 弹窗
 
-两个标签页：**Containerd**（默认）、**Docker**
+两个标签页:**Containerd**(默认)、**Docker**
 
 ### Containerd 标签页
 
-操作步骤：
+操作步骤:
 
-1. 登录安装了 containerd 的节点（root 用户），配置 `/etc/hosts` 映射平台访问地址到仓库域名
-2. 上传镜像，执行命令：
+1. 登录安装了 containerd 的节点(root 用户)，配置 `/etc/hosts` 映射平台访问地址到仓库域名
+2. 上传镜像，执行命令:
 
 ```bash
 # 标记镜像
@@ -106,27 +106,27 @@ sudo ctr -n k8s.io image push -u {token} -k hub.ecns.io/{Workspace}/{Image Name}
 `{token}` 只表示运行时从 UI 或凭据源获取的临时值，不写入 skill 文档、测试
 报告或仓库文件。
 
-弹窗按钮：Confirm
+弹窗按钮:Confirm
 
 ## Edit Image 弹窗
 
 | 字段 | 必填 | 定位方式 | 说明 |
 |------|------|--------|------|
-| Domain | ❌ | `input`（disabled） | 当前域名，不可编辑 |
-| Project | ❌ | `input`（disabled） | 当前项目，不可编辑 |
-| Workspace | ❌ | `input`（disabled） | 当前工作空间，不可编辑 |
-| Name | ❌ | `input`（disabled） | 当前镜像名，不可编辑 |
+| Domain | ❌ | `input`(disabled) | 当前域名，不可编辑 |
+| Project | ❌ | `input`(disabled) | 当前项目，不可编辑 |
+| Workspace | ❌ | `input`(disabled) | 当前工作空间，不可编辑 |
+| Name | ❌ | `input`(disabled) | 当前镜像名，不可编辑 |
 | Description | ❌ | `textarea` | 支持 Markdown 格式 |
 
-占位符：`"Description content supports Markdown format."`
+占位符:`"Description content supports Markdown format."`
 
-弹窗按钮：Cancel、Confirm
+弹窗按钮:Cancel、Confirm
 
 ## 镜像详情页
 
-URL 格式：`https://<IP>/container-registry/image/{image_name}?workspace={workspace_name}&type=false`
+URL 格式:`https://<IP>/container-registry/image/{image_name}?workspace={workspace_name}&type=false`
 
-面包屑：Image Management / Detail
+面包屑:Image Management / Detail
 
 ### 详情页头部
 
@@ -167,16 +167,16 @@ URL 格式：`https://<IP>/container-registry/image/{image_name}?workspace={work
 
 ### Image Tags 标签页
 
-工具栏按钮：Refresh、Delete（默认禁用，选中 1+ 行后可用）
+工具栏按钮:Refresh、Delete(默认禁用，选中 1+ 行后可用)
 
-表格列：
+表格列:
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
 | (选择框) | ❌ | 全选 checkbox |
 | Tag | ✅ | 镜像标签/版本 |
 | Size | ✅ | 镜像大小 |
-| Image Address | ✅ | 格式：`hub.ecns.io/{workspace}/{image_name}:{tag}` |
+| Image Address | ✅ | 格式:`hub.ecns.io/{workspace}/{image_name}:{tag}` |
 | Create Time | ✅ | 创建时间 |
 | Operation | ❌ | Delete |
 

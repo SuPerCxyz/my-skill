@@ -1,7 +1,7 @@
 # 清理资源编排
 
 本文件定义测试结束后的清理建议生成规则。清理动作会删除资源，必须先向用户
-说明并获得明确确认；未确认时只写报告，不执行 UI 删除。
+说明并获得明确确认;未确认时只写报告，不执行 UI 删除。
 
 ## 适用范围
 
@@ -19,17 +19,17 @@
 
 ## 建议清理顺序
 
-1. VM 内停止 I/O 并卸载文件系统：例如 `sync; umount <mountpoint>`。
-2. UI 卸载数据盘：调用 `detach_volume`。
-3. UI 删除数据盘：调用 `delete_volume`。
-4. UI 解绑浮动 IP：调用 `disassociate_floating_ip`。
-5. UI 释放浮动 IP：调用 `release_floating_ip`。
-6. UI 删除云主机：调用 `delete_instance`。
+1. VM 内停止 I/O 并卸载文件系统:例如 `sync; umount <mountpoint>`。
+2. UI 卸载数据盘:调用 `detach_volume`。
+3. UI 删除数据盘:调用 `delete_volume`。
+4. UI 解绑浮动 IP:调用 `disassociate_floating_ip`。
+5. UI 释放浮动 IP:调用 `release_floating_ip`。
+6. UI 删除云主机:调用 `delete_instance`。
 7. 按依赖顺序删除快照、镜像、网络等其他资源。
 
 ## 返回值约定
 
-未确认清理时：
+未确认清理时:
 
 ```json
 {
@@ -43,7 +43,7 @@
 }
 ```
 
-确认并执行后，每个原子清理操作必须返回自己的结构化结果，并写入报告：
+确认并执行后，每个原子清理操作必须返回自己的结构化结果，并写入报告:
 
 ```json
 {

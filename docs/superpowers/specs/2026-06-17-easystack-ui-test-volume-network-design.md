@@ -4,7 +4,7 @@
 
 `patterns/login.md`、`patterns/instance-ops.md`、
 `patterns/quick-reference.md` 已完成第一轮契约收敛，但
-`patterns/volume-ops.md` 和 `patterns/network-ops.md` 仍停留在旧格式：
+`patterns/volume-ops.md` 和 `patterns/network-ops.md` 仍停留在旧格式:
 
 - 仍以匿名脚本片段集合为主
 - 仍包含硬编码 URL
@@ -16,15 +16,15 @@
 
 ## 本轮目标
 
-本轮只处理 `patterns` 操作库第二轮迁移：
+本轮只处理 `patterns` 操作库第二轮迁移:
 
 - `easystack-ui-test/patterns/volume-ops.md`
 - `easystack-ui-test/patterns/network-ops.md`
-- `easystack-ui-test/patterns/quick-reference.md`（仅同步索引）
+- `easystack-ui-test/patterns/quick-reference.md`(仅同步索引)
 
 ## 迁移策略
 
-采用和 `instance-ops.md` 相同的模式：
+采用和 `instance-ops.md` 相同的模式:
 
 - 文档头部声明统一契约
 - 明确 `ready / planned` 边界
@@ -39,7 +39,7 @@
 - `delete_volume`
 - `upload_image`
 
-说明：
+说明:
 
 - `create_volume` 覆盖块存储最核心入口
 - `delete_volume` 覆盖最常见回收动作
@@ -51,14 +51,14 @@
 - `create_network`
 - `create_router`
 
-说明：
+说明:
 
 - `allocate_floating_ip` 覆盖公网资源入口
 - `create_network` 与 `create_router` 覆盖网络域最关键的两个创建动作
 
 ## 统一模板
 
-每个 ready 操作统一包含：
+每个 ready 操作统一包含:
 
 1. 用途
 2. 参数
@@ -71,7 +71,7 @@
 
 ## 环境契约
 
-所有示例统一：
+所有示例统一:
 
 - 从 `/tmp/easystack-env.json` 读取
 - 使用 `platform.*`
@@ -80,7 +80,7 @@
 
 ## 返回值约定
 
-所有 ready 操作统一返回结构化对象，至少包含：
+所有 ready 操作统一返回结构化对象，至少包含:
 
 ```json
 {
@@ -94,7 +94,7 @@
 }
 ```
 
-失败时保持相同结构，并将：
+失败时保持相同结构，并将:
 
 - `ok` 设为 `false`
 - `status` 写最终观察状态或失败类别
@@ -104,7 +104,7 @@
 
 ### 文档头部
 
-应与 `instance-ops.md` 风格一致，声明：
+应与 `instance-ops.md` 风格一致，声明:
 
 - 依赖 `patterns/login.md`
 - 显式参数优先于环境默认值
@@ -112,7 +112,7 @@
 
 ### 遗留操作处理
 
-不在本轮迁移的 volume 相关操作，如：
+不在本轮迁移的 volume 相关操作，如:
 
 - `create_volume_snapshot`
 - `extend_volume`
@@ -126,7 +126,7 @@
 
 ### 文档头部
 
-应与 `instance-ops.md`、`volume-ops.md` 对齐，声明：
+应与 `instance-ops.md`、`volume-ops.md` 对齐，声明:
 
 - 依赖 `patterns/login.md`
 - 默认执行入口使用当前基础层路径口径
@@ -139,7 +139,7 @@
 
 ### 遗留操作处理
 
-不在本轮迁移的操作，如：
+不在本轮迁移的操作，如:
 
 - `associate_network`
 - `disassociate_network`
@@ -149,7 +149,7 @@
 
 ## `quick-reference.md` 同步策略
 
-索引层需要同步反映：
+索引层需要同步反映:
 
 - `create_volume` / `delete_volume` / `upload_image` -> `ready`
 - `allocate_floating_ip` / `create_network` / `create_router` -> `ready`
@@ -157,7 +157,7 @@
 
 ## 验证标准
 
-完成后应满足：
+完成后应满足:
 
 1. `volume-ops.md` 与 `network-ops.md` 不再包含真实 URL
 2. 两份文档的 ready 操作使用统一模板
@@ -172,8 +172,8 @@
 
 ## 预期产出
 
-本轮完成后，`patterns` 核心操作库会形成三段式：
+本轮完成后，`patterns` 核心操作库会形成三段式:
 
-- `login.md`：共享前置契约
-- `instance-ops.md` / `volume-ops.md` / `network-ops.md`：分域模板化操作库
-- `quick-reference.md`：统一索引与迁移状态看板
+- `login.md`:共享前置契约
+- `instance-ops.md` / `volume-ops.md` / `network-ops.md`:分域模板化操作库
+- `quick-reference.md`:统一索引与迁移状态看板

@@ -25,14 +25,14 @@ ecs.<host>.<date>.<N>/
 │   ├── osd_disk_prepare_*.log        # OSD disk preparation
 │   └── pci-*.log                     # PCI device logs
 │
-├── cloud-products/          # ** EasyStack 云产品类服务（非核心 OpenStack）**
-│   ├── apisix/apisix.*.log           # API 网关（南北向公网入口、路由、限流）
-│   ├── iam/                          # EasyStack IAM（账号 / 子用户 / 鉴权）
+├── cloud-products/          # ** EasyStack 云产品类服务(非核心 OpenStack)**
+│   ├── apisix/apisix.*.log           # API 网关(南北向公网入口、路由、限流)
+│   ├── iam/                          # EasyStack IAM(账号 / 子用户 / 鉴权)
 │   │   ├── iam-dashboard.*.log
 │   │   └── init.*.log
-│   ├── ironic/                       # ** 裸金属管理（启用时才存在） **
-│   │   ├── ironic-api.*.log              # Ironic API（节点 CRUD、部署触发）
-│   │   ├── ironic-conductor.*.log        # ** Conductor：部署/清理/电源管理主流程 **
+│   ├── ironic/                       # ** 裸金属管理(启用时才存在) **
+│   │   ├── ironic-api.*.log              # Ironic API(节点 CRUD、部署触发)
+│   │   ├── ironic-conductor.*.log        # ** Conductor:部署/清理/电源管理主流程 **
 │   │   ├── ironic-inspector.*.log        # 硬件 introspection / 自动注册
 │   │   ├── ironic-dashboard.*.log        # Ironic 控制台
 │   │   ├── dnsmasq*.log                  # PXE DHCP
@@ -214,6 +214,6 @@ ecs.<host>.<date>.<N>/
 | **Clock drift / NTP** | `os/chrony.*.log` | `openstack/mariadb/mariadb.*.log` (Galera), `ceph/host.ceph.*.log` |
 | **Operator action audit** | `openstack/dozer/bash-history.*.log` | n/a (single source) |
 | **VIP failover** | `openstack/keepalived/keepalived.*.log` | `os/messages.*.log` |
-| **裸金属部署失败** | `cloud-products/ironic/ironic-conductor.*.log` | `cloud-products/ironic/ironic-inspector.*.log`、`os/messages.*.log`（IPMI/链路）、`openstack/neutron/proton-server.*.log`（部署网切换）|
+| **裸金属部署失败** | `cloud-products/ironic/ironic-conductor.*.log` | `cloud-products/ironic/ironic-inspector.*.log`、`os/messages.*.log`(IPMI/链路)、`openstack/neutron/proton-server.*.log`(部署网切换)|
 | **裸金属 PXE 不起** | `cloud-products/ironic/dnsmasq*.log`、`tftp*.log` | `os/openvswitch/ovs-vswitchd.*.log`、`os/messages.*.log` |
 | **公网/南北向访问异常** | `cloud-products/apisix/apisix.*.log` | `openstack/keepalived/keepalived.*.log`、`os/openvswitch/*.log` |

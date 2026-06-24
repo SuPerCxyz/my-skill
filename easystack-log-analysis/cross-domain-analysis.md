@@ -3,12 +3,12 @@
 EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 必看日志 / 强相关日志 / 兜底日志"
 固化为硬规则，避免遗漏关键证据。
 
-> **核心原则**：任何云主机生命周期 / 云盘挂载卸载 / 网络变更 / 镜像操作问题，**默认都要
+> **核心原则**:任何云主机生命周期 / 云盘挂载卸载 / 网络变更 / 镜像操作问题，**默认都要
 > 把 `os/messages.*.log` 和 `os/openvswitch/*.log` 一起带进时间线分析**。OpenStack 控制面日志
 > 只能解释"调度层做了什么决定"，真正的"发生了什么"往往落在内核 / 设备 / 网卡 / SCSI / multipath
 > 层，必须靠系统日志补齐。
 
-## 1. 云主机生命周期问题（创建 / 启动 / 重启 / 删除 / 迁移）
+## 1. 云主机生命周期问题(创建 / 启动 / 重启 / 删除 / 迁移)
 
 涉及 **compute + 块存储 + 网络 + 镜像 + 虚拟化层 + 系统层**，缺一不可。
 
@@ -27,7 +27,7 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 | **强相关·iSCSI 卷** | `alcubierre/alcubierre-node.*.log` | iSCSI 登录 / 多路径状态 |
 | **强相关·Ceph 卷** | `ceph/host.ceph-osd.*.log` + `ceph/host.ceph.*.log` | RBD I/O 慢 / OSD down |
 | **兜底·基础设施** | `openstack/mariadb/mariadb.*.log`、`openstack/rabbitmq/rabbitmq.*.log` | Galera 不可用 / AMQP 断连导致 RPC 失败 |
-| **兜底·K8s** | `kubernetes/kube-apiserver.*.log` | pod 状态变化（nova-compute pod 是否被驱逐） |
+| **兜底·K8s** | `kubernetes/kube-apiserver.*.log` | pod 状态变化(nova-compute pod 是否被驱逐) |
 
 ### 典型陷阱
 
@@ -39,7 +39,7 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ## 2. 云盘挂载 / 卸载问题
 
-涉及 **nova + cinder + 后端驱动（iSCSI/RBD/SAN）+ 内核 SCSI/multipath**。
+涉及 **nova + cinder + 后端驱动(iSCSI/RBD/SAN)+ 内核 SCSI/multipath**。
 
 | 优先级 | 日志路径 | 看什么 |
 |--------|---------|--------|
@@ -55,17 +55,17 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ### 典型陷阱
 
-- 卷卸载后"幽灵设备"：cinder 已 detach 成功，但内核多路径还残留 `dm-X` —— 必须看
+- 卷卸载后"幽灵设备":cinder 已 detach 成功，但内核多路径还残留 `dm-X` —— 必须看
   `os/messages.*.log` 中的 `multipath` 行和 `iscsi: session.*recovery`。
-- 卷挂载到错的 LUN：看 `nova-compute` 的 `Connecting to multipath volume`，对比
+- 卷挂载到错的 LUN:看 `nova-compute` 的 `Connecting to multipath volume`，对比
   `target_iqns` 和 `target_portals` 是否指向了已下线的节点。
-- 共享卷（多挂载点）异常：`etcdlock-manager.*.log` 会显示锁竞争失败。
-- BDM 与 cinder attachment 不一致：经典 `VolumeDeviceNotFound`，见
+- 共享卷(多挂载点)异常:`etcdlock-manager.*.log` 会显示锁竞争失败。
+- BDM 与 cinder attachment 不一致:经典 `VolumeDeviceNotFound`，见
   [troubleshooting.md](troubleshooting.md) Scenario 1。
 
 ---
 
-## 3. 网络问题（云主机不通 / 安全组 / 浮动 IP / 路由）
+## 3. 网络问题(云主机不通 / 安全组 / 浮动 IP / 路由)
 
 涉及 **neutron + OVN/OVS + 系统网卡层**。
 
@@ -84,15 +84,15 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ### 典型陷阱
 
-- VM ping 不通但 `proton-server` 显示 port `ACTIVE`：必看 `ovs-vswitchd` 是否实际 add 了 vnet，
+- VM ping 不通但 `proton-server` 显示 port `ACTIVE`:必看 `ovs-vswitchd` 是否实际 add 了 vnet，
   以及 `ovn-controller` 是否下发了流表。
-- 浮动 IP 挂上但访问不通：先看 `ovn-northd` 和 `nb` DB 是否有对应 NAT 规则，再看
+- 浮动 IP 挂上但访问不通:先看 `ovn-northd` 和 `nb` DB 是否有对应 NAT 规则，再看
   网关节点的 `ovn-controller`。
-- VM 内 cloud-init 失败：往往是 `metadata-agent` 不可达，或 metadata 169.254.169.254 路由问题。
+- VM 内 cloud-init 失败:往往是 `metadata-agent` 不可达，或 metadata 169.254.169.254 路由问题。
 
 ---
 
-## 4. 镜像问题（创建/上传/下载/启动失败）
+## 4. 镜像问题(创建/上传/下载/启动失败)
 
 | 优先级 | 日志路径 | 看什么 |
 |--------|---------|--------|
@@ -105,10 +105,10 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ---
 
-## 5. 裸金属 / Ironic（cloud-products 域）
+## 5. 裸金属 / Ironic(cloud-products 域)
 
-> **重要**：EasyStack 的 ironic / 裸金属管理 / 部分云产品类服务日志归在 **`cloud-products/`** 下，
-> 而不是 `openstack/`。如果集群启用了裸金属，目录里应该出现 `cloud-products/ironic/` 等子目录；
+> **重要**:EasyStack 的 ironic / 裸金属管理 / 部分云产品类服务日志归在 **`cloud-products/`** 下，
+> 而不是 `openstack/`。如果集群启用了裸金属，目录里应该出现 `cloud-products/ironic/` 等子目录;
 > 当前样本 bundle 只看到 `apisix/` 和 `iam/`，说明该环境未启用裸金属。
 
 | 优先级 | 日志路径 | 看什么 |
@@ -123,14 +123,14 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ### 典型陷阱
 
-- 节点 `provisioning → wait call-back` 卡住：通常是 PXE 网络问题，必须看
+- 节点 `provisioning → wait call-back` 卡住:通常是 PXE 网络问题，必须看
   `ovs-vswitchd` / `ovn-controller` 是否把端口切到了 provisioning 网。
-- `power_on` 失败：先看 ironic-conductor 的 IPMI 错误，再到 `os/messages.*.log` 看
+- `power_on` 失败:先看 ironic-conductor 的 IPMI 错误，再到 `os/messages.*.log` 看
   BMC 网卡链路或 IPMI 超时。
 
 ---
 
-## 6. API 网关 / 身份认证（cloud-products 域）
+## 6. API 网关 / 身份认证(cloud-products 域)
 
 | 优先级 | 日志路径 | 看什么 |
 |--------|---------|--------|
@@ -144,21 +144,21 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ## 跨域查证最小动作清单
 
-接到任何"云主机/云盘/网络/镜像"类工单，先用 30 秒按下面这个清单扫一遍，再做深入分析：
+接到任何"云主机/云盘/网络/镜像"类工单，先用 30 秒按下面这个清单扫一遍，再做深入分析:
 
 ```bash
-# 1) 系统层先排雷（OOM / panic / 链路抖动 / 块设备错误）
+# 1) 系统层先排雷(OOM / panic / 链路抖动 / 块设备错误)
 grep -iE "panic|softlockup|hung_task|Out of memory|killed process|i/o error|link is (up|down)|iscsi.*recovery|multipath" \
   ecs.*/os/messages.*.log | sort -k1,2 | head -50
 
-# 2) 基础设施（Galera / RabbitMQ / chrony / Ceph health）
+# 2) 基础设施(Galera / RabbitMQ / chrony / Ceph health)
 grep -iE "WSREP|primary component|non-primary|netsplit|partition|HEALTH_(WARN|ERR)|cannot find.*source" \
   ecs.*/openstack/mariadb/*.log \
   ecs.*/openstack/rabbitmq/*.log \
   ecs.*/os/chrony.*.log \
   ecs.*/ceph/host.ceph.*.log 2>/dev/null | sort -k1,2 | head -30
 
-# 3) 运维动作（看最近有没有人改过什么）
+# 3) 运维动作(看最近有没有人改过什么)
 grep -E "systemctl|kubectl|reboot|shutdown|drain|reset|delete|stop" \
   ecs.*/openstack/dozer/bash-history.*.log | sort -k1,2 | tail -30
 ```

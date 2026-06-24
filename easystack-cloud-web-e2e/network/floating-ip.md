@@ -1,8 +1,8 @@
-# 浮动 IP（Floating IP / 公网 IP）
+# 浮动 IP(Floating IP / 公网 IP)
 
 ## agent-browser 迁移说明
 
-本文件保留页面字段、步骤和断言知识；执行入口统一迁移到 agent-browser。
+本文件保留页面字段、步骤和断言知识;执行入口统一迁移到 agent-browser。
 文中的历史代码块已替换为 agent-browser 迁移说明，新增用例必须使用 `agent-browser eval --stdin` 或 `agent-browser batch` 示例。
 
 ## 页面信息
@@ -15,7 +15,7 @@
 
 ## 页面说明
 
-浮动 IP（Floating IP）用于管理云平台中的公网 IP 地址。用户可在此页面分配、释放、绑定和解绑浮动 IP，为云主机提供公网访问能力。
+浮动 IP(Floating IP)用于管理云平台中的公网 IP 地址。用户可在此页面分配、释放、绑定和解绑浮动 IP，为云主机提供公网访问能力。
 
 ## 工具栏按钮
 
@@ -29,17 +29,17 @@
 
 ## 状态过滤下拉
 
-定位方式：`nz-select`（含 "All Status" 文本）
+定位方式:`nz-select`(含 "All Status" 文本)
 
 | 状态值 | 说明 |
 |--------|------|
 | All Status | 默认，显示所有状态 |
-| Bound | 已绑定（绑定到某个端口/实例） |
-| Unbound | 未绑定（空闲状态） |
+| Bound | 已绑定(绑定到某个端口/实例) |
+| Unbound | 未绑定(空闲状态) |
 
 ## 过滤器字段
 
-定位方式：`input[placeholder="Click here for filters."]`
+定位方式:`input[placeholder="Click here for filters."]`
 
 | 过滤字段 |
 |----------|
@@ -68,9 +68,9 @@
 
 ### 行内动作实测
 
-- 已绑定资源行：
+- 已绑定资源行:
   `Release Floating IPs`、`Disassociate`、`Update Bandwidth`、`More`
-- 未绑定资源行：
+- 未绑定资源行:
   `Release Floating IPs`、`Bind to resource`、`Update Bandwidth`、`More`
 
 ## 勾选与批量操作
@@ -82,30 +82,30 @@
 ## 权限限制
 
 - 以当前云管理员账号在某些浮动 IP 上点击 `Bind to resource` 时，页面可能不会弹出
-  绑定表单，而是直接提示：
+  绑定表单，而是直接提示:
   `Please do this by re-logging into the console as the project administrator/user to which the resource belongs`
 - 这属于产品权限反馈，不应误判为自动化 click 失败。
 
 ## Setup 列配置
 
-可配置列：Floating IP / Name、Description、Port、Status、Created At
+可配置列:Floating IP / Name、Description、Port、Status、Created At
 
-按钮：Restore Defaults、Select All、Cancel、Confirm
+按钮:Restore Defaults、Select All、Cancel、Confirm
 
 ## Allocate Floating IP 弹窗
 
-标题：**Apply For IP To Project**
+标题:**Apply For IP To Project**
 
-> ⚠️ 注意：由于物理节点上承载公网流量的物理网卡的带宽限制，浮动 IP 的最大带宽设置不能大于 1000 Mbps。
+> ⚠️ 注意:由于物理节点上承载公网流量的物理网卡的带宽限制，浮动 IP 的最大带宽设置不能大于 1000 Mbps。
 
 | 字段 | 必填 | 定位方式 | 说明 |
 |------|------|--------|------|
 | Project | ✅ | `nz-select` 下拉 | 选择目标项目，默认 Default:admin |
 | Resource Pool | ✅ | `nz-select` 下拉 | 选择浮动 IP 资源池，默认 public_net_1 0/253 |
-| Floating IP | ❌ | `input` 文本输入 | 占位符："Please enter IP address."，可选填写特定 IP |
+| Floating IP | ❌ | `input` 文本输入 | 占位符:"Please enter IP address."，可选填写特定 IP |
 | Bandwidth | ✅ | 数字输入框 | 单位 Mbps，默认 1，范围 1-1000 |
 
-弹窗按钮：Cancel、Allocate
+弹窗按钮:Cancel、Allocate
 
 > 可通过 "Add IP address." 按钮添加多个 IP 地址。不填写 Floating IP 时系统自动分配。
 
@@ -123,7 +123,7 @@
 ### TC-FIP001: 验证浮动 IP 页面加载
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -133,7 +133,7 @@ agent-browser 执行说明：
 ### TC-FIP002: Allocate Floating IP 弹窗验证
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -143,7 +143,7 @@ agent-browser 执行说明：
 ### TC-FIP003: 状态过滤验证
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -153,7 +153,7 @@ agent-browser 执行说明：
 ### TC-FIP004: 按名称过滤浮动 IP
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。

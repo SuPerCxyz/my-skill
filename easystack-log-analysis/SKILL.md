@@ -1,6 +1,6 @@
 ---
 name: easystack-log-analysis
-description: "Use when needing to decompress, analyze, and troubleshoot EasyStack OpenStack cluster logs from eslog files. Covers decompression of encrypted eslog archives, log directory structure mapping, key log file locations per service, and common troubleshooting search patterns. Handles cross-domain analysis (VM lifecycle / volume attach-detach / network / image / bare-metal Ironic) — always correlates OpenStack service logs with OS-level logs (kernel, OVS/OVN, SCSI/multipath, IPMI) and control-plane infra (Galera, RabbitMQ, chrony, Ceph health) for true root cause. EasyStack cloud-product services (Ironic, APISIX, IAM, etc.) live under cloud-products/ rather than openstack/."
+description: "Use when needing to decompress, analyze, and troubleshoot EasyStack OpenStack cluster logs from eslog files. Covers eslog decompression, log directory mapping, search patterns, cross-domain root-cause analysis (VM lifecycle / volume / network / image / bare-metal), and correlation of OpenStack service logs with OS-level and control-plane infra logs."
 ---
 
 # EasyStack Log Analysis
@@ -16,7 +16,7 @@ This skill guides the decompression, directory mapping, and targeted log analysi
 | When you need... | Read |
 |------------------|------|
 | **Standard end-to-end analysis workflow + report template** | [analysis-playbook.md](analysis-playbook.md) |
-| **跨域关联分析矩阵（云主机/云盘/网络/镜像/裸金属 必看哪些日志）** | [cross-domain-analysis.md](cross-domain-analysis.md) |
+| **跨域关联分析矩阵(云主机/云盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
 | Decompress eslog files | [decompress.md](decompress.md) |
 | Log line format (wrapper / fields / awk recipes) | [log-format.md](log-format.md) |
 | Log directory structure map | [directory-map.md](directory-map.md) |
@@ -65,7 +65,7 @@ The top-level directories map to service layers:
 | `ems/` | Dashboard APIs: ecp-dashboard, ems-dashboard |
 | `others/` | GPU, topology, event-monitor |
 
-> **重要**: 默认搜索所有节点目录（`ecs.node-*`），除非用户指定只分析某个节点。日志文件可能是 `.log` 或 `.log.gz`，搜索时需同时处理两种格式。
+> **重要**: 默认搜索所有节点目录(`ecs.node-*`)，除非用户指定只分析某个节点。日志文件可能是 `.log` 或 `.log.gz`，搜索时需同时处理两种格式。
 
 ### Step 3: Determine which node hosts the target VM
 
@@ -116,16 +116,16 @@ Based on the issue type, focus on the corresponding log directory:
 - **Network issues** → `openstack/neutron/`, `os/openvswitch/`
 - **Ceph issues** → `ceph/`, `ceph-k8s/`
 - **K8s infrastructure** → `kubernetes/`, `os/messages`
-- **Bare-metal / Ironic** → `cloud-products/ironic/`（注意：ironic 等云产品日志放在 `cloud-products/` 而非 `openstack/`）
+- **Bare-metal / Ironic** → `cloud-products/ironic/`(注意:ironic 等云产品日志放在 `cloud-products/` 而非 `openstack/`)
 - **API 网关 / IAM** → `cloud-products/apisix/`、`cloud-products/iam/`
 
-> **⚠ 跨域强制规则**：选定"主服务"只是起点，不是终点。任何**云主机生命周期 / 云盘挂载卸载 /
-> 网络变更 / 镜像 / 裸金属**问题，**必须同时把以下日志带入时间线分析**，否则容易把根因归到错的层：
+> **⚠ 跨域强制规则**:选定"主服务"只是起点，不是终点。任何**云主机生命周期 / 云盘挂载卸载 /
+> 网络变更 / 镜像 / 裸金属**问题，**必须同时把以下日志带入时间线分析**，否则容易把根因归到错的层:
 >
-> - `os/messages.*.log`（内核 / OOM / SCSI / 多路径 / 网卡链路 / IPMI）
-> - `os/openvswitch/*.log`（实际数据面流表是否下发）
-> - `openstack/mariadb/*.log` + `openstack/rabbitmq/*.log` + `os/chrony.*.log`（控制面基础设施）
-> - `openstack/dozer/bash-history.*.log`（最近的人工动作）
+> - `os/messages.*.log`(内核 / OOM / SCSI / 多路径 / 网卡链路 / IPMI)
+> - `os/openvswitch/*.log`(实际数据面流表是否下发)
+> - `openstack/mariadb/*.log` + `openstack/rabbitmq/*.log` + `os/chrony.*.log`(控制面基础设施)
+> - `openstack/dozer/bash-history.*.log`(最近的人工动作)
 >
 > 完整的"问题域 → 必看 / 强相关 / 兜底日志"对照见 [cross-domain-analysis.md](cross-domain-analysis.md)。
 

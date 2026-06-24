@@ -1,4 +1,4 @@
-# 计算节点（Compute Node）
+# 计算节点(Compute Node)
 
 ## 页面信息
 
@@ -14,7 +14,7 @@
 
 ## 列表页
 
-当前控制台中的计算节点页是典型的“行内动作型页面”：没有顶部批量操作按钮，
+当前控制台中的计算节点页是典型的“行内动作型页面”:没有顶部批量操作按钮，
 主要动作位于每一行的 `Action` 列。
 
 ### 工具栏按钮
@@ -27,11 +27,11 @@
 
 > 无创建按钮——计算节点是物理服务器，不可由用户创建。
 
-### 过滤器选项（13 项）
+### 过滤器选项(13 项)
 
 Name、Availability Zone、CPU Architecture、CPU Model、vCPU (Used/Total)、Memory (Used/Total)、Root Disk (Used/Total)、Number of Instances、Number of Devices:USB、Number of Devices:GPU、Enabled、Status、DPDK
 
-### 表格列（11 列）
+### 表格列(11 列)
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
@@ -58,7 +58,7 @@ Name、Availability Zone、CPU Architecture、CPU Model、vCPU (Used/Total)、Me
 
 ### 表格底部
 
-格式：`Total X items, last updated DD Mon YYYY at HH:mm:ss`
+格式:`Total X items, last updated DD Mon YYYY at HH:mm:ss`
 
 ## 节点详情页
 
@@ -108,7 +108,7 @@ Name、Availability Zone、CPU Architecture、CPU Model、vCPU (Used/Total)、Me
 | Memory | 百分比 | 大小 | 总量 |
 | Root Disk | 百分比 | 大小 | 总量 |
 
-### 详情页 Tab 页（7 个）
+### 详情页 Tab 页(7 个)
 
 | Tab | 定位方式 | 说明 |
 |-----|--------|------|
@@ -122,27 +122,27 @@ Name、Availability Zone、CPU Architecture、CPU Model、vCPU (Used/Total)、Me
 
 ### Instance Tab 表格列
 
-Name、IP Address、UUID、Virtual Host Name（带 info 图标）、Status
+Name、IP Address、UUID、Virtual Host Name(带 info 图标)、Status
 
 ### GPU Tab
 
-工具栏：Refresh、Split to vGPU、Clear vGPU、Enable、Disable、Filter、Export、Setup
+工具栏:Refresh、Split to vGPU、Clear vGPU、Enable、Disable、Filter、Export、Setup
 
-表格列：Manufacturer、Product Model、GPU Memory Size、Status、Virtualization Status、All vGPU Count、Available vGPU Count、Attach Resource
+表格列:Manufacturer、Product Model、GPU Memory Size、Status、Virtualization Status、All vGPU Count、Available vGPU Count、Attach Resource
 
 ### USB Device Tab
 
-表格列：Manufacturer、Product Series、Serial Number、Interface Type、Capacity、Number of Partitions、Mount Status、Attach Resource
+表格列:Manufacturer、Product Series、Serial Number、Interface Type、Capacity、Number of Partitions、Mount Status、Attach Resource
 
 ### NUMA Tab
 
-信息提示："Shows the resource usage of compute-optimized, network-optimized, and compute-network-optimized instances as mapped to the NUMA topology of their host compute nodes."
+信息提示:"Shows the resource usage of compute-optimized, network-optimized, and compute-network-optimized instances as mapped to the NUMA topology of their host compute nodes."
 
-NUMA 节点选择按钮：NUMA0、NUMA1、NUMA2、NUMA3
+NUMA 节点选择按钮:NUMA0、NUMA1、NUMA2、NUMA3
 
-每个 NUMA 节点资源指标：vCPU、Huge pages、Standard Pages（Used / Total + 百分比）
+每个 NUMA 节点资源指标:vCPU、Huge pages、Standard Pages(Used / Total + 百分比)
 
-### More Actions 下拉（详情页）
+### More Actions 下拉(详情页)
 
 | 操作 | 状态 |
 |------|------|

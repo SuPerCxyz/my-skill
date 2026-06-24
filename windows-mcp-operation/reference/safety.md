@@ -16,14 +16,14 @@
 
 ## 安全原则
 
-- 读操作（`list` / `get` / `info` / `read` / `search`）可自由执行
-- 写操作（`write` / `set` / `delete` / `kill` / `launch`）需确认
+- 读操作(`list` / `get` / `info` / `read` / `search`)可自由执行
+- 写操作(`write` / `set` / `delete` / `kill` / `launch`)需确认
 - 禁止输入密钥、密码、token，除非用户明确提供并要求
 - 不确定操作后果时先询问
 
 ## 接口注意事项
 
-- `Type` / `Move` / `Click` 的 `label` 必须是整数（UI 元素 ID），不能是字符串
+- `Type` / `Move` / `Click` 的 `label` 必须是整数(UI 元素 ID)，不能是字符串
 - `FileSystem` 的 `path` 相对于 Desktop，用 `.` 表示 Desktop 本身
 - `FileSystem` `read` 读 UTF-16 文件需要 `encoding: "utf-16"`
 - `FileSystem` `write` 的 `overwrite=false` 不阻止覆盖
@@ -34,6 +34,6 @@
 
 ## 环境要求
 
-- 截图功能需安装 `mss` 后端：`uv tool install windows-mcp --with mss --force`
+- 截图功能需安装 `mss` 后端:`uv tool install windows-mcp --with mss --force`
 - 远程桌面会话中窗口枚举可能不稳定，UI 树通常可用
 - `App` `resize` 省略 `name` 时操作系统前台窗口

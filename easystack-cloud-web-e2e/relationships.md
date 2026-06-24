@@ -1,4 +1,4 @@
-# 资源关联关系（Resource Relationships）
+# 资源关联关系(Resource Relationships)
 
 ## 核心关系图
 
@@ -35,7 +35,7 @@
 
 ## 1. 云主机 ↔ 网络 (Instance → Network)
 
-**关联方式：vNIC（虚拟网卡）**
+**关联方式:vNIC(虚拟网卡)**
 
 ### 绑定 / 解绑操作
 
@@ -49,17 +49,17 @@
 
 - 一个实例可绑定**最多 12 个 vNIC**
 - 每个 vNIC 连接**一个网络 + 一个子网**
-- 每个 vNIC 自动分配一个 **IPv4 地址**（从子网 CIDR 中分配）
-- vNIC 创建后出现在 vNIC 页面（`/ens/nics`）
+- 每个 vNIC 自动分配一个 **IPv4 地址**(从子网 CIDR 中分配)
+- vNIC 创建后出现在 vNIC 页面(`/ens/nics`)
 - vNIC 可通过 vNIC 页面的 **Attach to resource / Detach from resource** 迁移到其他实例
 
 ### 创建向导 Step 2 字段
 
 | 字段 | 组件 | 说明 |
 |------|------|------|
-| Network | `ant-select`（可搜索） | 选择网络 |
-| Subnet | `ant-select`（自动填充） | 选择子网 |
-| IP 分配 | Radio | `Automatically assign IPv4 address`（默认） |
+| Network | `ant-select`(可搜索) | 选择网络 |
+| Subnet | `ant-select`(自动填充) | 选择子网 |
+| IP 分配 | Radio | `Automatically assign IPv4 address`(默认) |
 | 剩余 IP | 显示文本 | `Remaining IP Available: N` |
 
 ### 可用网络示例
@@ -72,7 +72,7 @@
 
 ## 2. 云主机 ↔ 公网 IP (Instance → Floating IP)
 
-**关联方式：Floating IP 绑定到 vNIC**
+**关联方式:Floating IP 绑定到 vNIC**
 
 ### 绑定 / 解绑操作
 
@@ -86,8 +86,8 @@
 | 字段 | 必填 | 说明 |
 |------|------|------|
 | Instance Name | ❌ | 只读，预填当前实例名 |
-| Instance Nic | ✅ | 下拉选择实例的 vNIC（显示 `网卡名: IP`） |
-| Floating IP | ✅ | 下拉选择可用的 Floating IP（状态为 Unbound） |
+| Instance Nic | ✅ | 下拉选择实例的 vNIC(显示 `网卡名: IP`) |
+| Floating IP | ✅ | 下拉选择可用的 Floating IP(状态为 Unbound) |
 
 ### 关键规则
 
@@ -95,8 +95,8 @@
 - 一个 vNIC 只能绑定**一个** Floating IP
 - 多 vNIC 场景下可为**不同 vNIC 绑定不同** Floating IP
 - 绑定 Floating IP **需要路由器已设置网关**
-- Floating IP 本身在 Floating IP 页面（`/ens/floatingIPs`）独立管理
-- 删除实例时 Floating IP **自动解绑**（不删除）
+- Floating IP 本身在 Floating IP 页面(`/ens/floatingIPs`)独立管理
+- 删除实例时 Floating IP **自动解绑**(不删除)
 
 ### 数据流
 
@@ -110,7 +110,7 @@
 
 ## 3. 云主机 ↔ 云硬盘 (Instance → Volume)
 
-**关联方式：Root Disk / Data Disk + Attach / Detach**
+**关联方式:Root Disk / Data Disk + Attach / Detach**
 
 ### 挂载 / 卸载操作
 
@@ -126,11 +126,11 @@
 | 字段 | 必填 | 说明 |
 |------|------|------|
 | Instance Name | ❌ | 只读，预填当前实例名 |
-| Volume | ✅ | 下拉选择可用卷（状态为 Available） |
+| Volume | ✅ | 下拉选择可用卷(状态为 Available) |
 
 ### Root Disk vs Data Disk
 
-| 属性 | Root Disk（系统盘） | Data Disk（数据盘） |
+| 属性 | Root Disk(系统盘) | Data Disk(数据盘) |
 |------|---------------------|---------------------|
 | 创建时机 | 创建实例时 | 创建实例时 / 后续挂载 |
 | 数量 | 1 块 | 0~24 块 |
@@ -144,7 +144,7 @@
 - 挂载后状态变为 **In use**
 - 卸载后状态恢复为 **Available**
 - `Delete with Instance` 勾选后，删除实例时云硬盘**一并删除**
-- 云硬盘在云硬盘页面（`/ebs/volumes`）独立管理
+- 云硬盘在云硬盘页面(`/ebs/volumes`)独立管理
 
 ### 创建云硬盘来源
 
@@ -184,15 +184,15 @@
 ### 删除实例
 
 ```
-删除实例（默认：移入回收站）
+删除实例(默认:移入回收站)
   ├─ Floating IP:  自动解绑
-  ├─ Data Disk:    自动解绑（保留，不删除）
+  ├─ Data Disk:    自动解绑(保留，不删除)
   ├─ vNIC:         删除
   └─ Root Disk:    根据 Delete with Instance 决定
 
-Force Delete（强制删除）
+Force Delete(强制删除)
   ├─ Floating IP:  自动解绑
-  ├─ Data Disk:    不删除（保留）
+  ├─ Data Disk:    不删除(保留)
   ├─ vNIC:         随实例删除
   └─ Root Disk:    根据 Delete with Instance 决定
 ```
@@ -203,7 +203,7 @@ Force Delete（强制删除）
 恢复实例
   ├─ vNIC:         重新激活
   ├─ Data Disk:    重新挂载
-  └─ Floating IP:  不自动恢复（需手动重新绑定）
+  └─ Floating IP:  不自动恢复(需手动重新绑定)
 ```
 
 ---
@@ -214,10 +214,10 @@ Force Delete（强制删除）
 |------|----------|----------|
 | 云主机 | `/eec/instances` | 创建、删除、挂载、网络绑定 |
 | 云硬盘 | `/ebs/volumes` | 创建、删除、快照 |
-| 网络 | 当前主路径：`/ens/networks`；历史/别名路径：`/neutron/networks` | 创建、子网管理 |
-| vNIC | 当前主路径：`/ens/nics`；历史/别名路径：无 | 创建、挂载/卸载到实例 |
-| 路由器 | 当前主路径：`/ens/routers`；历史/别名路径：`/neutron/routers` | 创建、网关设置、子网连接 |
-| 浮动 IP | 当前主路径：`/ens/floatingIPs`；历史/别名路径：`/eec/floating-ips`、`/neutron/floatingips` | 分配、释放、绑定/解绑 |
+| 网络 | 当前主路径:`/ens/networks`;历史/别名路径:`/neutron/networks` | 创建、子网管理 |
+| vNIC | 当前主路径:`/ens/nics`;历史/别名路径:无 | 创建、挂载/卸载到实例 |
+| 路由器 | 当前主路径:`/ens/routers`;历史/别名路径:`/neutron/routers` | 创建、网关设置、子网连接 |
+| 浮动 IP | 当前主路径:`/ens/floatingIPs`;历史/别名路径:`/eec/floating-ips`、`/neutron/floatingips` | 分配、释放、绑定/解绑 |
 | 安全组 | Access Control 菜单 | 规则管理 |
 
 ---

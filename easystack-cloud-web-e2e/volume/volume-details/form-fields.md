@@ -1,6 +1,6 @@
 # 云硬盘创建表单字段
 
-> 来源：`easystack-cloud-web-e2e/volume/volume.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/volume/volume.md`，按原文标题边界拆分。
 
 ## 页面信息
 
@@ -12,7 +12,7 @@
 
 ## 创建云硬盘表单字段
 
-### Volume Name（卷名称）⭐ 必填
+### Volume Name(卷名称)⭐ 必填
 
 | 属性 | 值 |
 |------|-----|
@@ -22,7 +22,7 @@
 | placeholder | "Enter 1 to 128 characters in length" |
 | 定位方式 | `fieldInput("Volume Name", "input")` |
 
-### Description（描述）
+### Description(描述)
 
 | 属性 | 值 |
 |------|-----|
@@ -31,7 +31,7 @@
 | placeholder | "Enter description of the volume" |
 | 定位方式 | `fieldInput("Description", "textarea")` |
 
-### Volume Source（卷来源）⭐ 必填
+### Volume Source(卷来源)⭐ 必填
 
 | 属性 | 值 |
 |------|-----|
@@ -40,7 +40,7 @@
 | 默认值 | "Empty Volume" |
 | 定位方式 | `formItemByLabel("Volume Source")?.querySelector(".ant-select, nz-select")` |
 
-**可选项：**
+**可选项:**
 
 | 选项 | 说明 | 额外字段 |
 |------|------|----------|
@@ -49,7 +49,7 @@
 | Instance Snapshot | 从实例快照创建 | 出现 "Instance Snapshot" 定位方式 |
 | Volume Snapshot | 从卷快照创建 | 出现 "Volume Snapshot" 定位方式 |
 
-### Type（类型）
+### Type(类型)
 
 | 属性 | 值 |
 |------|-----|
@@ -58,15 +58,15 @@
 | 默认值 | "hdd" |
 | 定位方式 | `formItemByLabel("Type")?.querySelector(".ant-select, nz-select")` |
 
-**可选项：**
+**可选项:**
 
 | 选项 | 说明 |
 |------|------|
 | hdd | 机械硬盘类型 |
 
-> 注意：其他环境可能有 ssd 等更多类型
+> 注意:其他环境可能有 ssd 等更多类型
 
-### Size（容量）⭐ 必填
+### Size(容量)⭐ 必填
 
 | 属性 | 值 |
 |------|-----|

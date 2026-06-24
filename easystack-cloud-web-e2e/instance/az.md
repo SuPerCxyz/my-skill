@@ -1,8 +1,8 @@
-# 可用域与主机聚合（AZ & Host Aggregates）
+# 可用域与主机聚合(AZ & Host Aggregates)
 
 ## agent-browser 迁移说明
 
-本文件保留页面字段、步骤和断言知识；执行入口统一迁移到 agent-browser。
+本文件保留页面字段、步骤和断言知识;执行入口统一迁移到 agent-browser。
 文中的历史代码块已替换为 agent-browser 迁移说明，新增用例必须使用 `agent-browser eval --stdin` 或 `agent-browser batch` 示例。
 
 ## 页面信息
@@ -15,7 +15,7 @@
 
 ## 页面说明
 
-可用域（Availability Zone）用于将物理资源逻辑分组，支持跨可用域部署以提高容灾能力。主机聚合（Host Aggregate）允许将主机分组并应用特定的调度策略。
+可用域(Availability Zone)用于将物理资源逻辑分组，支持跨可用域部署以提高容灾能力。主机聚合(Host Aggregate)允许将主机分组并应用特定的调度策略。
 
 ## 标签页
 
@@ -55,7 +55,7 @@
 | Name | ✅ | `input[placeholder="Enter 1 to 128 characters in length"]` | 1-128 字符 |
 | Description | ❌ | `input[placeholder="Enter a description"]` | 描述 |
 
-弹窗按钮：Cancel、Create
+弹窗按钮:Cancel、Create
 
 ## Host Aggregate 标签页
 
@@ -92,7 +92,7 @@
 | Description | ❌ | `input[placeholder="Enter a description"]` | 描述 |
 | Metadata | ❌ | 键值对输入 | 自定义元数据 |
 
-弹窗按钮：Cancel、Create
+弹窗按钮:Cancel、Create
 
 ### Edit Host Aggregate 弹窗
 
@@ -107,7 +107,7 @@ Name、Description、Availability Zone、Hosts、Metadata、Projects、Created T
 ### TC-AZ001: 创建 Availability Zone
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -117,7 +117,7 @@ agent-browser 执行说明：
 ### TC-AZ002: 创建 Host Aggregate
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。

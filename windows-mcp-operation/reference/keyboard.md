@@ -2,14 +2,14 @@
 
 ## Type
 
-在指定位置输入文本。**必须提供 `loc` 或 `label`**（`label` 为整数 ID，非字符串）。
+在指定位置输入文本。**必须提供 `loc` 或 `label`**(`label` 为整数 ID，非字符串)。
 
 ### 参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `loc` | [int, int] | 输入位置坐标 |
-| `label` | int | UI 元素 ID（整数） |
+| `label` | int | UI 元素 ID(整数) |
 | `text` | string | 输入内容 |
 | `clear` | bool | 先清空已有文本 |
 | `press_enter` | bool | 输入后按回车 |
@@ -39,8 +39,8 @@
 {"shortcut": "ctrl+shift+esc"}
 ```
 
-支持的修饰键：`ctrl`, `alt`, `shift`, `win`。
-注：`Click` 不支持 `modifiers` 参数，需要 modifier+click 时组合 `Shortcut` + `Click`。
+支持的修饰键:`ctrl`, `alt`, `shift`, `win`。
+注:`Click` 不支持 `modifiers` 参数，需要 modifier+click 时组合 `Shortcut` + `Click`。
 
 ## Clipboard
 

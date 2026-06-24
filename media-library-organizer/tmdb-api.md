@@ -7,11 +7,11 @@
 - 如果没有 API Key，则禁止直接调用 TMDB API
 - API Key 不得写入日志、预览、NFO、映射文件或回滚脚本
 
-## API URL（使用 append_to_response 减少请求次数）
+## API URL(使用 append_to_response 减少请求次数)
 
 ```python
 # 优先使用 TMDB 官方 API
-# 详情接口使用 append_to_response 合并请求：
+# 详情接口使用 append_to_response 合并请求:
 
 # movie:
 #   /movie/{id}?language=zh-CN&append_to_response=credits,keywords,release_dates,images,external_ids
@@ -28,9 +28,9 @@
 #   图片配置: https://api.themoviedb.org/3/configuration
 ```
 
-## 网页抓取（fallback）
+## 网页抓取(fallback)
 
-网页抓取仅作为 fallback（API 缺失字段、图片页面特殊字段、用户明确要求时）：
+网页抓取仅作为 fallback(API 缺失字段、图片页面特殊字段、用户明确要求时):
 
 ```
 #   剧集: https://www.themoviedb.org/tv/{tmdb_id}?language=zh-CN
@@ -42,20 +42,20 @@
 ## 匹配置信度评分
 
 ```
-- 标题完全匹配：+50
-- 原标题完全匹配：+30
-- 年份一致：+20
-- 类型一致 movie/tv：+20
-- 中文标题相似：+20
-- 英文标题相似：+20
-- 年份相差 1 年以内：+10
-- 年份相差超过 2 年：-30
-- 类型不一致：-40
+- 标题完全匹配:+50
+- 原标题完全匹配:+30
+- 年份一致:+20
+- 类型一致 movie/tv:+20
+- 中文标题相似:+20
+- 英文标题相似:+20
+- 年份相差 1 年以内:+10
+- 年份相差超过 2 年:-30
+- 类型不一致:-40
 
-最终分数：
-- >=80：允许自动选择
-- 60-79：必须让用户确认
-- <60：视为未匹配
+最终分数:
+- >=80:允许自动选择
+- 60-79:必须让用户确认
+- <60:视为未匹配
 ```
 
 ## 图片 URL 拼接
@@ -77,7 +77,7 @@ def get_image_url(file_path, size="original"):
     """拼接 TMDB 图片 URL"""
     return f"{TMDB_IMAGE_BASE}{size}{file_path}"
 
-# 使用示例：
+# 使用示例:
 # poster_url = get_image_url("/yT4C02yo5MsPLB3damor8YncRvW.jpg", "original")
 # still_url = get_image_url("/aAR0a7vvrMmYVmm5HneKHdS4tIB.jpg", "w500")
 ```

@@ -1,4 +1,4 @@
-# 镜像管理（Image Management）
+# 镜像管理(Image Management)
 
 本文件是入口索引，原始长文档已按主题拆分到子文件。
 

@@ -41,7 +41,7 @@ sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnown
 ```
 
 - Jump host: the `172.18.x.x` address provided
-- K8s 控制节点 IP：通常 **10.20.0.3**，失败时询问用户
+- K8s 控制节点 IP:通常 **10.20.0.3**，失败时询问用户
 
 **Other IPs** → Direct SSH mode:
 
@@ -51,7 +51,7 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeou
 
 - 如果密码错误，先试 `easystack`，再问用户
 
-**进入控制节点后**，通过 `ssh node-xxx` 访问其他 K8s 节点：
+**进入控制节点后**，通过 `ssh node-xxx` 访问其他 K8s 节点:
 
 ```bash
 ssh node-3 'multipath -ll'
@@ -76,7 +76,7 @@ kubectl get namespaces | grep openstack
 
 If neither jump host mode nor direct SSH mode work:
 
-> ⚠ SSH 连接失败。请提供正确的进入方法（SSH 命令、跳板机信息或其他方式）。
+> ⚠ SSH 连接失败。请提供正确的进入方法(SSH 命令、跳板机信息或其他方式)。
 
 Wait for user to provide the correct access command, then proceed.
 
@@ -95,13 +95,13 @@ kubectl rollout restart deployment -n openstack <service-name>
 # Check logs
 kubectl logs -n openstack -l service=<service-name> --tail=100
 
-# 访问其他 K8s 节点（节点间已配免密）
+# 访问其他 K8s 节点(节点间已配免密)
 ssh node-3 'multipath -ll'
 ```
 
 ## Skill 维护原则
 
-不是每次调查都要更新 skill。只有满足以下条件才值得加：
+不是每次调查都要更新 skill。只有满足以下条件才值得加:
 
 1. **通用性** — 多个环境都会遇到的模式或问题，而非某个特定组件的单次排查
 2. **复用性** — 下次排查同类问题时可以直接参考，不需要重新分析

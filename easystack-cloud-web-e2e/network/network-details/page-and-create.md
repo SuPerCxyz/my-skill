@@ -1,12 +1,12 @@
 # 网络管理页面与创建页
 
-> 来源：`easystack-cloud-web-e2e/network/network.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/network/network.md`，按原文标题边界拆分。
 
 ## 页面信息
 
 | 项目 | 值 |
 |------|-----|
-| URL | 当前主路径：`https://<IP>/ens/networks` |
+| URL | 当前主路径:`https://<IP>/ens/networks` |
 | 历史/别名路径 | `https://<IP>/neutron/networks` |
 | 导航路径 | Network → Network |
 | 页面标题 | Network |
@@ -19,7 +19,7 @@
 
 | 按钮 | 定位方式 | 状态 |
 |------|--------|------|
-| Create Network | `buttonByText("Create Network")` | 始终可用（蓝色主按钮） |
+| Create Network | `buttonByText("Create Network")` | 始终可用(蓝色主按钮) |
 | Refresh | 工具栏 icon 按钮 | 始终可用 |
 | Delete Network | `buttonByText("Delete Network")` | 默认禁用，选中 1+ 行后可用 |
 | Export | 工具栏 Export icon | 有数据时可用 |
@@ -27,7 +27,7 @@
 
 ## 过滤器字段
 
-定位方式：`input[placeholder="Click here for filters."]`
+定位方式:`input[placeholder="Click here for filters."]`
 
 | 过滤字段 |
 |----------|
@@ -45,7 +45,7 @@
 | ID |
 | Creation Time |
 
-## 表格列（10 列）
+## 表格列(10 列)
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
@@ -54,23 +54,23 @@
 | Tags | ❌ | 标签信息 |
 | Availability Zone | ✅ | 可用区，如 default-az |
 | IP Address | ❌ | IPv4 CIDR 和 IPv6 地址 |
-| Network Mode / ID | ❌ | 网络模式（Geneve / VLAN / Flat）和 ID |
+| Network Mode / ID | ❌ | 网络模式(Geneve / VLAN / Flat)和 ID |
 | Layer 2 Bridging | ✅ | 二层桥接信息 |
 | Domain / Project | ❌ | 域和项目 |
 | Creation Time | ✅ | 创建时间 |
-| Action | ❌ | 行内操作：Edit、Edit Tags、Delete |
+| Action | ❌ | 行内操作:Edit、Edit Tags、Delete |
 
 ## Setup 列配置
 
-可配置列：Name、Tags、Availability Zone、IP Address、Network Mode / ID、Layer 2 Bridging、Domain / Project、Creation Time、Action
+可配置列:Name、Tags、Availability Zone、IP Address、Network Mode / ID、Layer 2 Bridging、Domain / Project、Creation Time、Action
 
-按钮：Restore Defaults、Select All、Cancel、Confirm
+按钮:Restore Defaults、Select All、Cancel、Confirm
 
 ## Create Network 页面
 
-URL：当前主路径 `/ens/networks/creator`（独立页面，非弹窗）
+URL:当前主路径 `/ens/networks/creator`(独立页面，非弹窗)
 
-历史/别名路径：`/neutron/networks/create`（仅作旧路径对照，不作为默认执行入口）
+历史/别名路径:`/neutron/networks/create`(仅作旧路径对照，不作为默认执行入口)
 
 ### 基础字段
 
@@ -86,7 +86,7 @@ URL：当前主路径 `/ens/networks/creator`（独立页面，非弹窗）
 | Multicast | ❌ | 开关 | 启用/禁用组播 |
 | Tag | ❌ | 标签输入 | 最多 20 个 |
 
-### 子网配置（Subnet）
+### 子网配置(Subnet)
 
 | 字段 | 必填 | 说明 |
 |------|------|------|
@@ -102,7 +102,7 @@ URL：当前主路径 `/ens/networks/creator`（独立页面，非弹窗）
 
 ### 操作按钮
 
-Cancel、Create Network（初始禁用，填写必填项后启用）
+Cancel、Create Network(初始禁用，填写必填项后启用)
 
 ## 分页
 

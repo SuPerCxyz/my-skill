@@ -1,6 +1,11 @@
-# Media Library Organizer Skill
+---
+name: media-library-organizer
+description: "Use when the user wants to organize a media library: TMDB scraping, renaming, NFO generation, and artwork download for movies/TV/variety/documentary/anime. Enforces dry-run by default, rollback support, and conflict handling."
+---
 
-媒体库整理 Skill
+# Media Library Organizer
+
+媒体库整理
 
 ## 核心原则
 
@@ -34,7 +39,7 @@
 6. 所有真实操作完成后必须生成 `_rollback.sh`，并支持 dry-run 回滚。
 7. Kodi / Jellyfin / Emby 剧集识别依赖文件名中的 `SxxExx`，因此即使生成 NFO，文件名也必须保留标准季集号。
 8. 电影 NFO 默认生成与视频同名的 `.nfo`，可选额外生成 `movie.nfo`。
-9. 剧集核心 NFO 为 `tvshow.nfo` + 每集同名 `.nfo`；`season.nfo` 可选生成。
+9. 剧集核心 NFO 为 `tvshow.nfo` + 每集同名 `.nfo`;`season.nfo` 可选生成。
 10. 图片下载失败不能阻断重命名，但必须记录失败清单。
 11. ffprobe 检测结果优先于文件名猜测。
 12. 任何 guessed 字段必须在预览中标记。
@@ -45,10 +50,10 @@
 
 ## 输入
 
-用户提供一个**文件夹路径**，可以是：
+用户提供一个**文件夹路径**，可以是:
 
-- **单个资源文件夹**：如 `综艺/五十公里桃花坞/` 或 `电影/阿凡达/`
-- **多个资源的父文件夹**：如 `综艺/` 或 `电视剧/` 或 `下载/待整理/`
+- **单个资源文件夹**:如 `综艺/五十公里桃花坞/` 或 `电影/阿凡达/`
+- **多个资源的父文件夹**:如 `综艺/` 或 `电视剧/` 或 `下载/待整理/`
 
 Skill 会自动扫描并逐个处理。
 
@@ -61,17 +66,17 @@ options:
   dry_run: true                    # 默认永远 dry-run
   language: zh-CN                  # TMDB 语言
   country: CN                      # 国家
-  tmdb_id: null                    # 显式 TMDB ID（可选）
-  tmdb_api_key: null               # TMDB API Key（优先读环境变量 TMDB_API_KEY）
+  tmdb_id: null                    # 显式 TMDB ID(可选)
+  tmdb_api_key: null               # TMDB API Key(优先读环境变量 TMDB_API_KEY)
   media_type: auto                 # auto / movie / tv / variety / documentary / anime
   season_mode: auto                # auto / single / multi
   special_mode: season00           # season00 / inline / skip
   overwrite: false                 # 禁止覆盖
-  conflict_policy: skip            # skip / suffix / replace（默认 skip）
+  conflict_policy: skip            # skip / suffix / replace(默认 skip)
   generate_nfo: true               # 生成 NFO
   download_artwork: true           # 下载图片
   artwork_quality: original        # original / w500 / w300
-  artwork_alias: true              # 是否生成图片别名（hardlink）
+  artwork_alias: true              # 是否生成图片别名(hardlink)
   max_workers: 4                   # 最大并发数
   delete_empty_dirs: true          # 删除空目录
   prefer_ffprobe: true             # ffprobe 优先
@@ -82,7 +87,7 @@ options:
   generate_season_nfo: false       # season.nfo 可选生成
   generate_movie_nfo_duplicate: false  # 是否额外生成 movie.nfo
   execution_mode: direct           # direct / staging
-  full_hash: false                 # 是否计算完整 sha256（大文件默认 quick_hash）
+  full_hash: false                 # 是否计算完整 sha256(大文件默认 quick_hash)
   media_root: null                 # 媒体库根目录，目标路径必须在此目录内
   target_root: null                # 可选目标整理目录，不填则使用 media_root
   staging_root: null               # 可选 staging 根目录，不填则在 target_root 下创建
@@ -105,13 +110,13 @@ options:
 ```
 默认永远 dry-run，不允许直接修改文件。
 
-只有用户明确回复以下任一内容，才允许执行真实文件修改：
+只有用户明确回复以下任一内容，才允许执行真实文件修改:
 - 确认执行
 - 执行
 - apply
 - run
 
-以下回复不允许执行：
+以下回复不允许执行:
 - 看起来可以
 - 差不多
 - 继续看看
@@ -125,14 +130,14 @@ options:
 
 ## Dry-Run 行为规则
 
-dry-run 模式下允许的操作：
+dry-run 模式下允许的操作:
 - 扫描文件
 - 执行 ffprobe
 - 查询 TMDB API
 - 生成预览
 - 输出「将生成的 mapping / rollback 预览」
 
-dry-run 模式下禁止的操作：
+dry-run 模式下禁止的操作:
 - 创建目录
 - 移动 / 重命名文件
 - 写入 NFO

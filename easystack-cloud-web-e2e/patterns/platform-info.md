@@ -4,7 +4,7 @@
 |------|-----|
 | 平台名称 | EasyStack Cloud |
 | 技术栈 | Angular + Ant Design (NG-ZORRO) |
-| 证书 | 自签名 SSL 证书（浏览器上下文需允许忽略 HTTPS 证书错误） |
+| 证书 | 自签名 SSL 证书(浏览器上下文需允许忽略 HTTPS 证书错误) |
 
 ## 页面 URL
 
@@ -28,7 +28,7 @@
 
 ## 当前控制台模块分组
 
-实际探索到的 `Service Catalog` 一级分组：
+实际探索到的 `Service Catalog` 一级分组:
 
 - Computing
 - Product Service Management

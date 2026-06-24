@@ -12,9 +12,9 @@
 
 ### 注意事项
 
-- **Status Code 始终为 0**（反映 shell 调用本身，非内部命令结果），需检查输出内容判断命令是否真正成功
+- **Status Code 始终为 0**(反映 shell 调用本身，非内部命令结果)，需检查输出内容判断命令是否真正成功
 - 超时默认 30s，可调
-- 可用于 Snapshot 失败时获取窗口列表作为降级方案：
+- 可用于 Snapshot 失败时获取窗口列表作为降级方案:
 
 ```powershell
 Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object Id, ProcessName, MainWindowTitle | Format-Table -AutoSize
@@ -57,8 +57,8 @@ Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object Id, Proce
 ### 注意事项
 
 - 绝对路径可访问非 Desktop 位置
-- UTF-16 文件需指定 `encoding: "utf-16"`（默认 utf-8 会乱码）
-- `overwrite=false` 不阻止覆盖（仍会覆盖）
+- UTF-16 文件需指定 `encoding: "utf-16"`(默认 utf-8 会乱码)
+- `overwrite=false` 不阻止覆盖(仍会覆盖)
 - `write` 必须提供 `content` 参数
 - `delete` 非临时文件时需确认
 
@@ -68,12 +68,12 @@ Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object Id, Proce
 
 | mode | 用途 |
 |------|------|
-| `get` | 读取特定值（需 `name`） |
+| `get` | 读取特定值(需 `name`) |
 | `set` | 创建/修改值 |
 | `delete` | 删除值或键 |
 | `list` | 列出值和子键 |
 
-路径格式：`HKCU:\Software\...` 或 `HKLM:\SOFTWARE\...`
+路径格式:`HKCU:\Software\...` 或 `HKLM:\SOFTWARE\...`
 
 ```json
 {"mode": "list", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"}

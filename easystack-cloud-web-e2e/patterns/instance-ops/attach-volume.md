@@ -1,6 +1,6 @@
 # attach_volume
 
-> 来源：`patterns/instance-ops.md`，按原子操作拆分。
+> 来源:`patterns/instance-ops.md`，按原子操作拆分。
 
 ## `attach_volume`
 
@@ -62,9 +62,9 @@
   `Attach Volume` 弹窗内找按钮。
 - 选择实例后必须确认弹窗内实例下拉展示目标实例，且弹窗内 `Attach` 按钮
   已 enabled。
-- 如果弹窗内存在 form，优先提交 form；否则只点击当前最上层 modal 内的
+- 如果弹窗内存在 form，优先提交 form;否则只点击当前最上层 modal 内的
   `Attach` 主按钮。
-- 成功判定以云硬盘列表为准：目标卷状态 `In use`，Attachments 显示
+- 成功判定以云硬盘列表为准:目标卷状态 `In use`，Attachments 显示
   `<instance>: /dev/vdb` 或下一个可用设备名。
 
 ### `agent-browser eval --stdin` 示例

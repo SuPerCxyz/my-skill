@@ -1,19 +1,19 @@
 # 云主机页面结构
 
-> 来源：`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
 
 ## 计算大类文档索引
 
 | 功能 | 文件 |
 |------|------|
-| 云主机（Instance） | [instance.md](../instance.md) |
-| 云主机快照（Instance Snapshot） | [snapshot.md](../snapshot.md) |
-| 云主机回收站（Instance Recycle Bin） | [recycle-bin.md](../recycle-bin.md) |
-| 云主机分组（Instance Group） | [group.md](../group.md) |
-| SSH 密钥对（SSH Key Pair） | [keypair.md](../keypair.md) |
-| 实例规格（Instance Flavor） | [flavor.md](../flavor.md) |
-| 可用域与主机聚合（AZ & Host Aggregates） | [az.md](../az.md) |
-| 计算节点（Compute Node） | [compute-node.md](../compute-node.md) |
+| 云主机(Instance) | [instance.md](../instance.md) |
+| 云主机快照(Instance Snapshot) | [snapshot.md](../snapshot.md) |
+| 云主机回收站(Instance Recycle Bin) | [recycle-bin.md](../recycle-bin.md) |
+| 云主机分组(Instance Group) | [group.md](../group.md) |
+| SSH 密钥对(SSH Key Pair) | [keypair.md](../keypair.md) |
+| 实例规格(Instance Flavor) | [flavor.md](../flavor.md) |
+| 可用域与主机聚合(AZ & Host Aggregates) | [az.md](../az.md) |
+| 计算节点(Compute Node) | [compute-node.md](../compute-node.md) |
 
 ## 页面信息
 

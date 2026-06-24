@@ -1,8 +1,8 @@
-# 云主机分组（Instance Group）
+# 云主机分组(Instance Group)
 
 ## agent-browser 迁移说明
 
-本文件保留页面字段、步骤和断言知识；执行入口统一迁移到 agent-browser。
+本文件保留页面字段、步骤和断言知识;执行入口统一迁移到 agent-browser。
 文中的历史代码块已替换为 agent-browser 迁移说明，新增用例必须使用 `agent-browser eval --stdin` 或 `agent-browser batch` 示例。
 
 ## 页面信息
@@ -15,7 +15,7 @@
 
 ## 页面说明
 
-云主机分组允许将多个实例组织在一起，支持反亲和性策略（Anti-Affinity），确保组内实例分布在不同计算节点上以提高可用性。
+云主机分组允许将多个实例组织在一起，支持反亲和性策略(Anti-Affinity)，确保组内实例分布在不同计算节点上以提高可用性。
 
 ## 工具栏按钮
 
@@ -33,7 +33,7 @@
 
 Name、Tags、Description、Policy、Instances、Domain、Project、Created Time
 
-## 表格列（9 列）
+## 表格列(9 列)
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
@@ -41,7 +41,7 @@ Name、Tags、Description、Policy、Instances、Domain、Project、Created Time
 | Name | ✅ | 分组名称 |
 | Tags | ❌ | 标签 |
 | Description | ✅ | 描述 |
-| Policy | ✅ | 策略（如 anti-affinity） |
+| Policy | ✅ | 策略(如 anti-affinity) |
 | Instances | ✅ | 关联实例数量 |
 | Domain | ✅ | 域名 |
 | Project | ✅ | 项目 |
@@ -55,15 +55,15 @@ Name、Tags、Description、Policy、Instances、Domain、Project、Created Time
 | Description | ❌ | `input[placeholder="Enter a description"]` | 描述 |
 | Policy | ✅ | `nz-select` 下拉 | 策略选择 |
 
-Policy 下拉选项：
+Policy 下拉选项:
 
 | 策略 | 说明 |
 |------|------|
-| anti-affinity | 反亲和性：组内实例分布在不同计算节点 |
+| anti-affinity | 反亲和性:组内实例分布在不同计算节点 |
 
-弹窗按钮：Cancel、Create
+弹窗按钮:Cancel、Create
 
-## More 菜单（选中分组后）
+## More 菜单(选中分组后)
 
 | 操作 | 说明 |
 |------|------|
@@ -76,7 +76,7 @@ Policy 下拉选项：
 ### TC-G001: 创建 Instance Group
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -86,7 +86,7 @@ agent-browser 执行说明：
 ### TC-G002: 关联实例到分组
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。

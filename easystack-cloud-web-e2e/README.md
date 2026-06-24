@@ -4,27 +4,27 @@ EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browse
 
 ## 概述
 
-本项目是一个 Claude Code Skill，用于通过 `agent-browser` 对 EasyStack Cloud Web 页面执行 UI 自动化操作和端到端测试。核心设计原则：
+本项目是一个 Claude Code Skill，用于通过 `agent-browser` 对 EasyStack Cloud Web 页面执行 UI 自动化操作和端到端测试。核心设计原则:
 
-- **统一入口**：所有 UI 操作统一通过 `agent-browser` CLI 执行，不混合其他浏览器自动化框架。
-- **原子操作库**：页面交互封装为可复用的原子操作（`patterns/`），返回结构化结果。
-- **页面知识库**：按资源域维护页面字段、定位方式和交互细节（`instance/`、`volume/`、`network/`、`image/`）。
-- **测试编排**：定义测试用例结构、编排流程和结果约定（`patterns.md`、`execution.md`）。
-- **减少 token 消耗**：多步骤页面动作合并为批量调用，不逐步依赖 snapshot。
+- **统一入口**:所有 UI 操作统一通过 `agent-browser` CLI 执行，不混合其他浏览器自动化框架。
+- **原子操作库**:页面交互封装为可复用的原子操作(`patterns/`)，返回结构化结果。
+- **页面知识库**:按资源域维护页面字段、定位方式和交互细节(`instance/`、`volume/`、`network/`、`image/`)。
+- **测试编排**:定义测试用例结构、编排流程和结果约定(`patterns.md`、`execution.md`)。
+- **减少 token 消耗**:多步骤页面动作合并为批量调用，不逐步依赖 snapshot。
 
 ## 文档结构
 
 ```
 easystack-cloud-web-e2e/
-├── SKILL.md               # Skill 顶层入口：硬规则、入口路由、决策路径
-├── README.md              # 本文件：项目概述与使用指南
+├── SKILL.md               # Skill 顶层入口:硬规则、入口路由、决策路径
+├── README.md              # 本文件:项目概述与使用指南
 │
-├── connection.md          # 连接与登录：agent-browser 前置、启动参数、环境配置、登录契约
-├── navigation.md          # 页面导航：菜单结构、当前主路径与历史/别名路径
-├── interactions.md        # UI 组件交互：按钮、文本输入、表格、下拉、对话框等定位 helper
-├── execution.md           # 执行规范：执行流程、后台任务策略、操作库维护规则
-├── patterns.md            # 测试编排规范：用例结构、原子操作调用约定
-├── relationships.md       # 资源关联关系：云主机↔网络、云主机↔浮动 IP、云主机↔云硬盘等
+├── connection.md          # 连接与登录:agent-browser 前置、启动参数、环境配置、登录契约
+├── navigation.md          # 页面导航:菜单结构、当前主路径与历史/别名路径
+├── interactions.md        # UI 组件交互:按钮、文本输入、表格、下拉、对话框等定位 helper
+├── execution.md           # 执行规范:执行流程、后台任务策略、操作库维护规则
+├── patterns.md            # 测试编排规范:用例结构、原子操作调用约定
+├── relationships.md       # 资源关联关系:云主机↔网络、云主机↔浮动 IP、云主机↔云硬盘等
 │
 ├── patterns/              # 原子操作库
 │   ├── login.md                           # 登录与共享前置能力
@@ -79,7 +79,7 @@ easystack-cloud-web-e2e/
 
 ### 前置条件
 
-- `agent-browser` CLI（如未安装，会自动安装）
+- `agent-browser` CLI(如未安装，会自动安装)
 - EasyStack 云平台访问地址和凭据
 - 环境配置文件 `/tmp/easystack-env.json`
 
@@ -97,12 +97,12 @@ easystack-cloud-web-e2e/
 
 ### 典型使用流程
 
-1. **加载 Skill**：在 Claude Code 中调用 `easystack-cloud-web-e2e` skill。
-2. **准备环境**：确保 `agent-browser` 可用，加载版本匹配说明。
-3. **配置登录**：读取 `/tmp/easystack-env.json`，执行登录或复用会话。
-4. **选择操作**：根据任务从 `patterns/quick-reference.md` 选择原子操作。
-5. **执行用例**：按 `execution.md` 和 `patterns.md` 编排测试流程。
-6. **报告结果**：记录资源映射、执行结果和截图路径。
+1. **加载 Skill**:在 Claude Code 中调用 `easystack-cloud-web-e2e` skill。
+2. **准备环境**:确保 `agent-browser` 可用，加载版本匹配说明。
+3. **配置登录**:读取 `/tmp/easystack-env.json`，执行登录或复用会话。
+4. **选择操作**:根据任务从 `patterns/quick-reference.md` 选择原子操作。
+5. **执行用例**:按 `execution.md` 和 `patterns.md` 编排测试流程。
+6. **报告结果**:记录资源映射、执行结果和截图路径。
 
 ### 示例
 
@@ -119,7 +119,7 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 
 ## 能力状态
 
-原子操作按验证成熟度分为三级：
+原子操作按验证成熟度分为三级:
 
 | 状态 | 含义 |
 |------|------|
@@ -147,21 +147,21 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 
 - 所有 UI 操作统一通过 `agent-browser` 执行，不混合其他框架。
 - 多步骤页面动作合并到单次 `agent-browser eval --stdin` 或 `agent-browser batch`。
-- 不逐步依赖 snapshot 驱动操作；snapshot 只用于必要诊断。
+- 不逐步依赖 snapshot 驱动操作;snapshot 只用于必要诊断。
 - 每个测试用例必须创建新的测试资源，不复用历史资源。
 - 资源创建提交后未确认成功时记为 `creation_unconfirmed`。
 - 清理资源前必须先向用户说明待清理清单，得到确认后才执行。
 
 ### 资源命名
 
-用例中 `vm1`、`volume1` 等逻辑名映射为唯一资源名：
+用例中 `vm1`、`volume1` 等逻辑名映射为唯一资源名:
 `<case-id>-<resource-type>-<runid>`
 
 报告中同时记录逻辑名和实际资源名。
 
 ### 返回值约定
 
-所有原子操作返回统一结构化对象：
+所有原子操作返回统一结构化对象:
 
 ```json
 {
@@ -185,7 +185,7 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 
 ### 操作沉淀触发条件
 
-执行过程中发现以下情况时，必须更新 skill 文档：
+执行过程中发现以下情况时，必须更新 skill 文档:
 
 - 同一页面动作可能被多个用例复用
 - 操作包含 3 步以上稳定页面交互
@@ -193,8 +193,8 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 
 ### 后台任务
 
-长耗时用例后台任务策略：
-- **Codex 场景**：默认使用 `gpt-5.4-mini` 模型、`reasoning_effort=medium`。
-- **Claude Code / OpenCode 场景**：按当前会话模型和推理强度执行，无需指定。
+长耗时用例后台任务策略:
+- **Codex 场景**:默认使用 `gpt-5.4-mini` 模型、`reasoning_effort=medium`。
+- **Claude Code / OpenCode 场景**:按当前会话模型和推理强度执行，无需指定。
 
 后台任务只负责执行用例和写报告，发现可沉淀操作时记录 `skill_improvements`，由主会话统一更新。

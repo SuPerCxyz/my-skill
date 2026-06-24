@@ -8,7 +8,7 @@
 {"duration": 2}
 ```
 
-用于：等待应用启动、UI 动画完成、页面渲染等。
+用于:等待应用启动、UI 动画完成、页面渲染等。
 
 ## WaitFor
 
@@ -31,8 +31,8 @@
 | `condition` | string | 条件类型 |
 | `text` | string | 匹配文本 |
 | `window_name` | string | 窗口名过滤 |
-| `timeout` | number | 超时秒数（默认 10） |
-| `interval` | number | 轮询间隔（默认 0.25s） |
+| `timeout` | number | 超时秒数(默认 10) |
+| `interval` | number | 轮询间隔(默认 0.25s) |
 | `use_dom` | bool | 浏览器 DOM 文本 |
 
 ### 典型调用

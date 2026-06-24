@@ -1,8 +1,8 @@
 # Common Debugging Scenarios
 
-## 命令执行位置（常见错误）
+## 命令执行位置(常见错误)
 
-**不要**在业务 pod（如 cinder-golem、cinder-api、nova-api 等）中执行 openstack 命令，这些 pod 没有 CLI 工具和认证环境。
+**不要**在业务 pod(如 cinder-golem、cinder-api、nova-api 等)中执行 openstack 命令，这些 pod 没有 CLI 工具和认证环境。
 
 | 操作类型 | 执行位置 | 说明 |
 |---------|---------|------|
@@ -14,7 +14,7 @@
 ## SSH 嵌套命令转义问题
 
 从本机通过双层 SSH 到 K8s 节点执行复杂命令时，shell 引号和变量展开容易丢失。
-进入环境后，通过 `ssh node-xxx` 的方式访问其他节点更可靠：
+进入环境后，通过 `ssh node-xxx` 的方式访问其他节点更可靠:
 
 ```bash
 # 先进入 K8s 控制节点

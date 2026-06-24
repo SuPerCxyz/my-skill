@@ -1,8 +1,8 @@
-# 实例规格（Instance Flavor）
+# 实例规格(Instance Flavor)
 
 ## agent-browser 迁移说明
 
-本文件保留页面字段、步骤和断言知识；执行入口统一迁移到 agent-browser。
+本文件保留页面字段、步骤和断言知识;执行入口统一迁移到 agent-browser。
 文中的历史代码块已替换为 agent-browser 迁移说明，新增用例必须使用 `agent-browser eval --stdin` 或 `agent-browser batch` 示例。
 
 ## 页面信息
@@ -15,7 +15,7 @@
 
 ## 页面说明
 
-实例规格定义了云主机的计算资源配额（vCPU、内存、根磁盘、临时磁盘）。创建云主机时需选择合适的规格。
+实例规格定义了云主机的计算资源配额(vCPU、内存、根磁盘、临时磁盘)。创建云主机时需选择合适的规格。
 
 ## 工具栏按钮
 
@@ -33,7 +33,7 @@
 
 Name、Tags、Description、Category、vCPUs、Memory Size、Root Disk Size、Ephemeral Disk Size、Swap Disk Size、RX/TX Factor、Domain、Project、Created Time
 
-## 表格列（15 列）
+## 表格列(15 列)
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
@@ -52,7 +52,7 @@ Name、Tags、Description、Category、vCPUs、Memory Size、Root Disk Size、Ep
 | Project | ✅ | 项目 |
 | Created Time | ✅ | 创建时间 |
 
-### 规格分类（Category）
+### 规格分类(Category)
 
 | 分类 | 说明 |
 |------|------|
@@ -76,9 +76,9 @@ Name、Tags、Description、Category、vCPUs、Memory Size、Root Disk Size、Ep
 | Swap Disk Size | ❌ | 数字输入 + 单位选择 | MB，默认 0 |
 | RX/TX Factor | ❌ | 数字输入 | 网络因子，默认 1.0 |
 
-弹窗按钮：Cancel、Create
+弹窗按钮:Cancel、Create
 
-## More 菜单（选中规格后）
+## More 菜单(选中规格后)
 
 | 操作 | 说明 |
 |------|------|
@@ -89,7 +89,7 @@ Name、Tags、Description、Category、vCPUs、Memory Size、Root Disk Size、Ep
 ### TC-F001: 创建 Instance Flavor
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。

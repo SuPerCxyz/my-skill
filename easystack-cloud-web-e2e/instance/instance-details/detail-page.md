@@ -1,6 +1,6 @@
 # 实例详情页面
 
-> 来源：`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
 
 ## 实例详情页面
 
@@ -14,8 +14,8 @@
 | 标签 | 定位方式 | 内容 |
 |------|--------|------|
 | Summary | `byText(".ant-tabs-tab-btn", "Summary")` | 基本信息、监控指标、VNC、详细配置 |
-| Storage | `byText(".ant-tabs-tab-btn", "Storage")` | 存储详情（Root Disk、Data Disk） |
-| Networks | `byText(".ant-tabs-tab-btn", "Networks")` | 网络详情（vNIC、IP、Security Group） |
+| Storage | `byText(".ant-tabs-tab-btn", "Storage")` | 存储详情(Root Disk、Data Disk) |
+| Networks | `byText(".ant-tabs-tab-btn", "Networks")` | 网络详情(vNIC、IP、Security Group) |
 
 ### Summary 标签页
 

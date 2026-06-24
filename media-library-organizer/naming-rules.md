@@ -4,16 +4,16 @@
 
 ```
 文件夹: {title}-{originalTitle}({year})-{videoFormat}-{videoCodec}-{hdrformat}-{3Dformat}-{mediaSource}-{audioChannelsDot}
-文件:   同文件夹名（不含扩展名）
+文件:   同文件夹名(不含扩展名)
 ```
 
-示例：
+示例:
 ```
 阿凡达-Avatar(2009)-2160p-HEVC-HDR10--BluRay-7.1.mkv
 泰坦尼克号-Titanic(1997)-1080p-AVC-SDR--WEB-DL-5.1.mkv
 ```
 
-## 多集内容（电视剧/综艺/动漫/纪录片）
+## 多集内容(电视剧/综艺/动漫/纪录片)
 
 ```
 根目录: {showTitle}-{showOriginalTitle}-{showYear}/
@@ -22,7 +22,7 @@
 特殊:   {showTitle}-S00E{episodeNr2}-S{realSeason}E{episodeInSeasonNr2}-{specialType}-{videoFormat}-{videoCodec}-{hdr}-{mediaSource}-{audioChannelsDot}.mp4
 ```
 
-示例：
+示例:
 ```
 ├── 狂飙-The-Knockout-2023/
 │   ├── Season-01/
@@ -54,7 +54,7 @@
 | `{3Dformat}` | 3D 格式 | 空、Half-SBS、Half-OU |
 | `{mediaSource}` | 来源 | WEB-DL、BluRay、HDTV、DVD |
 | `{audioChannelsDot}` | 声道 | 2.0、5.1、7.1 |
-| `{seasonNr2}` | 季号（2位） | 01、02 |
-| `{episodeNr2}` | 集号（2位） | 01、02 |
+| `{seasonNr2}` | 季号(2位) | 01、02 |
+| `{episodeNr2}` | 集号(2位) | 01、02 |
 | `{realSeason}` | 特殊内容所属真实季 | 01、02 |
-| `{episodeInSeasonNr2}` | 特殊内容在所属季内的全局序号，跨所有特殊类型统一从 1 递增（不是按类型分组重新编号） | 01、67 |
+| `{episodeInSeasonNr2}` | 特殊内容在所属季内的全局序号，跨所有特殊类型统一从 1 递增(不是按类型分组重新编号) | 01、67 |

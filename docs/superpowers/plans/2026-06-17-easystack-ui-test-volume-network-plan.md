@@ -149,7 +149,7 @@ Add a compact section like:
 ```md
 ## 待迁移操作
 
-以下名称当前仅保留为待迁移操作清单（`planned`），不作为当前 ready 示例：
+以下名称当前仅保留为待迁移操作清单(`planned`)，不作为当前 ready 示例:
 
 - `create_volume_snapshot`
 - `extend_volume`
@@ -298,7 +298,7 @@ Add:
 ```md
 ## 待迁移操作
 
-以下名称当前仅保留为待迁移操作清单（`planned`）：
+以下名称当前仅保留为待迁移操作清单(`planned`):
 
 - `associate_network`
 - `disassociate_network`

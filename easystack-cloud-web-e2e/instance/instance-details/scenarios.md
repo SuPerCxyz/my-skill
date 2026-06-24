@@ -1,6 +1,6 @@
 # 云主机与云硬盘联动场景
 
-> 来源：`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
 
 ## 云主机与云硬盘联动场景
 

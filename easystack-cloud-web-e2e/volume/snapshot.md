@@ -2,7 +2,7 @@
 
 ## agent-browser 迁移说明
 
-本文件保留页面字段、步骤和断言知识；执行入口统一迁移到 agent-browser。
+本文件保留页面字段、步骤和断言知识;执行入口统一迁移到 agent-browser。
 文中的历史代码块已替换为 agent-browser 迁移说明，新增用例必须使用 `agent-browser eval --stdin` 或 `agent-browser batch` 示例。
 
 ## 页面信息
@@ -27,7 +27,7 @@
 | Delete | `buttonByText("Delete")` | 需选择快照 | 删除快照 |
 | More | `buttonByText("More")` | 需选择快照 | 更多操作 |
 
-> 注意：所有操作按钮在未选择快照时处于禁用状态
+> 注意:所有操作按钮在未选择快照时处于禁用状态
 
 ## 表格列信息
 
@@ -47,20 +47,20 @@
 
 ### TC-S001: 从卷创建快照
 
-**前置条件：** 已登录且存在可用卷
+**前置条件:** 已登录且存在可用卷
 
-**步骤：**
+**步骤:**
 1. 导航到云硬盘页面 (`/ebs/volumes`)
-2. 选择一个可用的卷（状态为 Available）
+2. 选择一个可用的卷(状态为 Available)
 3. 点击 "More" 按钮
 4. 选择 "Create Snapshot" 选项
 5. 填写快照名称和描述
 6. 点击确认创建
 
-**代码：**
+**代码:**
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -70,7 +70,7 @@ agent-browser 执行说明：
 ### TC-S002: 查看快照详情
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -80,7 +80,7 @@ agent-browser 执行说明：
 ### TC-S003: 删除快照
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。
@@ -90,7 +90,7 @@ agent-browser 执行说明：
 ### TC-S004: 从快照恢复卷
 
 ```text
-agent-browser 执行说明：
+agent-browser 执行说明:
 - 当前 skill 只维护 agent-browser 执行入口。
 - 执行本用例时，先读取 `patterns/login.md` 准备登录态。
 - 页面操作优先复用 `patterns/` 下已迁移的原子操作。

@@ -1,6 +1,6 @@
 # 云硬盘页面其他操作
 
-> 来源：`easystack-cloud-web-e2e/volume/volume.md`，按原文标题边界拆分。
+> 来源:`easystack-cloud-web-e2e/volume/volume.md`，按原文标题边界拆分。
 
 ## 页面其他操作
 
@@ -16,17 +16,17 @@
 
 ### 表格列信息
 
-云硬盘列表表格通常包含以下列：
-- Name（名称）
-- Status（状态）
-- Size（容量）
-- Volume Type（类型）
-- Attached To（挂载到）
-- Created At（创建时间）
+云硬盘列表表格通常包含以下列:
+- Name(名称)
+- Status(状态)
+- Size(容量)
+- Volume Type(类型)
+- Attached To(挂载到)
+- Created At(创建时间)
 
 ## More 菜单操作
 
-### 菜单完整列表（9 项）
+### 菜单完整列表(9 项)
 
 | 操作 | 定位方式 | 可用状态 | 弹窗类型 |
 |------|--------|----------|----------|
@@ -72,7 +72,7 @@
 - 说明: "重置卷的挂载状态，解决异常挂载问题"
 - 确认按钮: Confirm
 
-### Migrate 对话框（In use 时可用）
+### Migrate 对话框(In use 时可用)
 
 - 说明: "迁移卷到其他存储后端"
 - **Volume** 信息表格

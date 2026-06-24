@@ -1,6 +1,6 @@
 ---
 name: windows-mcp-operation
-description: Operate and inspect a real Windows desktop through the windows-mcp server. Use when the user asks to get a Windows screenshot, inspect Windows GUI state, launch/switch/resize Windows apps, click/type/scroll on the Windows desktop, run PowerShell commands, manage Windows files/registry/processes, send toast notifications, or automate any Windows desktop workflow. Prefer this skill before using Windows MCP tools so the correct interface is chosen and known failure modes are avoided.
+description: "Use when the user asks to operate a real Windows desktop via the windows-mcp server: screenshots, window control, mouse/keyboard, PowerShell, file/registry/process management, and toast notifications. Loads this skill before Windows MCP tool calls so the correct interface is chosen and known failure modes are avoided."
 ---
 
 # Windows MCP
@@ -19,7 +19,7 @@ description: Operate and inspect a real Windows desktop through the windows-mcp 
 | 鼠标点击 | `Click` | clicks=0 悬停, 1 单击, 2 双击 |
 | 鼠标移动/拖拽 | `Move` | drag=true 执行拖拽 |
 | 滚动 | `Scroll` | 支持垂直和水平 |
-| 文本输入 | `Type` | 必须提供 loc 或 label（整数 ID） |
+| 文本输入 | `Type` | 必须提供 loc 或 label(整数 ID) |
 | 快捷键 | `Shortcut` | 如 ctrl+c, alt+tab, win+r |
 | 批量填表 | `MultiEdit` | labels 或 locs 模式 |
 | 等待 UI 就绪 | `WaitFor` | 支持 text/element/window 条件 |
@@ -44,21 +44,21 @@ description: Operate and inspect a real Windows desktop through the windows-mcp 
 | Wait / WaitFor 等待条件 | [wait.md](reference/wait.md) |
 | MultiEdit / Notification 填表和通知 | [form.md](reference/form.md) |
 | PowerShell / Process / FileSystem / Registry 系统工具 | [system.md](reference/system.md) |
-| 推荐工作流（启动应用、填表、键盘操作等） | [workflows.md](reference/workflows.md) |
+| 推荐工作流(启动应用、填表、键盘操作等) | [workflows.md](reference/workflows.md) |
 | 安全规则和接口注意事项 | [safety.md](reference/safety.md) |
 
 ## When NOT to Use This Skill
 
-- 浏览器内操作（导航、填表、点击网页元素）→ 用 Playwright MCP
+- 浏览器内操作(导航、填表、点击网页元素)→ 用 Playwright MCP
 - 纯命令行 / shell 操作 → 直接用 Bash
 - 不需要与 Windows 桌面交互的任何任务
-- 判断标准：是否需要操作真实的 Windows 窗口、图标、桌面应用
+- 判断标准:是否需要操作真实的 Windows 窗口、图标、桌面应用
 
 ## Key Reminders
 
 - 操作前先 `Snapshot` 确认桌面状态
 - `Type` / `Move` / `Click` 的 `label` 必须为整数 ID，非字符串
 - `PowerShell` 返回的 Status Code 始终为 0，需检查输出内容
-- `App` launch 需要完整应用名（由 `Snapshot` UI 树获取）
-- 截图功能需安装 `mss`：`uv tool install windows-mcp --with mss --force`
+- `App` launch 需要完整应用名(由 `Snapshot` UI 树获取)
+- 截图功能需安装 `mss`:`uv tool install windows-mcp --with mss --force`
 - 远程桌面中窗口枚举可能不稳定，优先使用 UI 树替代

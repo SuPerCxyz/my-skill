@@ -1,9 +1,9 @@
 ---
 name: easystack-ci-test
-description: "Run tox cover and pep8 tests for EasyStack OpenStack projects. Runs cover first, then pep8 at the end to save time. Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini (`basepython`): python2 maps to python2.7, python3 maps to python3.9."
+description: "Use when running CI tests for EasyStack OpenStack projects: tox cover (coverage) and pep8 (flake8). Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini basepython."
 ---
 
-# EasyStack CI Test Guide
+# EasyStack CI Test
 
 EasyStack OpenStack projects use tox for CI testing. This skill covers running `tox -e pep8` (flake8 linting) and `tox -e cover` (unit test coverage), plus auto-fixing failures until both pass.
 
@@ -45,10 +45,10 @@ done || echo "miniconda3 not found in common paths"
 - **If found** → Note the path, then follow Step 1 to activate the conda environment.
 - **If not found** → Ask the user:
 
-  > ⚠️ 未找到 Miniconda3。请确认：
+  > ⚠️ 未找到 Miniconda3。请确认:
   > 1. 提供 Miniconda3 的安装路径
   > 2. 安装 Miniconda3 后继续
-  > 3. 不使用虚拟环境直接运行 CI（使用系统 Python）
+  > 3. 不使用虚拟环境直接运行 CI(使用系统 Python)
 
   - 用户选择 **安装** → 提供安装命令或引导用户自行安装
   - 用户选择 **不使用虚拟环境** → 确认后直接跳转到 [`tox.md`](tox.md) 运行 tox

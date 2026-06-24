@@ -2,7 +2,7 @@
 
 ## Common Patterns
 
-> **重要**: 默认搜索所有节点目录（ecs.node-*），除非用户指定特定节点。日志文件可能为 `.log` 或 `.log.gz`，需使用 `zgrep` 处理压缩文件。
+> **重要**: 默认搜索所有节点目录(ecs.node-*)，除非用户指定特定节点。日志文件可能为 `.log` 或 `.log.gz`，需使用 `zgrep` 处理压缩文件。
 
 ```bash
 # 列出所有可用节点
@@ -444,9 +444,9 @@ grep -r "req-30eb5314-8245-4193-91b4-3b0b67be19bf" openstack/nova/nova-compute.*
 grep -r "req-<REQUEST_ID>" . --include="*.log"
 ```
 
-## 高价值模式（实战沉淀）
+## 高价值模式(实战沉淀)
 
-### 检测 `target_iqns` 列表塌缩（BDM 陈旧的强信号）
+### 检测 `target_iqns` 列表塌缩(BDM 陈旧的强信号)
 
 ```bash
 # 抽出每个卷的 target_iqns 唯一组合及命中次数
@@ -456,7 +456,7 @@ grep "Connecting to multipath volume" openstack/nova/nova-compute.*.log \
 # 4 项全相同 → portal 塌缩 = BDM 已经退化为单节点路径
 ```
 
-### 抽出 VM 完整生命周期主线（屏蔽噪声 INFO）
+### 抽出 VM 完整生命周期主线(屏蔽噪声 INFO)
 
 ```bash
 VM=<UUID>
@@ -465,7 +465,7 @@ grep "$VM" openstack/nova/nova-compute.*.log | grep -E \
   | awk -F' ¦ ' '{raw=$5; sub(/^[^F]*F /, "", raw); print $1, "|", substr(raw,1,250)}'
 ```
 
-### 同节点对照组（同时窗内成功 vs 失败的实例）
+### 同节点对照组(同时窗内成功 vs 失败的实例)
 
 ```bash
 grep -E "Instance rebooted successfully|Failed to resume instance" \
@@ -476,7 +476,7 @@ grep -E "Instance rebooted successfully|Failed to resume instance" \
 ### 用 wwid 反查后端 target 是否服务这卷
 
 ```bash
-WWID=<wwid>      # 例：36001405acbc174502609ea455fb42783
+WWID=<wwid>      # 例:36001405acbc174502609ea455fb42783
 for d in ecs.*/; do
   n=$(basename "$d" | cut -d. -f2)
   hit=$(grep -l "$WWID" "$d/alcubierre/alcubierre-target.node-"*.log 2>/dev/null | wc -l)
@@ -485,7 +485,7 @@ done
 # 全为 0 → 远端没人在承载这卷 = nova 永远拿不到设备
 ```
 
-### 服务可用时间线（节点重启后）
+### 服务可用时间线(节点重启后)
 
 > `os/boot.*.log` 比 `os/messages.*.log` 更准确地给出系统级服务的启动时序。
 > 优先从 boot.log 提取 iscsid/containerd/kubelet/OVS 的 ready 时间。
@@ -494,11 +494,11 @@ done
 # 一个节点上各关键服务的 "Starting" 时间
 NODE_DIR=ecs.node-X.YYYYMMDD.N
 
-# kernel boot 时间（messages 第一条）
+# kernel boot 时间(messages 第一条)
 echo "== kernel boot =="
 head -1 "$NODE_DIR/os/messages."*.log | awk -F' ¦ ' '{print $1}'
 
-# systemd multi-user target 时间（boot.log 结尾）
+# systemd multi-user target 时间(boot.log 结尾)
 echo "== systemd boot complete =="
 grep -E "Reached target.*Multi-User\|Reached target.*Graphical" \
   "$NODE_DIR/os/boot."*.log | tail -1 | awk -F' ¦ ' '{print $1}'
@@ -513,7 +513,7 @@ for svc in nova-compute cinder-volume alcubierre-target alcubierre-node \
 done
 ```
 
-跨节点对比：
+跨节点对比:
 
 ```bash
 for d in ecs.*/; do
@@ -526,14 +526,14 @@ for d in ecs.*/; do
 done
 ```
 
-### 重试节奏判定（标准 4 分钟超时 vs 短瞬抖动）
+### 重试节奏判定(标准 4 分钟超时 vs 短瞬抖动)
 
 ```bash
 # 数同一卷的 Connecting to multipath volume 重试次数和间隔
 VOL=<VOLUME_ID>
 grep "Connecting to multipath volume.*$VOL" openstack/nova/nova-compute.*.log \
   | awk -F' ¦ ' '{print $1}'
-# 典型超时模式：10→10→10→30→65→130→255→512s 退避，总累计 ~1024s ≈ 17 min（实际看版本）
+# 典型超时模式:10→10→10→30→65→130→255→512s 退避，总累计 ~1024s ≈ 17 min(实际看版本)
 ```
 
 ### Domain UUID ↔ instance-XXXX 一次性映射

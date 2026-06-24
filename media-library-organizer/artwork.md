@@ -37,16 +37,16 @@ banner.jpg
 season01-poster.jpg
 season02-poster.jpg
 season00-poster.jpg
-season-specials-poster.jpg（额外生成，提高兼容性）
+season-specials-poster.jpg(额外生成，提高兼容性)
 episode同名-thumb.jpg
 ```
 
 ## 图片来源
 
-- 海报 `poster.jpg`：TMDB posters，`original` 尺寸
-- 背景图 `fanart.jpg`：TMDB backdrops，`original` 尺寸
-- 横幅图 `banner.jpg`：TMDB backdrops，选取与 fanart 不同的图
-- 透明 Logo `clearlogo.png`：TMDB logos，最大尺寸 PNG
-- 各季海报 `season{nn}-poster.jpg`：TMDB 各季页面独立海报
+- 海报 `poster.jpg`:TMDB posters，`original` 尺寸
+- 背景图 `fanart.jpg`:TMDB backdrops，`original` 尺寸
+- 横幅图 `banner.jpg`:TMDB backdrops，选取与 fanart 不同的图
+- 透明 Logo `clearlogo.png`:TMDB logos，最大尺寸 PNG
+- 各季海报 `season{nn}-poster.jpg`:TMDB 各季页面独立海报
 - 特别篇海报 `season00-poster.jpg` + `season-specials-poster.jpg`
-- 每集剧照 `*-thumb.jpg`：TMDB stills，`w500` 尺寸
+- 每集剧照 `*-thumb.jpg`:TMDB stills，`w500` 尺寸
