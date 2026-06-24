@@ -12,6 +12,7 @@
 | [easystack-ci-test](easystack-ci-test/) | EasyStack OpenStack 项目通用 CI 测试 - 运行 tox cover/pep8，自动修复失败项直到测试全部通过并满足覆盖率要求 |
 | [media-library-organizer](media-library-organizer/) | 媒体库整理 - TMDB 刮削 + 重命名 + NFO 生成 + 图片下载，支持电影/电视剧/综艺/纪录片/动漫，含完整安全机制和回滚 |
 | [easystack-cloud-web-e2e](easystack-cloud-web-e2e/) | EasyStack 云平台 Web UI 端到端自动化测试 - 基于 agent-browser 的原子操作库、页面知识库和测试编排规范，支持云主机/云硬盘/网络等资源操作的 UI 自动化 |
+| [easystack-log-analysis](easystack-log-analysis/) | EasyStack OpenStack 集群日志分析 - eslog 加密压缩包解压、容器化日志目录映射、跨服务跨节点根因定位；覆盖云主机生命周期 / 云盘挂载卸载 / 网络 / 镜像 / 裸金属 Ironic 等场景，强制关联 OpenStack 控制面 + OS 系统层（内核/OVS/SCSI/multipath/IPMI）+ 基础设施（Galera/RabbitMQ/chrony/Ceph），含统一报告模板和实战 case |
 
 ## 使用方法
 
