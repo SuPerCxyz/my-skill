@@ -14,7 +14,7 @@ This skill automates SSH access based on the target environment IP pattern.
 
 | When you need... | Read |
 |------------------|------|
-| SSH access details, local openstack client setup | [access.md](access.md) |
+| SSH access details, local openstack client setup, JumpServer 堡垒机 | [access.md](access.md) |
 | OpenStack CLI auth, busybox pod, admin credentials | [auth.md](auth.md) |
 | Service list, pod names, OVN networking, Helm releases, code repo layout | [services.md](services.md) |
 | Multi-container pods, label selectors, StatefulSet vs Deployment | [pods.md](pods.md) |
@@ -23,13 +23,25 @@ This skill automates SSH access based on the target environment IP pattern.
 | Nova maintenance pod for cell/evacuation operations | [nova-maintenance.md](nova-maintenance.md) |
 | kubectl logs, fluentd history log search | [logs.md](logs.md) |
 | Service failing to start, database issues, config debugging, helm rollback | [scenarios.md](scenarios.md) |
+| 节点间网络排查(L1/L2/L3诊断)、ARP状态解读、VLAN子接口排查 | [network.md](network.md) |
 | Essential commands, environment constants, namespaces | [reference.md](reference.md) |
 
 ## Environment Access Flow 环境访问流程
 
-### Step 1: Determine Target IP 确定目标 IP
+### Step 1: Determine Access Method 确定访问方式
 
-Ask the user for the target environment IP or hostname.
+Ask the user for the **target environment name or IP**.
+
+**Did the user mention:**
+- `ssh js` / JumpServer / 堡垒机 / 类似 js 跳转到某个环境?
+- Asset name like `BJ-32`, `SH-xx`, `GZ-xx`?
+
+→ JumpServer 模式，直接跳转到 [JumpServer 堡垒机模式](access.md#jumpserver-堡垒机模式)
+
+**Otherwise**, check the IP pattern:
+
+- IP starts with `172.18.` → Jump host mode
+- Other IPs → Direct SSH mode
 
 ### Step 2: Check IP Pattern and SSH In 检查 IP 模式并 SSH 接入
 
@@ -51,7 +63,7 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeou
 
 - 如果密码错误，先试 `easystack`，再问用户
 
-**进入控制节点后**，通过 `ssh node-xxx` 访问其他 K8s 节点:
+**进入控制节点后**，通过主机名访问其他 K8s 节点(`/etc/hosts` 由部署工具维护，始终使用主机名而非 IP):
 
 ```bash
 ssh node-3 'multipath -ll'

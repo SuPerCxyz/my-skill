@@ -27,9 +27,17 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeou
 
 ### 进入控制节点后
 
+> ⚠️ **始终使用主机名而非 IP 地址访问其他节点。**
+> 节点有多个 IP 分布在管理网、存储网、VXLAN 等多个网平面。
+> `/etc/hosts` 由部署工具维护，解析到**当前可用的正确网络路径**。
+> 直接使用 IP 可能会指定到有问题的网络，导致误判或 SSH 不通。
+
 ```bash
-# 通过 ssh node-xxx 访问其他 K8s 节点(节点间已配免密)
+# ✅ 正确: 通过主机名访问(节点间已配免密)
 ssh node-3 'multipath -ll'
+
+# ❌ 不要直接用 IP
+ssh 32.168.40.2 'command'  # 可能选了存储网而非管理网
 
 # 执行 kubectl 命令
 kubectl get pods -n openstack | grep cinder
@@ -69,6 +77,127 @@ python3 <<'PY' | base64 -w0 | ssh -o StrictHostKeyChecking=no root@<TARGET_IP> "
 print("hello from remote")
 PY
 ```
+
+## JumpServer 堡垒机模式
+
+部分环境通过 JumpServer 堡垒机管理，而非直接 SSH 到 K8s 控制节点。
+
+### 连接流程
+
+```
+ssh js                    → 进入 JumpServer 控制台
+输入目标资产名(如 BJ-32)  → JumpServer 代理 SSH 到目标主机
+sudo su -                 → 切换到 root
+```
+
+### JumpServer 配置
+
+- **Host**: `js.easystack.io:2222`
+- **SSH 别名配置**: 在 `~/.ssh/config` 中通常配为:
+
+```
+Host js
+    HostName js.easystack.io
+    Port 2222
+    User <your-email>
+```
+
+### 交互式使用(expect 脚本)
+
+JumpServer 是交互式 TUI 菜单，无法通过管道直接输入。使用 expect 脚本完成自动登录:
+
+```bash
+#!/usr/bin/expect -f
+set timeout 30
+
+# 连接 JumpServer
+spawn ssh -tt js
+
+# 等待菜单提示符
+expect "Opt>"
+
+# 发送目标资产名(替换 ASSET_NAME 为实际名称)
+send "ASSET_NAME\r"
+
+# 等待目标主机的 shell 提示符
+expect {
+    "Are you sure you want to continue connecting" {
+        send "yes\r"
+        exp_continue
+    }
+    -re {[$#>]} {
+        send_user "已连接到目标主机\n"
+    }
+    timeout {
+        send_user "连接超时\n"
+        exit 1
+    }
+}
+
+# 切换到 root
+send "sudo su -\r"
+expect {
+    -re {[$#>]} {
+        send_user "✅ 已切换到 root\n"
+    }
+    "not in the sudoers" {
+        send_user "❌ 没有 sudo 权限\n"
+        exit 1
+    }
+    timeout {
+        send_user "⚠️ 切换超时,可能需要密码\n"
+        exit 1
+    }
+}
+
+# 进入交互模式
+send "cd ~\r"
+interact
+```
+
+### 常见资产名
+
+| 名称 | 说明 |
+|------|------|
+| `BJ-32` (node-3202, 172.32.0.2) | 北京 32 号环境 |
+| *(其他资产由用户指定)* | |
+
+### 资产内特征
+
+| 属性 | 说明 |
+|------|------|
+| 登录用户 | `dev` (JumpServer 系统用户) |
+| sudo 权限 | ✅ NOPASSWD，可免密 `sudo su -` |
+| root 验证 | `uid=0(root) gid=0(root)` |
+| 额外组 | `pamauth` (1000) |
+| JumpServer 复用 | 资产支持复用 SSH 连接 |
+
+### 连接验证
+
+进入目标主机并切到 root 后，按已有流程执行 kubectl 验证:
+
+```bash
+whoami       # 应返回 root
+id           # uid=0(root)
+kubectl get namespaces | grep openstack
+```
+
+### 节点间跳转(从 JumpServer 资产的当前节点到另一节点)
+
+```bash
+# ✅ 正确: 使用主机名 SSH 到其他节点(节点间已配免密)
+ssh node-3201
+
+# ⚠️ 注意: 不要直接用 IP。节点有多个网平面 IP，
+# 用 IP 可能选到当前的故障网络，导致 SSH 不通或绕路
+# ❌ ssh 10.254.32.1  # ipsan 网段，可能不通
+```
+
+### 注意事项
+
+- JumpServer TUI 菜单支持: 输入资产名(唯一时自动登录)、`/ + IP/名称` 搜索、`p` 列出有权限的主机
+- 如果 `sudo su -` 需要密码，说明不是 NOPASSWD 配置，需询问用户密码
+- 这种方式与 jump host 模式、直连模式并列，是第三种环境访问路径
 
 ## Local OpenStack Client via Endpoint Mapping
 
