@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use when debugging EasyStack services deployed on Kubernetes. Determines SSH access method based on target IP: jump host for 172.18.x.x, direct SSH otherwise. Verifies environment access via kubectl. Covers pod operations, log search, config editing, and common debugging scenarios."
+description: "Use when inspecting EasyStack services deployed on Kubernetes. Determines SSH access method: direct SSH for normal IPs, jump host for 172.18.x.x, or JumpServer assets such as BJ-35. Only performs read-only checks unless the user explicitly authorizes an impactful operation."
 ---
 
 # EasyStack Environment Debugging
@@ -10,19 +10,57 @@ description: "Use when debugging EasyStack services deployed on Kubernetes. Dete
 OpenStack services run on Kubernetes (Helm-deployed) in the `openstack` namespace.
 This skill automates SSH access based on the target environment IP pattern.
 
+## Read-Only Safety Gate 只读安全门禁
+
+默认只能执行查看类操作。进入环境后，除非用户明确授权某个具体变更动作，否则不要执行会影响环境状态的命令。
+
+允许的默认命令:
+
+```bash
+whoami
+id -u
+hostname
+pwd
+kubectl get ...
+kubectl describe ...
+kubectl logs ... --tail=<N>
+helm list -n openstack
+helm history -n openstack <release-name>
+```
+
+`helm get values` 是只读命令，但部分环境会返回 `Unauthorized operation`。
+不要把它作为默认验证命令；失败时记录权限限制并继续其它只读检查。
+
+禁止作为默认动作执行:
+
+```bash
+kubectl edit ...
+kubectl delete ...
+kubectl apply ...
+kubectl patch ...
+kubectl rollout restart ...
+kubectl scale ...
+helm rollback ...
+systemctl restart ...
+service ... restart
+mysql/update/delete/insert/alter/drop
+```
+
+如果排障确实需要变更环境，先说明影响范围、回滚方式和验证方式，并等待用户确认。
+
 ## Quick Reference 快速参考 - 文件索引
 
 | When you need... | Read |
 |------------------|------|
-| SSH access details, local openstack client setup, JumpServer 堡垒机 | [access.md](access.md) |
+| 环境后台访问、三种 SSH 入口、JumpServer 堡垒机 | [access.md](access.md) |
 | OpenStack CLI auth, busybox pod, admin credentials | [auth.md](auth.md) |
 | Service list, pod names, OVN networking, Helm releases, code repo layout | [services.md](services.md) |
 | Multi-container pods, label selectors, StatefulSet vs Deployment | [pods.md](pods.md) |
-| Startup scripts, configmaps, startup-time code overlay debugging, config/script editing | [scripts.md](scripts.md) |
-| /opt mount for overlay code debugging | [code-debug.md](code-debug.md) |
-| Nova maintenance pod for cell/evacuation operations | [nova-maintenance.md](nova-maintenance.md) |
+| Startup scripts, configmaps, config/script inspection | [scripts.md](scripts.md) |
+| /opt mount code overlay debugging, explicit authorization required | [code-debug.md](code-debug.md) |
+| Nova maintenance pod read-only inspection and authorization guard | [nova-maintenance.md](nova-maintenance.md) |
 | kubectl logs, fluentd history log search | [logs.md](logs.md) |
-| Service failing to start, database issues, config debugging, helm rollback | [scenarios.md](scenarios.md) |
+| Service failing to start, database issues, config debugging, read-only helm inspection | [scenarios.md](scenarios.md) |
 | 节点间网络排查(L1/L2/L3诊断)、ARP状态解读、VLAN子接口排查 | [network.md](network.md) |
 | Essential commands, environment constants, namespaces | [reference.md](reference.md) |
 
@@ -43,7 +81,15 @@ Ask the user for the **target environment name or IP**.
 - IP starts with `172.18.` → Jump host mode
 - Other IPs → Direct SSH mode
 
+示例入口:
+
+- `192.168.3.3` → Direct SSH mode
+- `172.18.0.118` → Jump host mode
+- `BJ-35` → JumpServer mode
+
 ### Step 2: Check IP Pattern and SSH In 检查 IP 模式并 SSH 接入
+
+具体命令以 [access.md](access.md) 为准；这里仅描述分流规则。
 
 **If IP starts with `172.18.`** → Jump host mode:
 
@@ -63,30 +109,40 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeou
 
 - 如果密码错误，先试 `easystack`，再问用户
 
-**进入控制节点后**，通过主机名访问其他 K8s 节点(`/etc/hosts` 由部署工具维护，始终使用主机名而非 IP):
+进入后台后，通过主机名访问其他 K8s 节点(`/etc/hosts` 由部署工具维护，始终使用主机名而非 IP):
 
 ```bash
-ssh node-3 'multipath -ll'
+ssh node-3 'hostname; whoami; pwd'
 ```
 
 ### Step 3: Verify Access 验证可访问性
 
-After SSH, run:
+After SSH, first run the minimal read-only checks:
+
+```bash
+whoami
+id -u
+hostname
+pwd
+```
+
+If the target node has kubectl and kubeconfig, then run:
 
 ```bash
 kubectl get namespaces | grep openstack
 ```
 
-- **`openstack` found** → ✓ Environment access confirmed. Proceed with debugging tasks using the reference docs above.
-- **Command fails** → Retry with kubeconfig path:
+- **identity/hostname checks succeed** → Environment shell access confirmed.
+- **`openstack` found** → Kubernetes access confirmed. Proceed with read-only debugging tasks using the reference docs above.
+- **kubectl fails** → Retry with kubeconfig path:
   ```bash
   kubectl get namespaces --kubeconfig=/etc/kubernetes/admin.conf | grep openstack
   ```
-- **Still fails** → Report SSH succeeded but kubectl unavailable. Ask user for correct node or access method.
+- **Still fails** → Report shell access succeeded but kubectl unavailable. Ask user for correct node or access method.
 
 ### Step 4: Fallback 回退方案
 
-If neither jump host mode nor direct SSH mode work:
+If JumpServer, jump host mode, and direct SSH mode all fail:
 
 > ⚠ SSH 连接失败。请提供正确的进入方法(SSH 命令、跳板机信息或其他方式)。
 
@@ -95,20 +151,22 @@ Wait for user to provide the correct access command, then proceed.
 ## Quick Start 快速开始 - 进入环境后
 
 ```bash
-# Enter busybox pod (has openstack CLI, mysql client)
-kubectl exec -it -n openstack services/busybox -- bash
+# Confirm identity and target host
+whoami
+id -u
+hostname
+pwd
 
-# 进入 busybox 后先 source 认证
-source /openrc
+# Inspect namespaces and pods
+kubectl get namespaces | grep openstack
+kubectl get pods -n openstack
 
-# Restart a service
-kubectl rollout restart deployment -n openstack <service-name>
-
-# Check logs
+# Check logs without changing state
 kubectl logs -n openstack -l service=<service-name> --tail=100
 
-# 访问其他 K8s 节点(节点间已配免密)
-ssh node-3 'multipath -ll'
+# Inspect Helm release metadata
+helm list -n openstack
+helm history -n openstack <release-name>
 ```
 
 ## Skill Maintenance Principles Skill 维护原则

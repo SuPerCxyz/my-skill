@@ -29,7 +29,7 @@ No standalone `neutron-server` pods. Networking handled by:
 | `proton-ovn-metadata-agent-*` | Metadata agent |
 | `proton-ovn-l2gw-agent-*` | L2 gateway agent |
 
-Neutron config: `kubectl edit cm -n openstack neutron-etc`.
+Neutron config inspection: `kubectl get cm -n openstack neutron-etc -o yaml`.
 
 ## Helm Releases
 
@@ -52,10 +52,15 @@ All deployed via Helm in `openstack` namespace:
 
 ```bash
 helm list -n openstack
-helm get values -n openstack <release-name>
 helm history -n openstack <release-name>
-helm rollback -n openstack <release-name> <revision>
 ```
+
+`helm get values -n openstack <release-name>` is read-only, but some environments
+return `Unauthorized operation`. Treat it as optional and do not block the
+inspection flow if it fails.
+
+`helm rollback` changes the environment. Do not run it unless the user explicitly
+authorizes that exact rollback.
 
 ## Project Code Layout
 

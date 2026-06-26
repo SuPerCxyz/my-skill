@@ -4,7 +4,7 @@
 
 桌面截屏 + UI 元素树检查，提供光标位置、窗口列表和交互元素坐标。
 
-### 参数
+### Snapshot 参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
@@ -16,7 +16,7 @@
 | `height_reference_line` | int | 添加水平网格线 |
 | `use_dom` | bool | 浏览器 DOM 提取(非桌面 UI) |
 
-### 典型调用
+### Snapshot 典型调用
 
 ```json
 {"use_vision": true, "use_ui_tree": false}
@@ -51,7 +51,7 @@
 
 网页抓取工具，支持 HTTP 请求和浏览器 DOM 两种模式。
 
-### 参数
+### Scrape 参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
@@ -60,7 +60,7 @@
 | `use_dom` | bool | true=从浏览器 DOM 提取(需 Chrome/Edge/Firefox) |
 | `use_sampling` | bool | false=获取原始内容(不经过 LLM 处理) |
 
-### 典型调用
+### Scrape 典型调用
 
 ```json
 {"url": "https://httpbin.org/get"}

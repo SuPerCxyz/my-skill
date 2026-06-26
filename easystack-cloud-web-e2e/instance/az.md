@@ -26,7 +26,7 @@
 
 ## Availability Zone 标签页
 
-### 工具栏按钮
+### Availability Zone 工具栏按钮
 
 | 按钮 | 定位方式 | 状态 |
 |------|--------|------|
@@ -36,7 +36,7 @@
 | Export | 工具栏 Export icon | 有数据时可用 |
 | Setup | 工具栏 Setup icon | 始终可用 |
 
-### 表格列
+### Availability Zone 表格列
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|
@@ -59,7 +59,7 @@
 
 ## Host Aggregate 标签页
 
-### 工具栏按钮
+### Host Aggregate 工具栏按钮
 
 | 按钮 | 定位方式 | 状态 |
 |------|--------|------|
@@ -70,7 +70,7 @@
 | Export | 工具栏 Export icon | 有数据时可用 |
 | Setup | 工具栏 Setup icon | 始终可用 |
 
-### 表格列
+### Host Aggregate 表格列
 
 | 列名 | 可排序 | 说明 |
 |------|--------|------|

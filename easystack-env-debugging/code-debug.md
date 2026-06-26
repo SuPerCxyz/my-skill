@@ -1,5 +1,12 @@
 # Code Debugging via /opt Mount
 
+This is an authorization-required workflow. Copying files to `/opt`, overlaying
+runtime code, or changing startup scripts affects the environment and must not be
+used during default read-only inspection.
+
+Before using this workflow, get explicit user approval for the target service,
+target node, files to change, rollback method, and verification command.
+
 Many service pods mount the host node's `/opt` directory to `/opt` inside the pod.
 This enables a convenient code debugging workflow.
 

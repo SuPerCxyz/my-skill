@@ -2,7 +2,7 @@
 
 > 来源:`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
 
-## 实例详情页面
+## 页面入口与标签页
 
 ### 详情页面入口
 
@@ -41,4 +41,3 @@
   - MAC 地址
   - IPv4 地址
   - Security Group
-

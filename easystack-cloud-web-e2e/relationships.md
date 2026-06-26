@@ -37,7 +37,7 @@
 
 **关联方式:vNIC(虚拟网卡)**
 
-### 绑定 / 解绑操作
+### 网络绑定 / 解绑操作
 
 | 场景 | 操作入口 | 说明 |
 |------|----------|------|
@@ -45,7 +45,7 @@
 | 创建后绑定额外网络 | More → Associate Network | 新增一个 vNIC |
 | 创建后解绑网络 | More → Disassociate Network | 移除指定 vNIC |
 
-### 关键规则
+### 网络关键规则
 
 - 一个实例可绑定**最多 12 个 vNIC**
 - 每个 vNIC 连接**一个网络 + 一个子网**
@@ -74,7 +74,7 @@
 
 **关联方式:Floating IP 绑定到 vNIC**
 
-### 绑定 / 解绑操作
+### 公网 IP 绑定 / 解绑操作
 
 | 场景 | 操作入口 | 前置条件 |
 |------|----------|----------|
@@ -89,7 +89,7 @@
 | Instance Nic | ✅ | 下拉选择实例的 vNIC(显示 `网卡名: IP`) |
 | Floating IP | ✅ | 下拉选择可用的 Floating IP(状态为 Unbound) |
 
-### 关键规则
+### 公网 IP 关键规则
 
 - Floating IP 绑定到**特定 vNIC**，不是绑定到实例整体
 - 一个 vNIC 只能绑定**一个** Floating IP
@@ -138,7 +138,7 @@
 | 删除行为 | 受 `Delete with Instance` 控制 | 受 `Delete with Instance` 控制 |
 | 来源 | Image / Instance Snapshot / Volume Snapshot | Empty Volume / Image / Snapshot |
 
-### 关键规则
+### 云硬盘关键规则
 
 - 云硬盘创建后状态为 **Available**，才能被挂载
 - 挂载后状态变为 **In use**

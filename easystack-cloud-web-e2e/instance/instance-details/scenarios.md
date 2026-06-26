@@ -2,7 +2,7 @@
 
 > 来源:`easystack-cloud-web-e2e/instance/instance.md`，按原文标题边界拆分。
 
-## 云主机与云硬盘联动场景
+## 场景列表
 
 ### 场景 1: 创建云主机时添加数据盘
 

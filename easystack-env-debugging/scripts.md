@@ -8,8 +8,8 @@ Each service has two configmaps in `openstack` namespace:
 - `<service>-bin` - startup scripts and auxiliary scripts
 
 ```bash
-kubectl edit cm -n openstack <service>-etc    # Edit config
-kubectl edit cm -n openstack <service>-bin    # Edit scripts
+kubectl get cm -n openstack <service>-etc -o yaml    # View config
+kubectl get cm -n openstack <service>-bin -o yaml    # View scripts
 ```
 
 ## Script Pattern
@@ -34,17 +34,17 @@ Auxiliary scripts in `/tmp/`:
 - `<service>-bin` → mounted at `/tmp/` (scripts)
 - `<service>-etc` → mounted at `/etc/<service>/` (configs)
 
-## Edit Config/Script and Restart Pod
+## Inspect Config/Script
 
 ```bash
-# Step 1: Edit configmap or script
-kubectl edit cm -n openstack <service>-etc
-kubectl edit cm -n openstack <service>-bin
+# View configmap or script without changing state
+kubectl get cm -n openstack <service>-etc -o yaml
+kubectl get cm -n openstack <service>-bin -o yaml
 
-# Step 2: Restart pod (pick one)
-kubectl delete pod -n openstack <pod-name>
-kubectl rollout restart deployment -n openstack <service-name>
-kubectl rollout restart statefulset -n openstack <service-name>
+# View how pods mount the configmaps
+kubectl describe pod -n openstack <pod-name>
 ```
 
-ConfigMap edits require pod restart to take effect. Pods mount configmaps read-only.
+ConfigMap edits and pod restarts affect the environment. Do not run `kubectl edit`,
+`kubectl delete pod`, or `kubectl rollout restart` unless the user explicitly
+authorizes that exact change.

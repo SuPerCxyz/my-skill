@@ -14,66 +14,16 @@ EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browse
 
 ## 文档结构
 
-```
-easystack-cloud-web-e2e/
-├── SKILL.md               # Skill 顶层入口:硬规则、入口路由、决策路径
-├── README.md              # 本文件:项目概述与使用指南
-│
-├── connection.md          # 连接与登录:agent-browser 前置、启动参数、环境配置、登录契约
-├── navigation.md          # 页面导航:菜单结构、当前主路径与历史/别名路径
-├── interactions.md        # UI 组件交互:按钮、文本输入、表格、下拉、对话框等定位 helper
-├── execution.md           # 执行规范:执行流程、后台任务策略、操作库维护规则
-├── patterns.md            # 测试编排规范:用例结构、原子操作调用约定
-├── relationships.md       # 资源关联关系:云主机↔网络、云主机↔浮动 IP、云主机↔云硬盘等
-│
-├── patterns/              # 原子操作库
-│   ├── login.md                           # 登录与共享前置能力
-│   ├── instance-ops.md                    # 实例操作索引
-│   ├── instance-ops/                      # 实例操作详细文档
-│   │   ├── create-instance.md             #   - 创建云主机 (ready-validated)
-│   │   ├── delete-instance.md             #   - 删除云主机 (ready-template)
-│   │   ├── attach-volume.md               #   - 挂载云硬盘 (ready-validated)
-│   │   ├── rename-instance.md             #   - 重命名云主机 (ready-template)
-│   │   ├── start-stop-reboot.md           #   - 开机/关机/重启 (ready-template)
-│   │   └── create-snapshot.md             #   - 创建云主机快照 (ready-template)
-│   ├── volume-ops.md                      # 云硬盘与镜像操作 (create/detach/delete/snapshot/rollback/upload)
-│   ├── network-ops.md                     # 网络操作 (floating IP allocate/associate/release, network, router)
-│   ├── page-probes.md                     # 页面只读探测
-│   ├── cleanup-resources.md               # 清理资源编排
-│   ├── platform-info.md                   # 平台信息和主路径
-│   ├── quick-reference.md                 # 常用操作索引
-│   └── operation-template.md              # 操作文档模板
-│
-├── instance/              # 计算资源页面知识库
-│   ├── instance.md                        # 云主机页面
-│   ├── instance-details/                  # 云主机详情子页面
-│   ├── snapshot.md                        # 云主机快照
-│   ├── recycle-bin.md                     # 云主机回收站
-│   ├── group.md                           # 云主机分组
-│   ├── keypair.md                         # SSH 密钥对
-│   ├── flavor.md                          # 实例规格
-│   ├── az.md                              # 可用域与主机聚合
-│   └── compute-node.md                    # 计算节点
-│
-├── volume/               # 存储资源页面知识库
-│   ├── volume.md                          # 云硬盘页面
-│   ├── volume-details/                    # 云硬盘详情子页面
-│   ├── snapshot.md                        # 云硬盘快照
-│   └── volume-type.md                     # 云硬盘类型
-│
-├── network/              # 网络资源页面知识库
-│   ├── network.md                         # 网络页面
-│   ├── network-details/                   # 网络详情子页面
-│   ├── router.md                          # 路由器页面
-│   ├── router-details/                    # 路由器详情子页面
-│   ├── floating-ip.md                     # 浮动 IP 页面
-│   ├── vnic.md                            # 虚拟网卡页面
-│   └── vnic-details/                      # 虚拟网卡详情子页面
-│
-└── image/                # 镜像资源页面知识库
-    ├── image.md                           # 镜像页面
-    └── image-details/                     # 镜像详情子页面
-```
+| 区域 | 内容 |
+|------|------|
+| [SKILL.md](SKILL.md) | 顶层入口:硬规则、入口路由、决策路径 |
+| [connection.md](connection.md), [navigation.md](navigation.md), [interactions.md](interactions.md), [execution.md](execution.md) | 连接登录、页面导航、组件交互、执行规范 |
+| [patterns.md](patterns.md), `patterns/` | 测试编排规范与原子操作库 |
+| [relationships.md](relationships.md) | 资源关联关系与跨资源测试关注点 |
+| `instance/`, `volume/`, `network/`, `image/` | 页面知识库, 各目录内的 `*-details/` 存放详情页字段、弹窗和测试场景 |
+
+完整文件入口以 [SKILL.md](SKILL.md) 的 Quick Reference 为准, README 不维护逐文件目录树,
+避免子目录拆分后索引过期。
 
 ## 快速开始
 

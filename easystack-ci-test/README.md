@@ -12,6 +12,8 @@
 
 ## 快速开始
 
+先按 [setup.md](setup.md) 激活或创建 Miniconda 环境。环境已激活后运行:
+
 ```bash
 tox -e cover   # 覆盖率检查(先跑，约 5 分钟)
 tox -e pep8    # 代码风格检查(后跑，约 40 秒)

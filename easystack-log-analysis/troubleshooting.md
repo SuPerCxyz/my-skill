@@ -2,14 +2,14 @@
 
 ## Scenario 1: VM Hard Reboot Fails — Volume Device Not Found
 
-### Symptom
+### Scenario 1 Symptom
 After a compute node restart, VM hard reboot fails with:
 ```
 Volume device not found at .
 os_brick.exception.VolumeDeviceNotFound: Volume device not found at .
 ```
 
-### Diagnosis Flow
+### Scenario 1 Diagnosis Flow
 
 **Step 1 — Check nova-compute for the error:**
 ```bash
@@ -113,10 +113,10 @@ To verify:
 
 ## Scenario 2: Node Reboot / Crash
 
-### Symptom
+### Scenario 2 Symptom
 Compute node becomes unavailable, instances are in error state or need evacuation.
 
-### Diagnosis Flow
+### Scenario 2 Diagnosis Flow
 
 **Step 1 — Check OS messages for cause of restart:**
 ```bash
@@ -144,10 +144,10 @@ grep -i "domain\|destroy\|start\|state" libvirt/libvirt.*.log
 
 ## Scenario 3: iSCSI Connection Failure
 
-### Symptom
+### Scenario 3 Symptom
 Volume attachment fails, `VolumeDeviceNotFound` or iSCSI login failures.
 
-### Diagnosis Flow
+### Scenario 3 Diagnosis Flow
 
 **Step 1 — Check the target portals in nova-compute:**
 ```bash
@@ -177,10 +177,10 @@ Check which backend driver (RBDDriver, AlcubierreDriver, etc.) is handling the v
 
 ## Scenario 4: Database Connectivity Issues
 
-### Symptom
+### Scenario 4 Symptom
 Services report `WSREP has not yet prepared node for application use` or `DBConnectionError`.
 
-### Diagnosis Flow
+### Scenario 4 Diagnosis Flow
 
 **Step 1 — Check nova and cinder logs for DB errors:**
 ```bash
@@ -196,10 +196,10 @@ grep -i "WSREP\|galera\|cluster\|sync\|donor\|joiner" openstack/mariadb/mariadb.
 
 ## Scenario 5: Volume Attachment/Detachment Failure
 
-### Symptom
+### Scenario 5 Symptom
 Volume attach fails or volume disappears from VM.
 
-### Diagnosis Flow
+### Scenario 5 Diagnosis Flow
 
 **Step 1 — Check nova-compute volume operations:**
 ```bash

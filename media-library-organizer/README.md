@@ -22,8 +22,9 @@
 
 | 文件 | 内容 | 何时查阅 |
 |------|------|---------|
-| [SKILL.md](SKILL.md) | 核心原则、安全规则、配置参数、执行门禁 | 执行前必读 |
+| [SKILL.md](SKILL.md) | 核心原则、安全门禁、执行路由、文件索引 | 执行前必读 |
 | [workflow.md](workflow.md) | 步骤 1~9 完整工作流程 | 执行时按步骤查阅 |
+| [configuration.md](configuration.md) | 配置参数、媒体库边界、dry-run 行为、文件类型识别 | 判断参数、路径边界或文件类型时查阅 |
 | [naming-rules.md](naming-rules.md) | 电影/剧集/特殊内容命名规则 + 字段说明 | 生成文件名时查阅 |
 | [nfo-templates.md](nfo-templates.md) | movie / tvshow / episodedetails / season NFO 模板 | 生成 NFO 时查阅 |
 | [artwork.md](artwork.md) | 图片下载列表、别名策略、图片来源 | 下载图片时查阅 |

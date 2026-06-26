@@ -7,21 +7,14 @@
 | 操作类型 | 执行位置 | 说明 |
 |---------|---------|------|
 | 普通 openstack 操作 | **busybox** pod | `source /openrc` 后执行 |
-| Nova 高级管理操作 | **nova-maintenance-xxx** pod | cell 管理、迁移、宿主机维护 |
-| cinder-manage 命令 | **cinder-volume** pod | 有 cinder 管理命令 |
+| Nova 高级信息查看 | **nova-maintenance-xxx** pod | 仅查看 pod 和日志；管理操作需授权 |
+| Cinder 信息查看 | **cinder-volume** pod | 仅查看日志和配置；manage 操作需授权 |
 | 业务日志查看 | 对应业务 pod | 用 `kubectl logs` 查看 |
 
-## SSH 嵌套命令转义问题
+## SSH 访问与节点跳转
 
-从本机通过双层 SSH 到 K8s 节点执行复杂命令时，shell 引号和变量展开容易丢失。
-进入环境后，通过 `ssh node-xxx` 的方式访问其他节点更可靠:
-
-```bash
-# 先进入 K8s 控制节点
-ssh root@<TARGET_IP>
-# 在控制节点上，直接 ssh 到其他节点
-ssh node-3 'multipath -ll'
-```
+环境后台访问、`172.18.*` 跳板、JumpServer、连接验证和节点间跳转统一参考
+[access.md](access.md)。场景排查文件不重复维护 SSH 命令，避免与实际入口方式冲突。
 
 ## Service Failing to Start
 
@@ -36,21 +29,25 @@ kubectl logs -n openstack <pod-name> --previous   # Previous instance if crashed
 # 3. Check fluentd logs for recent activity
 kubectl exec -n openstack fluentd-0 -c httpd -- ls /var/www/html/td-agent/openstack/<service>/
 
-# 4. If config issue, edit and restart
-kubectl edit cm -n openstack <service>-etc
-kubectl delete pod -n openstack <pod-name>
+# 4. If config issue, inspect config only
+kubectl get cm -n openstack <service>-etc -o yaml
+kubectl describe pod -n openstack <pod-name>
 ```
 
 ## Database Issues
 
 ```bash
-kubectl exec -it -n openstack mariadb-0 -- bash
-mysql --defaults-file=/etc/mysql/admin_user.cnf
+kubectl exec -n openstack mariadb-0 -- mysql --defaults-file=/etc/mysql/admin_user.cnf -e "show databases;"
+kubectl exec -n openstack mariadb-0 -- mysql --defaults-file=/etc/mysql/admin_user.cnf -e "show processlist;"
+```
 
-MariaDB> show databases;
-MariaDB> use <service_name>;
-MariaDB> show tables;
-MariaDB> show processlist;
+When deeper database inspection is needed, keep SQL read-only:
+
+```sql
+show databases;
+use <service_name>;
+show tables;
+show processlist;
 ```
 
 Common service databases: `keystone`, `nova`/`nova_api`/`nova_cell0`, `cinder`, `glance`, `neutron`.
@@ -68,13 +65,15 @@ kubectl get cm -n openstack <service>-etc -o yaml | grep "cinder.conf\|nova.conf
 kubectl exec -n openstack <pod-name> -- cat /etc/<service>/<config-file>
 ```
 
-## Reverting a Bad Change
+## Inspecting a Bad Change
 
 ```bash
-# Helm rollback is safest:
+# View Helm history only
 helm history -n openstack <release-name>
-helm rollback -n openstack <release-name> <previous-revision>
 
-# Or manually restore:
-kubectl edit cm -n openstack <service>-etc  # undo changes, then restart pods
+# View current config only
+kubectl get cm -n openstack <service>-etc -o yaml
 ```
+
+Rollback, manual restore, ConfigMap edits, and pod restarts affect the environment.
+Do not run them unless the user explicitly authorizes that exact change.

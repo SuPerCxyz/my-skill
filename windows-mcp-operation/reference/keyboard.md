@@ -15,7 +15,7 @@
 | `press_enter` | bool | 输入后按回车 |
 | `caret_position` | string | `start` / `end` / `idle` |
 
-### 典型调用
+### Type 典型调用
 
 ```json
 {"loc": [600, 500], "text": "hello", "press_enter": true}
@@ -30,7 +30,7 @@
 
 模拟快捷键组合。
 
-### 典型调用
+### Shortcut 典型调用
 
 ```json
 {"shortcut": "ctrl+c"}
@@ -51,7 +51,7 @@
 | `get` | 读取剪贴板内容 |
 | `set` | 设置剪贴板内容 |
 
-### 典型调用
+### Clipboard 典型调用
 
 ```json
 {"mode": "get"}

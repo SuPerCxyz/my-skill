@@ -10,7 +10,7 @@
 {"command": "Get-Process | Select-Object -First 5", "timeout": 15}
 ```
 
-### 注意事项
+### PowerShell 注意事项
 
 - **Status Code 始终为 0**(反映 shell 调用本身，非内部命令结果)，需检查输出内容判断命令是否真正成功
 - 超时默认 30s，可调
@@ -34,7 +34,7 @@ Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object Id, Proce
 {"mode": "kill", "name": "notepad"}
 ```
 
-### 安全规则
+### Process 安全规则
 
 - kill 非用户启动的进程时需确认
 - kill 用 `name` 可能匹配失败，用 `pid` 更可靠
@@ -54,7 +54,7 @@ Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object Id, Proce
 | `search` | 搜索文件 | `pattern`(glob) |
 | `info` | 文件元数据 | — |
 
-### 注意事项
+### FileSystem 注意事项
 
 - 绝对路径可访问非 Desktop 位置
 - UTF-16 文件需指定 `encoding: "utf-16"`(默认 utf-8 会乱码)
@@ -80,7 +80,7 @@ Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object Id, Proce
 {"mode": "get", "path": "HKCU:\\...\\Explorer", "name": "LogonCount"}
 ```
 
-### 安全规则
+### Registry 安全规则
 
 - `get` / `list` 安全可自由使用
 - `set` / `delete` 需用户确认

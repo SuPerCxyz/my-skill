@@ -29,7 +29,7 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 | **兜底·基础设施** | `openstack/mariadb/mariadb.*.log`、`openstack/rabbitmq/rabbitmq.*.log` | Galera 不可用 / AMQP 断连导致 RPC 失败 |
 | **兜底·K8s** | `kubernetes/kube-apiserver.*.log` | pod 状态变化(nova-compute pod 是否被驱逐) |
 
-### 典型陷阱
+### 云主机生命周期典型陷阱
 
 - 只看 `nova-compute.*.log` 会漏掉**虚拟机网卡 vnet 没成功创建** —— 必须看 `ovs-vswitchd` 是否 add port 成功。
 - 只看 OpenStack 日志会漏掉**节点 OOM 杀死 qemu 进程** —— 必须看 `os/messages.*.log` 的 oom-kill 段。
@@ -53,7 +53,7 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 | **强相关·etcd 锁** | `libvirt/etcdlock-manager.*.log`、`libvirt/etcd-client.*.log` | 共享卷 PR-key 锁冲突 |
 | **兜底·DB** | `openstack/mariadb/mariadb.*.log` | BDM 表读写失败 |
 
-### 典型陷阱
+### 云盘挂载/卸载典型陷阱
 
 - 卷卸载后"幽灵设备":cinder 已 detach 成功，但内核多路径还残留 `dm-X` —— 必须看
   `os/messages.*.log` 中的 `multipath` 行和 `iscsi: session.*recovery`。
@@ -82,7 +82,7 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 | **强相关·DNS** | `kubernetes/coredns.*.log` | 服务发现 / VM 内部 DNS |
 | **兜底·VIP** | `openstack/keepalived/keepalived.*.log` | 控制面 VIP 漂移导致 API 间歇不通 |
 
-### 典型陷阱
+### 网络问题典型陷阱
 
 - VM ping 不通但 `proton-server` 显示 port `ACTIVE`:必看 `ovs-vswitchd` 是否实际 add 了 vnet，
   以及 `ovn-controller` 是否下发了流表。
@@ -121,7 +121,7 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 | **必看·系统层** | `os/messages.*.log` | IPMI / BMC 通信、网卡链路 |
 | **强相关·身份** | `cloud-products/iam/*.log`、`openstack/keystone/keystone-api.*.log` | API 鉴权 |
 
-### 典型陷阱
+### 裸金属/Ironic 典型陷阱
 
 - 节点 `provisioning → wait call-back` 卡住:通常是 PXE 网络问题，必须看
   `ovs-vswitchd` / `ovn-controller` 是否把端口切到了 provisioning 网。

@@ -11,7 +11,7 @@
 | `labels` | `[[label, text], ...]` | `[["Server URL", "http://127.0.0.1:8080"]]` |
 | `locs` | `[[x, y, text], ...]` | `[[420, 315, "http://127.0.0.1:8080"]]` |
 
-### 规则
+### MultiEdit 规则
 
 - 操作前先 `Snapshot`(`use_ui_tree: true`)确认字段位置
 - 优先用 `labels` 模式，`locs` 仅在标签不可用时使用
@@ -36,7 +36,7 @@
 {"app_id": "Windows PowerShell", "title": "Build done", "message": "All tests passed."}
 ```
 
-### 规则
+### Notification 规则
 
 - title/message 保持简短
 - `app_id` 使用真实或可见的应用名
