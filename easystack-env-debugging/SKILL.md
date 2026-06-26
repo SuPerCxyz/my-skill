@@ -1,16 +1,18 @@
 ---
 name: easystack-env-debugging
-description: "Use for live EasyStack Kubernetes/OpenStack environment inspection over SSH, kubectl, pods, services, logs, auth, config, JumpServer assets, and read-only diagnosis. Do not use for offline eslog bundles, repository tox/CI fixes, EasyStack Cloud Web UI E2E, or media/Windows desktop tasks."
+description: "Use for live EasyStack Kubernetes/OpenStack environment inspection over SSH, JumpServer, kubectl, pods, services, logs, auth, config, VM/server anomalies, and cloud volume issues. Do not use for offline eslog bundles, repository tox/CI fixes, EasyStack Cloud Web UI E2E, or media/Windows desktop tasks."
 ---
 
 # EasyStack Environment Debugging
 
 ## Overview 概览
 
-OpenStack services run on Kubernetes (Helm-deployed) in the `openstack` namespace.
-This skill automates SSH access based on the target environment IP pattern.
+OpenStack 服务运行在 Kubernetes 中, 通常通过 Helm 部署在 `openstack` namespace。
+本 skill 根据目标环境名称或 IP 模式选择 SSH 访问方式。
 
-Use this skill when the target is a reachable running environment. For offline `.eslog` bundles use `easystack-log-analysis`; for repository CI failures use `easystack-ci-test`; for EasyStack Cloud Web UI actions use `easystack-cloud-web-e2e`.
+当目标是可访问的运行中环境时使用本 skill。离线 `.eslog` 包使用
+`easystack-log-analysis`; 仓库 CI 失败使用 `easystack-ci-test`;
+EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
 
 ## Read-Only Safety Gate 只读安全门禁
 
@@ -52,58 +54,86 @@ mysql/update/delete/insert/alter/drop
 
 ## Quick Reference 快速参考 - 文件索引
 
-| When you need... | Read |
+| 需要做什么 | 阅读 |
 |------------------|------|
 | 环境后台访问、三种 SSH 入口、JumpServer 堡垒机 | [access.md](access.md) |
-| OpenStack CLI auth, busybox pod, admin credentials | [auth.md](auth.md) |
-| Service list, pod names, OVN networking, Helm releases, code repo layout | [services.md](services.md) |
-| Multi-container pods, label selectors, StatefulSet vs Deployment | [pods.md](pods.md) |
-| Startup scripts, configmaps, config/script inspection | [scripts.md](scripts.md) |
+| JumpServer 固化访问脚本, 需要用户指定资产 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
+| OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
+| 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |
+| OpenStack 组件部署、pod、启动方式详情 | [openstack/index.md](openstack/index.md) |
+| Ceph 组件部署、pod、启动方式详情 | [ceph/index.md](ceph/index.md) |
+| Kubernetes 组件部署、节点、pod、启动方式详情 | [k8s/index.md](k8s/index.md) |
+| 多容器 pod、label selector、StatefulSet 与 Deployment 区分 | [pods.md](pods.md) |
+| 启动脚本、configmap、配置和脚本查看 | [scripts.md](scripts.md) |
 | /opt mount code overlay debugging, explicit authorization required | [code-debug.md](code-debug.md) |
-| Nova maintenance pod read-only inspection and authorization guard | [nova-maintenance.md](nova-maintenance.md) |
-| kubectl logs, fluentd history log search | [logs.md](logs.md) |
-| Service failing to start, database issues, config debugging, read-only helm inspection | [scenarios.md](scenarios.md) |
+| 组件级特殊操作、maintenance pod、授权门禁 | [special-operations.md](special-operations.md) |
+| `kubectl logs`、fluentd 历史日志搜索 | [logs.md](logs.md) |
+| 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
 | 节点间网络排查(L1/L2/L3诊断)、ARP状态解读、VLAN子接口排查 | [network.md](network.md) |
-| Essential commands, environment constants, namespaces | [reference.md](reference.md) |
+| 常用命令、环境常量、namespace | [reference.md](reference.md) |
+
+### Component Detail Index 组件详情索引
+
+| 组件详情 | 阅读 |
+|----------|------|
+| OpenStack 组件总览 | [openstack/index.md](openstack/index.md) |
+| OpenStack 服务映射 | [openstack/service-map.md](openstack/service-map.md) |
+| OpenStack 代码仓库布局 | [openstack/project-code-layout.md](openstack/project-code-layout.md) |
+| Nova | [openstack/nova.md](openstack/nova.md) |
+| Cinder | [openstack/cinder.md](openstack/cinder.md) |
+| Glance | [openstack/glance.md](openstack/glance.md) |
+| Keystone | [openstack/keystone.md](openstack/keystone.md) |
+| Barbican | [openstack/barbican.md](openstack/barbican.md) |
+| Baremetal / Ironic | [openstack/baremetal-ironic.md](openstack/baremetal-ironic.md) |
+| Networking / OVN / Proton | [openstack/networking.md](openstack/networking.md) |
+| Aodh | [openstack/aodh.md](openstack/aodh.md) |
+| Ceilometer | [openstack/ceilometer.md](openstack/ceilometer.md) |
+| Gnocchi | [openstack/gnocchi.md](openstack/gnocchi.md) |
+| Horizon | [openstack/horizon.md](openstack/horizon.md) |
+| Infrastructure services | [openstack/infrastructure.md](openstack/infrastructure.md) |
+| Monitoring services | [openstack/monitoring.md](openstack/monitoring.md) |
+| Extended services | [openstack/extended-services.md](openstack/extended-services.md) |
+| Ceph 组件总览 | [ceph/index.md](ceph/index.md) |
+| Kubernetes 组件总览 | [k8s/index.md](k8s/index.md) |
 
 ## Environment Access Flow 环境访问流程
 
 ### Step 1: Determine Access Method 确定访问方式
 
-Ask the user for the **target environment name or IP**.
+向用户确认 **目标环境名称或 IP**。
 
-**Did the user mention:**
+如果用户提到以下信息:
 - `ssh js` / JumpServer / 堡垒机 / 类似 js 跳转到某个环境?
-- Asset name like `BJ-32`, `SH-xx`, `GZ-xx`?
+- 用户明确给出的 JumpServer 资产名, 例如 `<ASSET_NAME>`?
 
 → JumpServer 模式，直接跳转到 [JumpServer 堡垒机模式](access.md#jumpserver-堡垒机模式)
 
-**Otherwise**, check the IP pattern:
+否则按 IP 模式判断:
 
-- IP starts with `172.18.` → Jump host mode
-- Other IPs → Direct SSH mode
+- IP 以 `172.18.` 开头 → 跳板机模式
+- 其他 IP → 直连模式
 
 示例入口:
 
-- `192.168.3.3` → Direct SSH mode
-- `172.18.0.118` → Jump host mode
-- `BJ-35` → JumpServer mode
+- 普通可直连 IP → 直连模式
+- `172.18.*` IP → 跳板机模式
+- 用户提供的 JumpServer 资产名 → JumpServer 模式
 
 ### Step 2: Check IP Pattern and SSH In 检查 IP 模式并 SSH 接入
 
 具体命令以 [access.md](access.md) 为准；这里仅描述分流规则。
 
-**If IP starts with `172.18.`** → Jump host mode:
+如果 IP 以 `172.18.` 开头 → 跳板机模式:
 
 ```bash
 # SSH via jump host
 sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<TARGET_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@<CONTROL_NODE_IP>'
 ```
 
-- Jump host: the `172.18.x.x` address provided
+- 跳板机: 用户提供的 `172.18.x.x` 地址
 - K8s 控制节点 IP:通常 **10.20.0.3**，失败时询问用户
 
-**Other IPs** → Direct SSH mode:
+其他 IP → 直连模式:
 
 ```bash
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@<TARGET_IP>
@@ -119,7 +149,7 @@ ssh node-3 'hostname; whoami; pwd'
 
 ### Step 3: Verify Access 验证可访问性
 
-After SSH, first run the minimal read-only checks:
+SSH 进入后, 先执行最小只读检查:
 
 ```bash
 whoami
@@ -128,27 +158,34 @@ hostname
 pwd
 ```
 
-If the target node has kubectl and kubeconfig, then run:
+如果目标节点有 kubectl 和 kubeconfig, 再执行:
 
 ```bash
 kubectl get namespaces | grep openstack
 ```
 
-- **identity/hostname checks succeed** → Environment shell access confirmed.
-- **`openstack` found** → Kubernetes access confirmed. Proceed with read-only debugging tasks using the reference docs above.
-- **kubectl fails** → Retry with kubeconfig path:
+然后用 Kubernetes node 名称确认环境节点列表:
+
+```bash
+kubectl get nodes -o name
+```
+
+- **identity/hostname 检查成功** → 环境 shell 访问已确认。
+- **找到 `openstack`** → Kubernetes 访问已确认。后续按上方参考文档执行只读排查。
+- **返回 node 名称** → 后续选择 SSH 节点或检查 pod 分布前, 以该列表作为权威节点清单。
+- **kubectl 失败** → 使用 kubeconfig 路径重试:
   ```bash
   kubectl get namespaces --kubeconfig=/etc/kubernetes/admin.conf | grep openstack
   ```
-- **Still fails** → Report shell access succeeded but kubectl unavailable. Ask user for correct node or access method.
+- **仍然失败** → 报告 shell 访问成功但 kubectl 不可用, 并询问用户正确节点或访问方式。
 
 ### Step 4: Fallback 回退方案
 
-If JumpServer, jump host mode, and direct SSH mode all fail:
+如果 JumpServer、跳板机模式和直连模式都失败:
 
 > ⚠ SSH 连接失败。请提供正确的进入方法(SSH 命令、跳板机信息或其他方式)。
 
-Wait for user to provide the correct access command, then proceed.
+等待用户提供正确访问命令后再继续。
 
 ## Quick Start 快速开始 - 进入环境后
 
@@ -169,6 +206,12 @@ kubectl logs -n openstack -l service=<service-name> --tail=100
 # Inspect Helm release metadata
 helm list -n openstack
 helm history -n openstack <release-name>
+```
+
+节点清单查询:
+
+```bash
+kubectl get nodes -o name
 ```
 
 ## Skill Maintenance Principles Skill 维护原则

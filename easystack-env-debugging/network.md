@@ -1,6 +1,7 @@
 # Network Diagnostics 网络排查
 
-Use this file for live environment network checks after access is confirmed. It focuses on node connectivity, ARP, VLAN subinterfaces, and related read-only diagnostics.
+访问环境确认后, 如需检查网络问题, 阅读本文件。内容聚焦节点连通性、ARP、
+VLAN 子接口以及相关只读诊断。
 
 节点间网络连通性排查的方法论，适用于 EasyStack 环境中的多网平面场景。
 

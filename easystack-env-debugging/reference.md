@@ -1,6 +1,6 @@
 # Reference - Environment Constants and Namespaces
 
-## Environment Constants
+## Environment Constants 环境常量
 
 ```
 Keystone Auth URL (busybox):  http://keystone-api.openstack.svc.cluster.local/v3
@@ -14,9 +14,9 @@ OpenStack CLI (busybox):      /usr/bin/openstack
 MySQL CLI (busybox):          /usr/bin/mysql
 ```
 
-## Default Credentials
+## Default Credentials 默认凭据
 
-(Confirm with user - may vary per environment)
+(需要向用户确认, 不同环境可能不同)
 
 ```
 SSH jump host password:       easystack
@@ -32,13 +32,22 @@ Pod:     chartmuseum-0
 NS:      openstack
 ```
 
-## Namespaces
+## Namespaces 命名空间
 
-| Namespace | Purpose |
+| Namespace | 用途 |
 |-----------|---------|
-| `openstack` | Core OpenStack services |
-| `ceph` | Ceph storage (RGW for Swift) |
+| `openstack` | 核心 OpenStack 服务 |
+| `ceph` | Ceph 存储(RGW for Swift) |
 | `apisix` | API gateway |
-| `ems` | Management services (peak) |
-| `octavia` | Load balancer |
-| `kube-system` | K8s system |
+| `ems` | 管理服务(peak) |
+| `octavia` | 负载均衡 |
+| `kube-system` | K8s 系统组件 |
+
+## Node Inventory 节点清单
+
+选择 SSH 目标节点、检查 pod 分布或做跨节点检查前, 先使用 Kubernetes node
+名称作为环境节点清单。
+
+```bash
+kubectl get nodes -o name
+```

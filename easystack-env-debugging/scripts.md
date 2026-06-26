@@ -1,40 +1,40 @@
 # Scripts and Configuration
 
-## ConfigMap Structure
+## ConfigMap Structure 结构
 
-Each service has two configmaps in `openstack` namespace:
+每个服务在 `openstack` namespace 中有两个 configmap:
 
-- `<service>-etc` - configuration files (e.g., `cinder.conf`, `api-paste.ini`)
-- `<service>-bin` - startup scripts and auxiliary scripts
+- `<service>-etc` - 配置文件(如 `cinder.conf`, `api-paste.ini`)
+- `<service>-bin` - 启动脚本和辅助脚本
 
 ```bash
 kubectl get cm -n openstack <service>-etc -o yaml    # View config
 kubectl get cm -n openstack <service>-bin -o yaml    # View scripts
 ```
 
-## Script Pattern
+## Script Pattern 脚本模式
 
-Every OpenStack service pod follows the same pattern:
+每个 OpenStack 服务 pod 都遵循相同模式:
 
-1. **Startup script**: `/tmp/<service>.sh` (mounted from `<service>-bin` configmap)
-2. **Config files**: `/etc/<service>/` (mounted from `<service>-etc` configmap)
+1. **Startup script**: `/tmp/<service>.sh`(从 `<service>-bin` configmap 挂载)
+2. **Config files**: `/etc/<service>/`(从 `<service>-etc` configmap 挂载)
 3. **Startup command**: `command: ["/tmp/<service>.sh", "start"]`
 
-Scripts typically support `start`/`stop` subcommands. Some services (scheduler, compute)
-use just `["/tmp/<service>.sh"]` without the `start` argument. Check script content first.
+脚本通常支持 `start`/`stop` 子命令。部分服务(scheduler, compute)只使用
+`["/tmp/<service>.sh"]`, 不带 `start` 参数。先检查脚本内容。
 
-Auxiliary scripts in `/tmp/`:
+`/tmp/` 中的辅助脚本:
 - Cinder: `ceph-keyring.sh`, `bootstrap.sh` (from `cinder-bin`)
 - Glance: `glance-api.sh`
 - Coaster: `coaster-all.sh`
 - Cinder Golem: `/tmp/golem.sh`
 
-## ConfigMap → Pod Mount Mapping
+## ConfigMap → Pod Mount Mapping 挂载关系
 
-- `<service>-bin` → mounted at `/tmp/` (scripts)
-- `<service>-etc` → mounted at `/etc/<service>/` (configs)
+- `<service>-bin` → 挂载到 `/tmp/`(scripts)
+- `<service>-etc` → 挂载到 `/etc/<service>/`(configs)
 
-## Inspect Config/Script
+## Inspect Config/Script 查看配置和脚本
 
 ```bash
 # View configmap or script without changing state

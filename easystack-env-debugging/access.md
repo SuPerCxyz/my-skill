@@ -1,6 +1,8 @@
 # Environment Access
 
-Use this file when the task starts with reaching a live environment. It covers access path selection only; after access succeeds, switch to the relevant domain file such as [pods.md](pods.md), [logs.md](logs.md), [auth.md](auth.md), or [network.md](network.md).
+当任务需要先进入运行中的环境时阅读本文件。本文件只覆盖访问路径选择;
+访问成功后, 再切换到 [pods.md](pods.md)、[logs.md](logs.md)、
+[auth.md](auth.md) 或 [network.md](network.md) 等对应领域文档。
 
 ## 访问环境后台
 
@@ -14,7 +16,7 @@ Use this file when the task starts with reaching a live environment. It covers a
 |------|------|----------|
 | `192.168.3.3` | 直连模式 | `root@node-1.domain.tld` |
 | `172.18.0.118` | 跳板机模式，内层默认到 `10.20.0.3` | 外层 `root@x8-f-install-7-0-1-alpha-103-jump-server-k2deji6cqvck.novalocal`，内层 `root@node-6.domain.tld` |
-| `BJ-35` | JumpServer 模式 | `root@node-3501.domain.tld` |
+| `<ASSET_NAME>` | JumpServer 模式 | 目标资产上的登录 shell |
 
 ## 跳板机模式(IP 以 172.18. 开头)
 
@@ -93,6 +95,19 @@ sudo su -                     → 切换到 root
 
 ### 交互式使用(expect 脚本)
 
+优先使用随 skill 固化的脚本, 避免每次临时生成 expect 脚本:
+
+```bash
+# 通过 ssh js 进入用户指定资产, 切到 root 后进入交互 shell
+easystack-env-debugging/scripts/jumpserver-env.sh --asset <ASSET_NAME>
+
+# 一次性只读查询, 命令结束后脚本会主动退出目标 shell 和 JumpServer 菜单
+easystack-env-debugging/scripts/jumpserver-env.sh --asset <ASSET_NAME> --cmd 'whoami; id -u; hostname; pwd; kubectl get nodes -o name'
+
+# 访问用户指定的 JumpServer 资产
+easystack-env-debugging/scripts/jumpserver-env.sh --asset <ASSET_NAME>
+```
+
 JumpServer 是交互式 TUI 菜单，无法通过管道直接输入。使用 expect 脚本完成自动登录。
 默认使用用户 SSH 配置中的 alias，通过 `-F ~/.ssh/config` 避免系统级
 `/etc/ssh/ssh_config.d` 配置干扰；不要加 `-F /dev/null` 绕过用户配置。
@@ -150,7 +165,7 @@ expect {
 
 # 发送目标资产名或列表入口。
 # 常用方式:
-# - 资产名唯一时: asset_query="BJ-35", asset_id=""
+# - 资产名唯一时: asset_query="<ASSET_NAME>", asset_id=""
 # - 先列主机再选 ID 时: asset_query="p", asset_id="3"
 send "$asset_query\r"
 
@@ -229,12 +244,10 @@ interact
 - 历史日志、`zgrep`、大目录扫描、跨多个 fluentd pod 的只读搜索可直接使用 60 秒。
 - 超时只表示本轮查询未完成；不要因为超时执行重启、删除、回滚等变更操作。
 
-### 常见资产名
+### 资产名使用方式
 
-| 名称 | 说明 |
-|------|------|
-| `BJ-32` (node-3202, 172.32.0.2) | 北京 32 环境 |
-| *(其他资产由用户指定)* | |
+JumpServer 资产名由用户在任务中指定。用户说 “ssh js 到 `<ASSET_NAME>` 环境”
+时, 把 `<ASSET_NAME>` 原样传给固化脚本的 `--asset` 参数。
 
 ### 常见资产内特征
 
@@ -249,6 +262,9 @@ interact
 ### 注意事项
 
 - JumpServer TUI 菜单支持: 输入资产名(唯一时自动登录)、`/ + IP/名称` 搜索、`p` 列出有权限的主机
+- 通过 JumpServer 进入环境时, 部分本地文件或敏感路径查询可能被堡垒机审计策略拦截。
+  例如查询 `/root/.ssh/` 这类路径时, 可能不是目标环境命令本身失败, 而是 JumpServer
+  拦截了操作。遇到这类结果时先记录拦截信息, 不要把它直接判断为目标主机文件不存在或权限配置错误。
 - 如果 `sudo su -` 需要密码，说明不是 NOPASSWD 配置，需询问用户密码
 - 这种方式与 jump host 模式、直连模式并列，是第三种环境访问路径
 
@@ -272,6 +288,13 @@ pwd
 ```bash
 kubectl get namespaces | grep openstack
 kubectl get pods -n openstack | head
+```
+
+查询环境节点名称和列表时, 优先使用 Kubernetes 记录的 node 名称, 作为后续节点跳转、
+pod 所在节点判断和跨节点检查的基准:
+
+```bash
+kubectl get nodes -o name
 ```
 
 ### 节点间跳转

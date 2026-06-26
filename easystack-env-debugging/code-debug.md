@@ -4,19 +4,17 @@ This is an authorization-required workflow. Copying files to `/opt`, overlaying
 runtime code, or changing startup scripts affects the environment and must not be
 used during default read-only inspection.
 
-Before using this workflow, get explicit user approval for the target service,
-target node, files to change, rollback method, and verification command.
+使用此工作流前, 必须获得用户对目标服务、目标节点、待修改文件、回滚方式和验证命令的明确授权。
 
-Many service pods mount the host node's `/opt` directory to `/opt` inside the pod.
-This enables a convenient code debugging workflow.
+许多服务 pod 会把宿主机节点的 `/opt` 目录挂载到 pod 内的 `/opt`, 这提供了代码调试路径。
 
-## How It Works
+## How It Works 工作原理
 
-The host `/opt` directory is visible inside the pod at `/opt`.
-The host's `/opt` contains service-specific subdirectories
-(e.g., `/opt/cinder/`, `/opt/nova-compute/`, `/opt/nova-api-os-compute/`).
+宿主机 `/opt` 目录在 pod 内同样显示为 `/opt`。
+宿主机 `/opt` 中包含各服务对应的子目录, 例如 `/opt/cinder/`、`/opt/nova-compute/`、
+`/opt/nova-api-os-compute/`。
 
-## Debugging Workflow
+## Debugging Workflow 调试流程
 
 ```bash
 # Step 1: Copy your debug code to the host node's /opt directory
@@ -32,9 +30,9 @@ cp -rf /opt/<service>/* /path/to/site-packages/<service>/
 exec /usr/bin/python3 -m <service>.main
 ```
 
-## Common /opt Locations
+## Common /opt Locations 常见 /opt 位置
 
-| Service | Host /opt Path | Pod Mount |
+| Service | 宿主机 /opt 路径 | Pod 挂载点 |
 |---------|---------------|-----------|
 | cinder-volume | `/opt/cinder/` | `/opt/cinder/` |
 | nova-compute | `/opt/nova-compute/` | `/opt/nova-compute/` |

@@ -16,7 +16,69 @@
 环境后台访问、`172.18.*` 跳板、JumpServer、连接验证和节点间跳转统一参考
 [access.md](access.md)。场景排查文件不重复维护 SSH 命令，避免与实际入口方式冲突。
 
-## Service Failing to Start
+## Common Resource Issues 常见资源问题
+
+虚拟机异常和云硬盘异常属于常见问题。用户说 “看某个虚拟机异常原因”、
+“查 server/instance 状态异常”、“云硬盘挂载失败”、“volume 创建失败” 或
+“磁盘状态异常” 时, 先按 [access.md](access.md) 进入环境并完成只读验证,
+再按本节选择资源查询入口。
+
+OpenStack 资源状态查询统一在 busybox 中执行, 认证方式见 [auth.md](auth.md)。
+不要在 `nova-api`、`cinder-api`、`cinder-golem` 等业务 pod 中直接执行
+`openstack` 命令。
+
+### Virtual Machine Issues 虚拟机问题
+
+先确认用户提供的是虚拟机名称还是 UUID。只做查询时, 优先查看 server 基本状态、
+fault 信息、所在计算节点和 task/power 状态, 再决定看哪个组件日志。
+
+```bash
+kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack server show <server-id-or-name>'
+kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack server list --long'
+```
+
+根据查询结果分流:
+
+- `status` 为 `ERROR` 或存在 `fault` → 先查 `nova-api`、`nova-conductor`、
+  `nova-scheduler` 日志, 再结合 `fault` message 定位具体服务。
+- `OS-EXT-SRV-ATTR:host` 有值 → 同时查该计算节点上的 `nova-compute` pod。
+- 创建、调度、迁移、evacuation、host maintenance 相关问题 → 参考
+  [openstack/nova.md](openstack/nova.md) 和
+  [special-operations.md](special-operations.md#nova-maintenance-pod)。
+- 网络连通、端口、安全组、浮动 IP 相关问题 → 参考
+  [openstack/networking.md](openstack/networking.md) 和 [network.md](network.md)。
+- 根盘或数据盘相关报错 → 同时按下方 Cloud Volume Issues 查询云硬盘。
+
+### Cloud Volume Issues 云硬盘问题
+
+先确认用户提供的是云硬盘名称还是 UUID。只做查询时, 优先查看 volume 基本状态、
+挂载信息、关联虚拟机和后端错误线索, 再决定看 `cinder-api`、`cinder-scheduler`、
+`cinder-volume` 或后端存储日志。
+
+```bash
+kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack volume show <volume-id-or-name>'
+kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack volume list --all --long'
+```
+
+根据查询结果分流:
+
+- `status` 为 `error`、`error_extending`、`error_attaching` 或长期卡在中间态
+  → 查 `cinder-api`、`cinder-scheduler`、相关 `cinder-volume` 日志。
+- 创建失败后资源可能很快被删除; `volume show` 返回 404 时, 用 volume UUID 搜
+  cinder 当前日志和 fluentd 历史日志。
+- `Filtering removed all hosts` 且某个 filter 最终 `end: 0` → 按该 filter
+  定位原因; `CapabilitiesFilter` 归零时优先检查 volume type/extra specs
+  和后端 capabilities。
+- `cinder-volume ... not sending heartbeat` 或 `Update driver status failed:
+  (config name <backend>) is uninitialized` → 后端服务不健康或 driver 未初始化,
+  会影响 scheduler 获取可用 capabilities。
+- `attachments` 指向某个 server → 同时按 Virtual Machine Issues 查询该虚拟机。
+- 卷后端、Ceph/RBD、容量或 pool 相关线索 → 同时参考 [ceph/index.md](ceph/index.md)
+  和 [openstack/cinder.md](openstack/cinder.md)。
+- 挂载、卸载、extend、snapshot、backup 相关管理动作会改变环境状态; 未经用户明确授权,
+  只能查询状态和日志。
+
+## Service Failing to Start 服务启动失败
 
 ```bash
 # 1. Check pod status and events
@@ -34,14 +96,14 @@ kubectl get cm -n openstack <service>-etc -o yaml
 kubectl describe pod -n openstack <pod-name>
 ```
 
-## Database Issues
+## Database Issues 数据库问题
 
 ```bash
 kubectl exec -n openstack mariadb-0 -- mysql --defaults-file=/etc/mysql/admin_user.cnf -e "show databases;"
 kubectl exec -n openstack mariadb-0 -- mysql --defaults-file=/etc/mysql/admin_user.cnf -e "show processlist;"
 ```
 
-When deeper database inspection is needed, keep SQL read-only:
+需要进一步检查数据库时, SQL 保持只读:
 
 ```sql
 show databases;
@@ -50,9 +112,10 @@ show tables;
 show processlist;
 ```
 
-Common service databases: `keystone`, `nova`/`nova_api`/`nova_cell0`, `cinder`, `glance`, `neutron`.
+常见服务数据库包括 `keystone`, `nova`/`nova_api`/`nova_cell0`, `cinder`,
+`glance`, `neutron`。
 
-## Configuration Debugging
+## Configuration Debugging 配置排查
 
 ```bash
 # View a configmap (don't edit yet)
@@ -65,7 +128,7 @@ kubectl get cm -n openstack <service>-etc -o yaml | grep "cinder.conf\|nova.conf
 kubectl exec -n openstack <pod-name> -- cat /etc/<service>/<config-file>
 ```
 
-## Inspecting a Bad Change
+## Inspecting a Bad Change 查看异常变更
 
 ```bash
 # View Helm history only

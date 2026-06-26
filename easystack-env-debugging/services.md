@@ -1,22 +1,28 @@
 # Services Discovery
 
-Use this file when mapping service names to pod prefixes, ports, namespaces, or repo locations. For concrete log commands, use [logs.md](logs.md); for authentication, use [auth.md](auth.md).
+将服务名映射到 pod 前缀、端口、namespace 或仓库位置时阅读本文件。具体日志命令参考
+[logs.md](logs.md); 认证方式参考 [auth.md](auth.md)。
 
-## Core OpenStack Services
+## Component Catalog 组件目录
 
-| Service | Pod Prefix | Admin Port | Description |
-|---------|-----------|-----------|-------------|
-| Keystone | `keystone-api-*` | internal via cluster | Identity service |
-| Glance | `glance-api-0,1,2` | 9292 | Image service (StatefulSet) |
-| Nova | `nova-api-osapi-*`, `nova-compute-*`, `nova-conductor-*`, `nova-scheduler-*`, `nova-maintenance-*` | 8774 | Compute service |
-| Cinder | `cinder-api-*`, `cinder-scheduler-*`, `cinder-volume-*` | 8776 | Block storage |
-| Cinder Golem | `cinder-golem-*` | 8192 | Cinder dashboard 后端 API(端口 8192) |
-| Aodh | `aodh-api-*`, `aodh-evaluator-*`, `aodh-notifier-*` | 8042 | Alarming |
-| Ceilometer | `ceilometer-api-*`, `ceilometer-collector-*` | 8777 | Telemetry |
-| Gnocchi | `gnocchi-api-*`, `gnocchi-metricd-*` | - | Metrics storage |
-| Horizon | `horizon-*` | 80 | OpenStack dashboard |
+更完整的组件部署详情按项目拆分到以下目录。新增组件时优先在对应目录添加
+`<component>.md`, 本文件只保留跨项目路由和必须注意的 namespace/Helm 安全边界。
 
-## Ironic Namespace
+| 项目 | 组件详情 |
+|------|----------|
+| OpenStack | [openstack/index.md](openstack/index.md) |
+| Ceph | [ceph/index.md](ceph/index.md) |
+| Kubernetes | [k8s/index.md](k8s/index.md) |
+
+## OpenStack Service Map 服务映射
+
+OpenStack 服务、Pod 前缀、端口、OVN 组件、扩展服务和基础组件速查统一维护在
+[openstack/service-map.md](openstack/service-map.md)。
+
+OpenStack 组件仓库布局统一维护在
+[openstack/project-code-layout.md](openstack/project-code-layout.md)。
+
+## Ironic Namespace 命名空间
 
 Ironic services run in the independent `ironic` namespace. Do not assume they are
 in `openstack`. The exception is `nova-compute-ironic`, which belongs to the
@@ -28,42 +34,10 @@ kubectl get pods -n ironic --show-labels
 kubectl get pods -n openstack -l service=nova-compute-ironic
 ```
 
-## Networking (OVN Mode)
+## Helm Releases 发布记录
 
-No standalone `neutron-server` pods. Networking handled by:
-
-| Pod Pattern | Role |
-|-------------|------|
-| `ovn-controller-*` | OVN controller agent on each compute node (DaemonSet) |
-| `ovn-northd-0,1,2` | OVN Northd daemon (StatefulSet) |
-| `ovn-ovsdb-nb-0,1,2` | OVN northbound database |
-| `ovn-ovsdb-sb-0,1,2` | OVN southbound database |
-| `ovn-ovsdb-nb-relay-*` / `ovn-ovsdb-sb-relay-*` | Database relays |
-| `proton-ovn-gateway-monitor-agent-*` | Gateway monitoring |
-| `proton-ovn-metadata-agent-*` | Metadata agent |
-| `proton-ovn-l2gw-agent-*` | L2 gateway agent |
-
-Neutron config inspection: `kubectl get cm -n openstack neutron-etc -o yaml`.
-
-## Helm Releases
-
-Most OpenStack control-plane releases are deployed via Helm in `openstack`
-namespace. Check service-specific namespaces such as `ironic` separately:
-
-| Helm Release | Chart Version | Covers |
-|-------------|---------------|--------|
-| `keystone` | `keystone-7.0.1-alpha.83` | Identity |
-| `glance` | `glance-7.0.1-alpha.20` | Image service |
-| `nova` | `nova-7.0.1-alpha.109` | Compute |
-| `cinder` | `cinder-7.0.1-alpha.21` | Block storage |
-| `ceilometer` | `ceilometer-7.0.1-alpha.8` | Telemetry |
-| `horizon` | `horizon-7.0.1-alpha.83` | Dashboard |
-| `mariadb` | `mariadb-7.0.1-alpha.83` | Database |
-| `rabbitmq` | `rabbitmq-7.0.1-alpha.83` | Message queue |
-| `memcached` | `memcached-7.0.1-alpha.83` | Cache |
-| `redis` | `redis-7.0.1-alpha.83` | Redis |
-| `mongodb` | `mongodb-7.0.1-alpha.83` | MongoDB |
-| `chartmuseum` | `chartmuseum-7.0.1-alpha.83` | Helm chart repo |
+大多数 OpenStack control-plane release 通过 Helm 部署在 `openstack` namespace。
+像 `ironic` 这类服务专用 namespace 需要单独检查:
 
 ```bash
 helm list -n openstack
@@ -76,48 +50,3 @@ inspection flow if it fails.
 
 `helm rollback` changes the environment. Do not run it unless the user explicitly
 authorizes that exact rollback.
-
-## Project Code Layout
-
-Each component typically has 3-4 repositories:
-
-| Repository | Purpose | Pod Name Pattern |
-|------------|---------|-----------------|
-| `<service>` (e.g., `nova`) | Core service code | `<service>-*` |
-| `ark-<service>` (e.g., `ark-nova`) | Management config and startup scripts | Same pods, scripts in `/tmp/` |
-| `<service>-dashboard` | Frontend UI | `<service>-dashboard-*` |
-| `<service>-dashboard-api` | Frontend backend API | `<service>-dashboard-api-*` |
-
-**Cinder exception:** dashboard API is `golem`, pod is `cinder-golem-*`:
-
-| Component | Backend | Config/Scripts | Frontend UI | Frontend API |
-|-----------|---------|---------------|-------------|-------------|
-| Nova | `nova` | `ark-nova` | `nova-dashboard` | `nova-dashboard-api` |
-| Cinder | `cinder` | `ark-cinder` | `cinder-dashboard` | `golem` |
-| Glance | `glance` | `ark-glance` | `glance-dashboard` | `glance-dashboard-api` |
-
-These are repository names. Source code is **not** on nodes by default - only packaged service code runs in pods.
-
-## Custom/Extended Services
-
-| Service | Pod Prefix | Description |
-|---------|-----------|-------------|
-| easystack-cache | `easystack-cache-api-*` | Cache service |
-| EMLA | `emla-apiserver-*`, `emla-controller-*` | Resource management |
-| ESDM | `esdm-api-*` | Service data management |
-| Proton | `proton-server-*`, `proton-dashboard-*` | Custom networking |
-| Roller | `roller-dashboard-*` | Custom dashboard |
-| OTA | `ota-openapi-*`, `ota-dashboard-*` | OTA service |
-| Coaster | `coaster-all-*` | Orchestration |
-
-## Infrastructure Pods
-
-| Pod | Description |
-|-----|-------------|
-| `mariadb-0,1,2` | Database (StatefulSet) |
-| `rabbitmq-0,1,2` | Message queue (StatefulSet) |
-| `memcached-*` | Cache |
-| `redis-*` | Redis |
-| `mongodb-*` | MongoDB |
-| `chartmuseum-*` | Helm chart repository |
-| `services/busybox` | Debugging pod with OpenStack CLI (service selector, no need to know pod name) |

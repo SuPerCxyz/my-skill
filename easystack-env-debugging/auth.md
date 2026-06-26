@@ -8,13 +8,17 @@ Use this file after environment access is established and the task requires Open
 
 ```bash
 # 推荐:一次性只读命令
-kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack volume list'
-kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack server list'
+kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack volume list --all'
+kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack server list --all'
 
 # 错误方式(会报错:missing auth-url / missing OS_USERNAME)
 kubectl exec -n openstack services/busybox -- openstack volume list
 kubectl exec -n openstack services/busybox -- cinder show <volume-id>
 ```
+
+`/openrc` 下查询资源列表时默认可能只看到当前项目。调查用户资源异常时,
+list 类命令优先带跨项目参数, 例如 `cinder list --all`; 其他资源列表命令也按
+对应 CLI 的跨项目参数处理。
 
 避免默认进入交互式 busybox shell。交互式 shell 容易执行到有影响操作，
 只有在用户明确要求时再进入。
@@ -45,15 +49,15 @@ export OS_AUTH_URL='http://keystone-api.openstack.svc.cluster.local/v3'
 日常排障用 `source /openrc` 就够，admin 权限更大但很少需要。
 默认只执行 `list`、`show`、`get` 等查询命令。
 
-`/openrc` contains `drone` user credentials (keystone v2.0 auth):
+`/openrc` 包含 `drone` 用户凭据(keystone v2.0 auth):
 
 ```bash
 source /openrc
 # Now you can run:
-openstack volume list
-openstack server list
-cinder list
-nova list
+openstack volume list --all
+openstack server list --all
+cinder list --all
+nova list --all
 ```
 
 `openstack endpoint list` may fail with `Could not find requested endpoint in
