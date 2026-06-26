@@ -1,5 +1,7 @@
 # Auto-Fix Loop
 
+Use this file after either `tox -e cover` or `tox -e pep8` fails. It defines the repair loop and points to the specialized files for coverage, pep8, and privsep failures.
+
 **Prerequisite:** The shared Miniconda environment `easystack-<project>-py<version>` must be active. See [setup.md](setup.md) for the standard entry path:
 
 ```bash

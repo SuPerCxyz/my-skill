@@ -1,5 +1,7 @@
 # Environment Access
 
+Use this file when the task starts with reaching a live environment. It covers access path selection only; after access succeeds, switch to the relevant domain file such as [pods.md](pods.md), [logs.md](logs.md), [auth.md](auth.md), or [network.md](network.md).
+
 ## 访问环境后台
 
 默认只做查看操作。连接成功后，优先执行 `whoami`、`id -u`、`hostname`、`pwd`、
@@ -61,7 +63,7 @@ ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o 
 ```
 选择 JumpServer 入口          → 根据环境类型选择测试或生产 JumpServer
 ssh -tt -F ~/.ssh/config <SSH_ALIAS> → 优先读取用户 SSH 配置进入 JumpServer 控制台
-输入目标资产名(如 BJ-32)      → JumpServer 代理 SSH 到目标主机
+在 Opt> 输入资产名或进入主机列表 → 在 [Host]> 输入资产 ID 或资产名
 sudo su -                     → 切换到 root
 ```
 
@@ -94,15 +96,33 @@ sudo su -                     → 切换到 root
 JumpServer 是交互式 TUI 菜单，无法通过管道直接输入。使用 expect 脚本完成自动登录。
 默认使用用户 SSH 配置中的 alias，通过 `-F ~/.ssh/config` 避免系统级
 `/etc/ssh/ssh_config.d` 配置干扰；不要加 `-F /dev/null` 绕过用户配置。
+expect 的 `spawn` 不经过 shell 展开 `~`，脚本中使用 `$env(HOME)/.ssh/config`。
+默认超时从 10 秒开始；如果只读查询在 10 秒超时，外层包装脚本自动依次尝试
+15、20、30、45、60 秒。认证失败、权限错误、主机不存在等确定性失败不重试。
+
+先把 expect 内容保存为 `jumpserver-login.expect`，再用外层循环控制超时递增:
+
+```bash
+for t in 10 15 20 30 45 60; do
+  echo "try JumpServer timeout: ${t}s"
+  JUMPSERVER_TIMEOUT="$t" ./jumpserver-login.expect && break
+done
+```
 
 ```bash
 #!/usr/bin/expect -f
-set timeout 30
+if {[info exists env(JUMPSERVER_TIMEOUT)]} {
+    set timeout $env(JUMPSERVER_TIMEOUT)
+} else {
+    set timeout 10
+}
 set jumpserver_alias "SSH_ALIAS"
-set asset_name "ASSET_NAME"
+set asset_query "ASSET_NAME"
+set asset_id ""
+set ssh_config "$env(HOME)/.ssh/config"
 
 # 连接 JumpServer,显式读取用户 SSH 配置
-spawn ssh -tt -F ~/.ssh/config $jumpserver_alias
+spawn ssh -tt -F $ssh_config $jumpserver_alias
 
 # 如果 ~/.ssh/config 没有对应 alias,先向用户补齐 USER/JUMPSERVER_HOST/IDENTITY_FILE,
 # 再把上一行替换为一次性连接命令:
@@ -111,7 +131,7 @@ spawn ssh -tt -F ~/.ssh/config $jumpserver_alias
 
 # 等待菜单提示符
 expect {
-    "Opt>" {
+    -re {Opt>|\[Host\]>} {
         send_user "已进入 JumpServer 菜单\n"
     }
     "Bad owner or permissions" {
@@ -128,11 +148,22 @@ expect {
     }
 }
 
-# 发送目标资产名
-send "$asset_name\r"
+# 发送目标资产名或列表入口。
+# 常用方式:
+# - 资产名唯一时: asset_query="BJ-35", asset_id=""
+# - 先列主机再选 ID 时: asset_query="p", asset_id="3"
+send "$asset_query\r"
 
 # 等待 JumpServer 开始连接资产,避免把菜单里的 Opt> 误判为资产 shell
 expect {
+    -re {\[Host\]>} {
+        if {$asset_id ne ""} {
+            send "$asset_id\r"
+        } else {
+            send "$asset_query\r"
+        }
+        exp_continue
+    }
     "Are you sure you want to continue connecting" {
         send "yes\r"
         exp_continue
@@ -145,6 +176,7 @@ expect {
     }
     timeout {
         send_user "连接目标资产超时\n"
+        send "exit\r"
         exit 1
     }
 }
@@ -165,6 +197,7 @@ expect {
     }
     timeout {
         send_user "切换 root 超时,可能需要密码或 prompt 格式不同\n"
+        send "exit\r"
         exit 1
     }
 }
@@ -172,7 +205,29 @@ expect {
 # 进入交互模式
 send "cd ~\r"
 interact
+
+# 如果脚本改成一次性查询而不是 interact,退出前必须先从目标主机退回 JumpServer 菜单。
+# JumpServer 可能显示 "复用SSH连接",不干净退出会导致下次命令落入旧 session。
+# 查询完成后至少发送一次 exit;如果当前是 root shell,需要先退回普通用户 shell,再退回菜单。
+# send "exit\r"
+# expect {
+#     -re {\[[^]]+@[^]]+[[:space:]]+[^]]+\][#$][[:space:]]*$} { send "exit\r" }
+#     -re {Opt>|\[Host\]>} {}
+#     timeout {}
+#     eof {}
+# }
 ```
+
+### 查询超时选择
+
+- 连接、菜单、`whoami`、`id -u`、`hostname`、`pwd`、`kubectl get namespaces`
+  这类快速查询从 10 秒开始。
+- `kubectl get pods`、单个 namespace 的 `kubectl describe`、短日志 `--tail`
+  可从 15 或 20 秒开始。
+- 多 namespace 查询、较大的 `kubectl describe`、`helm history`、跨多个 pod 的
+  只读检查可从 30 或 45 秒开始。
+- 历史日志、`zgrep`、大目录扫描、跨多个 fluentd pod 的只读搜索可直接使用 60 秒。
+- 超时只表示本轮查询未完成；不要因为超时执行重启、删除、回滚等变更操作。
 
 ### 常见资产名
 

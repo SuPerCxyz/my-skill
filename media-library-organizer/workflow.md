@@ -1,5 +1,7 @@
 # 工作流程
 
+Use this file as the ordered execution flow for media organization. Read the specialized files only when a step needs naming, NFO, artwork, TMDB, technical parsing, configuration, or safety details.
+
 ## 流程概览
 
 ```

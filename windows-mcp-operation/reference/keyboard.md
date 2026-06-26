@@ -1,5 +1,7 @@
 # 键盘与剪贴板
 
+Use this file for text input, shortcuts, and clipboard operations. For mouse positioning or drag actions, use [mouse.md](mouse.md); for waiting, use [wait.md](wait.md).
+
 ## Type
 
 在指定位置输入文本。**必须提供 `loc` 或 `label`**(`label` 为整数 ID，非字符串)。

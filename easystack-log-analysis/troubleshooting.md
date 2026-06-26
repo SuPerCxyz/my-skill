@@ -1,5 +1,7 @@
 # Troubleshooting Scenarios
 
+Use this file for known failure signatures and example evidence chains. Treat it as a scenario reference after the standard workflow in [analysis-playbook.md](analysis-playbook.md), not as a replacement for fresh log evidence.
+
 ## Scenario 1: VM Hard Reboot Fails — Volume Device Not Found
 
 ### Scenario 1 Symptom

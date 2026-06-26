@@ -1,5 +1,7 @@
 # Running tox Commands
 
+Use this file for the exact tox entry points after the Miniconda environment is active. If a command fails, switch to [auto-fix.md](auto-fix.md) rather than inventing a new loop.
+
 > ⚠ **Must activate the Miniconda environment first.** Do not run `tox` directly - it
 > may use the wrong Python or miss dependencies. Follow [setup.md](setup.md) to
 > activate the `easystack-<project>-py<version>` environment first.

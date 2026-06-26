@@ -1,5 +1,7 @@
 # 窗口控制
 
+Use this file for launching, switching, resizing, or closing Windows applications. Use [observation.md](observation.md) first when the current window state is unknown.
+
 ## App
 
 启动、切换、调整窗口。三种模式:

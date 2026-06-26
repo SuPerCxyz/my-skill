@@ -1,5 +1,7 @@
 # Services Discovery
 
+Use this file when mapping service names to pod prefixes, ports, namespaces, or repo locations. For concrete log commands, use [logs.md](logs.md); for authentication, use [auth.md](auth.md).
+
 ## Core OpenStack Services
 
 | Service | Pod Prefix | Admin Port | Description |
@@ -13,6 +15,18 @@
 | Ceilometer | `ceilometer-api-*`, `ceilometer-collector-*` | 8777 | Telemetry |
 | Gnocchi | `gnocchi-api-*`, `gnocchi-metricd-*` | - | Metrics storage |
 | Horizon | `horizon-*` | 80 | OpenStack dashboard |
+
+## Ironic Namespace
+
+Ironic services run in the independent `ironic` namespace. Do not assume they are
+in `openstack`. The exception is `nova-compute-ironic`, which belongs to the
+Nova side and may appear under the OpenStack deployment layout.
+
+```bash
+kubectl get pods -n ironic
+kubectl get pods -n ironic --show-labels
+kubectl get pods -n openstack -l service=nova-compute-ironic
+```
 
 ## Networking (OVN Mode)
 
@@ -33,7 +47,8 @@ Neutron config inspection: `kubectl get cm -n openstack neutron-etc -o yaml`.
 
 ## Helm Releases
 
-All deployed via Helm in `openstack` namespace:
+Most OpenStack control-plane releases are deployed via Helm in `openstack`
+namespace. Check service-specific namespaces such as `ironic` separately:
 
 | Helm Release | Chart Version | Covers |
 |-------------|---------------|--------|

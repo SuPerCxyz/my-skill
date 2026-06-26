@@ -1,5 +1,7 @@
 # 鼠标操作
 
+Use this file for click, hover, movement, drag, scroll, and multi-select actions after observation has identified coordinates or UI element IDs.
+
 ## Click
 
 鼠标点击。可通过坐标 (`loc`) 或 UI 元素 ID (`label`) 定位。

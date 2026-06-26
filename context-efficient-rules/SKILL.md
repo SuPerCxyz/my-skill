@@ -1,11 +1,15 @@
 ---
 name: context-efficient-rules
-description: "Context-efficient agent rules for Claude Code / Claude Code Router / ccswitch. Enforces minimal context usage: no MCP by default, no large file reads, no broad searches."
+description: "Load at the start of an agent session or when a task risks context bloat, excessive tool output, broad searches, or unnecessary MCP usage. Provides context-budget rules only; do not use as a domain workflow for coding, debugging, UI automation, log analysis, or media organization."
 ---
 
 # Context-Efficient Agent Rules
 
 适用于 Claude Code / Claude Code Router / ccswitch 场景的精简 Agent 规则集。核心目标:控制上下文膨胀，避免 Autocompact thrashing 和 Input too long。
+
+## Scope Boundary 适用边界
+
+使用本 skill 管理工具调用规模、搜索范围、读取行数和长输出处理。它只约束上下文使用方式, 不提供具体业务排查、代码实现、浏览器自动化、Windows 桌面操作、日志分析或媒体库整理流程。
 
 ## Core Hard Rules 核心硬规则
 

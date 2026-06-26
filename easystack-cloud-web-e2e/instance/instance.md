@@ -1,5 +1,7 @@
 # 云主机(Instance)测试用例
 
+Use this file as the instance-domain index. Choose a child document from the split index instead of treating this file as the full test procedure.
+
 本文件是入口索引，原始长文档已按主题拆分到子文件。
 
 ## 拆分索引

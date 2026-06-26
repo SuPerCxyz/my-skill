@@ -1,5 +1,7 @@
 # 虚拟网卡(vNIC)
 
+Use this file as the vNIC-domain index. Choose the page child document for structure or the test-case child document for scenario expectations.
+
 本文件是入口索引，原始长文档已按主题拆分到子文件。
 
 ## 拆分索引

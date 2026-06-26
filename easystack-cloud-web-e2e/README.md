@@ -1,6 +1,6 @@
 # EasyStack Cloud Web E2E
 
-EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browser` 提供可复用的原子操作、页面知识库和测试编排规范，支持云主机、云硬盘、网络等核心资源的 UI 操作自动化。
+EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browser` 提供可复用的原子操作、页面知识库和测试编排规范，支持云主机、云硬盘、网络等核心资源的 UI 操作自动化。它面向 EasyStack Cloud 页面, 不处理后端 SSH/Kubernetes 排查、离线 eslog 分析或代码仓库 CI。
 
 ## 概述
 

@@ -1,5 +1,7 @@
 # Log Directory Structure Map
 
+Use this file to map an extracted `ecs.*` directory to service domains before searching. It does not define root-cause logic; use [cross-domain-analysis.md](cross-domain-analysis.md) and [search-patterns.md](search-patterns.md) after choosing the relevant domains.
+
 ## Top-Level Directory Layout
 
 ```

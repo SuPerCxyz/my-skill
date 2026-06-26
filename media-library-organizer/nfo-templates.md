@@ -1,5 +1,7 @@
 # NFO 模板
 
+Use this file only when generating NFO content. It does not decide whether a file should be renamed, moved, or downloaded.
+
 ## movie.nfo
 
 ```xml

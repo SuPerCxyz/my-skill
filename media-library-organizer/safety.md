@@ -1,5 +1,7 @@
 # 安全与回滚
 
+Use this file whenever a plan may move, rename, write, delete, or roll back files. It is the safety reference for mapping, conflict handling, path boundaries, and rollback verification.
+
 ## 校验策略
 
 - 默认记录 `size` + `mtime`

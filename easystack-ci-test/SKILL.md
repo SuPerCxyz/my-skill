@@ -1,11 +1,15 @@
 ---
 name: easystack-ci-test
-description: "Use when running CI tests for EasyStack OpenStack projects: tox cover (coverage) and pep8 (flake8). Auto-fixes failures in a loop until both pass and modified code is 100% covered. Python version is inferred from tox.ini basepython."
+description: "Use for EasyStack OpenStack repository CI validation and fixes: tox cover, tox pep8, flake8, coverage gaps, stestr, privsep tests, and Miniconda/tox setup. Do not use for live Kubernetes environment debugging, eslog/offline log analysis, Web UI E2E testing, or general non-EasyStack projects."
 ---
 
 # EasyStack CI Test
 
 EasyStack OpenStack 项目使用 tox 进行 CI 测试。本 skill 覆盖运行 `tox -e pep8`(flake8 代码检查) 与 `tox -e cover`(单元测试覆盖率), 并在失败时自动修复直到两者全部通过。
+
+## Scope Boundary 适用边界
+
+适用于 EasyStack OpenStack 代码仓库内的 CI 验证、测试失败修复、覆盖率补齐和 tox 环境准备。若任务目标是运行中环境排查, 读取离线 eslog, 操作 EasyStack Cloud Web 页面, 或操作 Windows 桌面, 应选择对应的专用 skill。
 
 ## Code Scope 代码范围
 

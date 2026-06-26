@@ -1,5 +1,7 @@
 # 资源关联关系(Resource Relationships)
 
+Use this file when a UI test spans multiple resource types, such as instance plus volume, instance plus floating IP, or network plus router. For the actual browser action, switch to the corresponding `patterns/*-ops.md` file.
+
 ## 核心关系图
 
 ```

@@ -1,5 +1,7 @@
 # Decompression
 
+Use this file only when the input is a `.eslog` bundle that still needs decompression. If the user already provides an extracted `ecs.*` directory, skip to [directory-map.md](directory-map.md) and [analysis-playbook.md](analysis-playbook.md).
+
 ## eslog File Format
 
 EasyStack diagnostic logs are distributed as password-protected `.eslog` files. The decompression is multi-stage:

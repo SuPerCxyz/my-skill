@@ -1,5 +1,7 @@
 # OpenStack Authentication
 
+Use this file after environment access is established and the task requires OpenStack CLI authentication, busybox pod usage, or credential checks. Do not use it as the first access path.
+
 ## 重要:执行 OpenStack 命令前必须先 source 认证
 
 **busybox pod 没有预设的 OS_ 环境变量，所有 openstack 命令必须在 source 之后执行。**

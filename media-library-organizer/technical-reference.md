@@ -1,5 +1,7 @@
 # 技术实现参考
 
+Use this file when implementing or reviewing parsing and media-info extraction logic. It is not an execution checklist; use [workflow.md](workflow.md) for the ordered flow.
+
 ## 从文件名提取技术信息
 
 ```python

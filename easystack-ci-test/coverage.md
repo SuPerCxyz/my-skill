@@ -1,5 +1,7 @@
 # Fixing Coverage Gaps
 
+Use this file when `tox -e cover` reports missing coverage or test failures related to the current change set. For command order and the full repair loop, start from [auto-fix.md](auto-fix.md).
+
 ## 0. Scope - Which Files to Check
 
 The coverage report covers the **entire project**, but you only need to ensure

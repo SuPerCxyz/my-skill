@@ -1,5 +1,7 @@
 # Fixing pep8 Errors
 
+Use this file when `tox -e pep8`, flake8, or a direct pep8 environment run reports style errors. It is only the pep8 repair reference; use [auto-fix.md](auto-fix.md) for the full cover/pep8 loop.
+
 ## Find Errors
 
 ```bash

@@ -1,11 +1,15 @@
 ---
 name: windows-mcp-operation
-description: "Use when the user asks to operate a real Windows desktop via the windows-mcp server: screenshots, window control, mouse/keyboard, PowerShell, file/registry/process management, and toast notifications. Loads this skill before Windows MCP tool calls so the correct interface is chosen and known failure modes are avoided."
+description: "Use when operating a real Windows desktop through windows-mcp: screenshots, UI tree, windows, mouse/keyboard, PowerShell, files, registry, processes, clipboard, and notifications. Do not use for browser-page automation better handled by Playwright/agent-browser, ordinary shell tasks, platform-specific workflows, or non-Windows environments."
 ---
 
 # Windows MCP
 
 通过 windows-mcp server 操作和观察真实 Windows 桌面，包括截屏、窗口控制、鼠标键盘操作、系统管理等。
+
+## Scope Boundary 适用边界
+
+使用本 skill 前提是任务需要真实 Windows 桌面或 Windows 系统工具交互。网页内自动化优先选择浏览器自动化 skill;平台专用页面操作应使用对应平台的自动化 skill;普通命令行任务直接使用 shell。
 
 ## Quick Decision 快速决策
 

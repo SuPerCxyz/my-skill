@@ -1,5 +1,7 @@
 # Search Patterns by Issue Type
 
+Use this file after the issue domain and time window are known. For cross-service evidence selection, read [cross-domain-analysis.md](cross-domain-analysis.md) first.
+
 ## Common Patterns
 
 > **重要**: 默认搜索所有节点目录(ecs.node-*)，除非用户指定特定节点。日志文件可能为 `.log` 或 `.log.gz`，需使用 `zgrep` 处理压缩文件。

@@ -1,5 +1,7 @@
 # 批量填表与通知
 
+Use this file for MultiEdit and notification tasks after a Snapshot identifies the target fields or notification payload. For single text entry, use [keyboard.md](keyboard.md).
+
 ## MultiEdit
 
 批量填写多个输入框。

@@ -1,11 +1,15 @@
 ---
 name: media-library-organizer
-description: "Use when the user wants to organize a media library: TMDB scraping, renaming, NFO generation, and artwork download for movies/TV/variety/documentary/anime. Enforces dry-run by default, rollback support, and conflict handling."
+description: "Use when organizing local media library folders for movies, TV, variety, documentary, or anime: scan, TMDB match, rename preview, NFO generation, artwork download, mapping, rollback, and dry-run safety. Do not use for generic file cleanup, log analysis, automated testing, UI automation, or tasks unrelated to media metadata."
 ---
 
 # Media Library Organizer
 
 媒体库整理
+
+## Scope Boundary 适用边界
+
+使用本 skill 处理本地影视媒体库整理:扫描文件夹、识别资源、匹配 TMDB、生成重命名预览、NFO 和图片下载计划。普通文件清理、非媒体资料归档、日志分析、自动化测试和 UI 自动化不属于本 skill 范围。
 
 ## Core Principles 核心原则
 

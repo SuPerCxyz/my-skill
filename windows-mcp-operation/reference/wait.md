@@ -1,5 +1,7 @@
 # 定时等待
 
+Use this file when an action needs fixed or conditional waiting. Prefer condition-based waiting when a visible UI state, text, or window can be observed.
+
 ## Wait
 
 固定等待指定秒数。

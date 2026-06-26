@@ -1,5 +1,7 @@
 # 图片下载
 
+Use this file when the dry-run plan includes artwork download or artwork alias generation. It does not replace the main workflow in [workflow.md](workflow.md) or the safety checks in [safety.md](safety.md).
+
 ## 并发下载策略
 
 - 如果当前环境支持子代理 / Task / Workflow，则每个资源分配一个子任务

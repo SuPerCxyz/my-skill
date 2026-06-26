@@ -1,5 +1,7 @@
 # 当前控制台探索记录
 
+Use this file only as observed console context for the recorded environment and date. Treat it as a page-behavior hint that must be revalidated during a fresh UI run.
+
 本文件记录 2026-06-18 对当前 EasyStack Cloud 控制台的真实页面探索结果。
 用于补充 `patterns/` 的通用规则，避免后续大模型再次因页面覆盖、ref 失效、
 权限提示或按钮启用条件判断错误而误操作。

@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use when inspecting EasyStack services deployed on Kubernetes. Determines SSH access method: direct SSH for normal IPs, jump host for 172.18.x.x, or JumpServer assets such as BJ-35. Only performs read-only checks unless the user explicitly authorizes an impactful operation."
+description: "Use for live EasyStack Kubernetes/OpenStack environment inspection over SSH, kubectl, pods, services, logs, auth, config, JumpServer assets, and read-only diagnosis. Do not use for offline eslog bundles, repository tox/CI fixes, EasyStack Cloud Web UI E2E, or media/Windows desktop tasks."
 ---
 
 # EasyStack Environment Debugging
@@ -9,6 +9,8 @@ description: "Use when inspecting EasyStack services deployed on Kubernetes. Det
 
 OpenStack services run on Kubernetes (Helm-deployed) in the `openstack` namespace.
 This skill automates SSH access based on the target environment IP pattern.
+
+Use this skill when the target is a reachable running environment. For offline `.eslog` bundles use `easystack-log-analysis`; for repository CI failures use `easystack-ci-test`; for EasyStack Cloud Web UI actions use `easystack-cloud-web-e2e`.
 
 ## Read-Only Safety Gate 只读安全门禁
 

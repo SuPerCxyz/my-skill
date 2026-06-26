@@ -1,6 +1,6 @@
 # EasyStack CI 测试
 
-运行 EasyStack 旗下 OpenStack 项目的通用 CI 测试并自动修复问题。
+运行 EasyStack 旗下 OpenStack 项目的通用 CI 测试并自动修复问题。范围限定在代码仓库验证与测试修复, 不覆盖运行中环境排查、离线日志分析或 Web UI E2E。
 
 ## 功能
 

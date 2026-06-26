@@ -1,5 +1,7 @@
 # TMDB 接口
 
+Use this file when querying TMDB, scoring candidates, or building image URLs. Keep API key handling aligned with [configuration.md](configuration.md) and safety output rules.
+
 ## API Key
 
 - 优先读取环境变量 `TMDB_API_KEY`

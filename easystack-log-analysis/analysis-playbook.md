@@ -1,5 +1,7 @@
 # Analysis Playbook
 
+Use this file as the main offline eslog analysis workflow. It coordinates decompression, identifier mapping, timeline construction, and final reporting; use the other reference files only for the specific step you are in.
+
 End-to-end procedure when the user hands you an eslog bundle and a
 symptom description. Goal: produce a structured, evidence-cited analysis.
 

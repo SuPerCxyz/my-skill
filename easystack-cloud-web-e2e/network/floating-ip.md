@@ -1,5 +1,7 @@
 # 浮动 IP(Floating IP / 公网 IP)
 
+Use this file when the UI task specifically involves floating IP list fields, allocation, association, release, or related assertions. For reusable action sequences, prefer [patterns/network-ops.md](../patterns/network-ops.md).
+
 ## agent-browser 迁移说明
 
 本文件保留页面字段、步骤和断言知识;执行入口统一迁移到 agent-browser。

@@ -1,6 +1,6 @@
 ---
 name: easystack-log-analysis
-description: "Use when needing to decompress, analyze, and troubleshoot EasyStack OpenStack cluster logs from eslog files. Covers eslog decompression, log directory mapping, search patterns, cross-domain root-cause analysis (VM lifecycle / volume / network / image / bare-metal), and correlation of OpenStack service logs with OS-level and control-plane infra logs."
+description: "Use for offline EasyStack `.eslog` bundle decompression and root-cause analysis across OpenStack, Kubernetes, OS, Ceph, RabbitMQ, MariaDB, and operation history logs. Do not use for live SSH/kubectl environment inspection, repository CI failures, Web UI E2E execution, or generic log files unrelated to EasyStack eslog."
 ---
 
 # EasyStack Log Analysis
@@ -10,6 +10,10 @@ description: "Use when needing to decompress, analyze, and troubleshoot EasyStac
 EasyStack 诊断日志以带密码的 `.eslog` 文件形式下发。解压后得到 `ecs.<host>.<date>.[N]/` 目录树, 内含按功能域组织的 Kubernetes pod 容器化服务日志。
 
 本 skill 指导 eslog 解压、目录映射与针对常见 OpenStack-on-K8s 故障场景的定向日志分析。
+
+## Scope Boundary 适用边界
+
+适用于用户提供 `.eslog` 或已解压 `ecs.*` 目录的离线分析。若需要登录运行中环境执行 kubectl/SSH 检查, 使用 `easystack-env-debugging`; 若需要修复代码仓库测试, 使用 `easystack-ci-test`; 若需要操作 Web 页面完成 E2E, 使用 `easystack-cloud-web-e2e`。
 
 ## Quick Reference 快速参考
 

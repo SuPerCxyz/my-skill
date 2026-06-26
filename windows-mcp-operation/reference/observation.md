@@ -1,5 +1,7 @@
 # 观察类工具
 
+Use this file before acting on the desktop, when coordinates, UI element IDs, window state, or screenshots are needed.
+
 ## Snapshot
 
 桌面截屏 + UI 元素树检查，提供光标位置、窗口列表和交互元素坐标。

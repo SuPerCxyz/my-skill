@@ -1,5 +1,7 @@
 # 推荐工作流
 
+Use this file for common multi-tool sequences. For parameter details, switch to the specific reference file linked by each step.
+
 ## 获取桌面状态
 
 1. 调用 `Snapshot` `{"use_vision": true}`

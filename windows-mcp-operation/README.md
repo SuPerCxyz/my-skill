@@ -1,6 +1,6 @@
 # Windows MCP Operation
 
-通过 windows-mcp server 操作和观察真实 Windows 桌面:截屏、窗口控制、鼠标键盘、系统管理、PowerShell、文件 / 注册表 / 进程、Toast 通知等。
+通过 windows-mcp server 操作和观察真实 Windows 桌面:截屏、窗口控制、鼠标键盘、系统管理、PowerShell、文件 / 注册表 / 进程、Toast 通知等。范围限定为真实 Windows 桌面与系统工具交互, 不覆盖普通网页自动化或特定平台专用工作流。
 
 ## 功能
 

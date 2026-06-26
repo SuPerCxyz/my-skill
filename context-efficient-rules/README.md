@@ -1,6 +1,6 @@
 # context-efficient-rules
 
-适用于 Claude Code / Claude Code Router / ccswitch 场景的上下文精简 Agent 规则集。
+适用于 Claude Code / Claude Code Router / ccswitch 场景的上下文精简 Agent 规则集。它只约束工具调用、读取范围和输出规模, 不替代具体业务 skill。
 
 ## 核心目标
 

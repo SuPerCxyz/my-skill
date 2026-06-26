@@ -1,5 +1,7 @@
 # 系统工具
 
+Use this file for PowerShell, process, filesystem, and registry operations. Prefer UI-specific references when the task can be completed through visible desktop controls.
+
 ## PowerShell
 
 执行任意 PowerShell 命令。

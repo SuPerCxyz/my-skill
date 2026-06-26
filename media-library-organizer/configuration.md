@@ -1,5 +1,7 @@
 # 配置与识别规则
 
+Use this file when selecting execution options, media root boundaries, dry-run behavior, or file type recognition. It defines configuration meaning, not the execution sequence.
+
 本文件保存执行参数、媒体库边界、dry-run 行为和文件类型识别规则。`SKILL.md` 只保留入口门禁，执行时按需查阅本文件。
 
 ## Configuration Parameters 配置参数

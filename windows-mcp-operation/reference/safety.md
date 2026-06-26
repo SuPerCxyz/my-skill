@@ -1,5 +1,7 @@
 # 安全规则
 
+Use this file before actions that can close apps, kill processes, delete files, change registry values, or run impactful PowerShell commands. It supplements the tool-specific reference files.
+
 ## 操作前需确认
 
 | 工具 | 危险操作 |

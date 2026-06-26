@@ -1,5 +1,7 @@
 # 云硬盘创建测试用例
 
+Use this file as the volume-domain index. Choose a child document for form fields, test cases, or page operations before executing a UI flow.
+
 本文件是入口索引，原始长文档已按主题拆分到子文件。
 
 ## 拆分索引

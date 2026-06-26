@@ -1,5 +1,7 @@
 # 平台基本信息
 
+Use this file for stable platform facts, canonical page paths, and historical path aliases. Do not use it as an execution plan; combine it with [navigation.md](../navigation.md) and the relevant operation file.
+
 | 项目 | 值 |
 |------|-----|
 | 平台名称 | EasyStack Cloud |

@@ -1,5 +1,7 @@
 # Environment Setup
 
+Use this file before running any tox command in an EasyStack OpenStack repository. It explains how to choose and activate the shared Miniconda environment used by the rest of this skill.
+
 ## Activate Environment
 
 All tox commands (pep8 and cover) run in a **single shared Miniconda environment** named:

@@ -1,5 +1,7 @@
 # 云硬盘类型测试用例
 
+Use this file as the volume-type domain index. Choose the structure, test-case, or example child document according to the current task.
+
 本文件是入口索引，原始长文档已按主题拆分到子文件。
 
 ## 拆分索引

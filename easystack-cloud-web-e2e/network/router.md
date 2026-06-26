@@ -1,5 +1,7 @@
 # 路由器(Router)
 
+Use this file as the router-domain index. Choose the page/create child document for UI structure or the test-case child document for scenario expectations.
+
 本文件是入口索引，原始长文档已按主题拆分到子文件。
 
 ## 拆分索引

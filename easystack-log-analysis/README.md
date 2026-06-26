@@ -1,6 +1,6 @@
 # EasyStack Log Analysis
 
-EasyStack OpenStack 集群日志(`.eslog`)解压、目录映射、跨服务跨节点根因定位。
+EasyStack OpenStack 集群日志(`.eslog`)解压、目录映射、跨服务跨节点根因定位。范围限定为离线 eslog/ecs 目录分析, 不替代运行中环境 SSH/kubectl 排查、仓库 CI 修复或 Web UI E2E。
 
 ## 功能
 

@@ -1,5 +1,7 @@
 # 命名规则
 
+Use this file when generating target folder and file names after media type and metadata have already been identified. For rollback and conflict handling, read [safety.md](safety.md).
+
 ## 电影
 
 ```

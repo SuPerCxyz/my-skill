@@ -1,5 +1,7 @@
 # Logs
 
+Use this file when the question is about runtime logs in a reachable environment. For offline `.eslog` bundles, use the log-analysis skill instead.
+
 ## Real-time Logs (kubectl)
 
 Service logs go to stdout/stderr, not `/var/log/` inside pods.

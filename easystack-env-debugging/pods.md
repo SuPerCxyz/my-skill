@@ -1,5 +1,7 @@
 # Pod Patterns
 
+Use this file when selecting pods, containers, labels, or controllers for read-only inspection. It is the reference for avoiding wrong-container `exec` and `logs` calls.
+
 ## Multi-Container Pods
 
 Always check containers before `exec` or `logs`:
@@ -17,6 +19,25 @@ Examples:
 - `cinder-golem-*` → `golem` (default) + `init`
 
 When in doubt, use `-c <container-name>` explicitly.
+
+## Exec by Pod Name, Not Service Label
+
+Avoid `kubectl exec -n <ns> -l service=<name>` for service pods. Pods with init
+containers may print `Defaulted container ...`, and label-based `exec` is less
+predictable across kubectl versions and pod layouts.
+
+Prefer confirming labels, resolving the pod name first, then exec by concrete pod name:
+
+```bash
+kubectl get pods -n <ns> --show-labels | grep <name>
+pod=$(kubectl get pods -n <ns> -l service=<name> -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -n <ns> "$pod" -c <container-name> -- <read-only-command>
+```
+
+Use the `service=<name>` selector only after confirming that the pod actually has
+that label. If using a set selector such as `-l 'service in (a,b,c)'`, verify
+that the target kubectl version supports it. Otherwise split the query into
+separate `-l service=a`, `-l service=b`, and `-l service=c` calls.
 
 ## Multi-Replica Pods (API Services)
 

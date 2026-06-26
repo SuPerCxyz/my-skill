@@ -1,5 +1,7 @@
 # Log Line Format
 
+Use this file when parsing log lines, grouping by node/pod/container, or writing awk/grep pipelines against decompressed `.log` files.
+
 ## Wrapper Format (5-field, `¦`-delimited)
 
 All decompressed `.log` files use a uniform 5-field prefix added by the log

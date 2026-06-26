@@ -1,5 +1,7 @@
 # Unit Tests for privsep Entry Points
 
+Use this file only when unit tests touch functions decorated with a privsep entrypoint and fail because the helper process would be started. It explains the test-side handling pattern.
+
 ## Problem
 
 Functions decorated with `@cinder.privsep.sys_admin_pctxt.entrypoint` cannot be called directly in unit tests:

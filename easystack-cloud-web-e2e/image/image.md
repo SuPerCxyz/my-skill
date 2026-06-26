@@ -1,5 +1,7 @@
 # 镜像管理(Image Management)
 
+Use this file as the image-domain index. Choose the page/dialog child document for UI structure or the test-case child document for scenario expectations.
+
 本文件是入口索引，原始长文档已按主题拆分到子文件。
 
 ## 拆分索引
