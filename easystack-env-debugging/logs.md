@@ -22,16 +22,16 @@ fluentd pod 查历史日志, 因为当前 pod 的 stdout/stderr 往往还保留�
 
 ```bash
 # Single-container pod
-kubectl logs -f -n openstack <pod-name>
+kubectl logs -n openstack <pod-name> --tail=200
 
 # Multi-container pod - specify container name
-kubectl logs -f -n openstack <pod-name> -c <container-name>
+kubectl logs -n openstack <pod-name> -c <container-name> --tail=200
 
 # List containers first
 kubectl get pod -n openstack <pod-name> -o jsonpath='{.spec.containers[*].name}'
 
-# Tail last N lines
-kubectl logs -n openstack <pod-name> --tail=200
+# Follow only when waiting for new log output
+kubectl logs -f -n openstack <pod-name> --tail=50
 
 # Previous instance (if crashed/restarted)
 kubectl logs -n openstack <pod-name> --previous
@@ -39,8 +39,8 @@ kubectl logs -n openstack <pod-name> --previous
 
 ## Historical Logs (Fluentd) 历史日志
 
-3 个 fluentd pod(`fluentd-0`, `fluentd-1`, `fluentd-2`)分别保存**不同节点**上的日志。
-要获取某个服务的完整日志, 需要检查 3 个 pod。
+fluentd pod 数量随环境而变。要获取某个服务的完整历史日志, 先列出实际 fluentd pod,
+再逐个检查。
 
 **日志位置:** `/var/www/html/td-agent/openstack/<service>/<component>.<node>.<YYYYMMDD>.log.gz`
 
@@ -56,24 +56,25 @@ kubectl logs -n openstack <pod-name> --previous
 **访问 fluentd pod**(默认容器为 `httpd`):
 ```bash
 # View logs for a specific service on one fluentd pod
-kubectl exec -n openstack fluentd-0 -c httpd -- ls /var/www/html/td-agent/openstack/<service>/
+kubectl exec -n openstack <fluentd-pod> -c httpd -- ls /var/www/html/td-agent/openstack/<service>/
 
 # Read a specific log file
-kubectl exec -n openstack fluentd-0 -c httpd -- zcat /var/www/html/td-agent/openstack/<service>/<component>.node-<N>.<date>.log.gz | tail -100
+kubectl exec -n openstack <fluentd-pod> -c httpd -- zcat /var/www/html/td-agent/openstack/<service>/<component>.node-<N>.<date>.log.gz | tail -100
 ```
 
-**Search across all 3 fluentd pods** (requires shell on target node entered by env-access):
+**Search across all fluentd pods** (requires shell on target node entered by env-access):
 ```bash
 # First enter the target node via env-access.sh, then run:
-for i in 0 1 2; do
-  echo "=== fluentd-$i ==="
-  kubectl exec -n openstack fluentd-$i -c httpd -- ls /var/www/html/td-agent/openstack/<service>/ 2>/dev/null
+fluentd_pods=$(kubectl get pods -n openstack -o name | sed 's#^pod/##' | grep '^fluentd-[0-9]\+$')
+for pod in $fluentd_pods; do
+  echo "=== $pod ==="
+  kubectl exec -n openstack "$pod" -c httpd -- ls /var/www/html/td-agent/openstack/<service>/ 2>/dev/null
 done
 
 # Search log content across all pods:
-for i in 0 1 2; do
-  echo "=== fluentd-$i ==="
-  kubectl exec -n openstack fluentd-$i -c httpd -- sh -c 'zcat /var/www/html/td-agent/openstack/<service>/*.gz 2>/dev/null' | grep "<search-keyword>" | tail -20
+for pod in $fluentd_pods; do
+  echo "=== $pod ==="
+  kubectl exec -n openstack "$pod" -c httpd -- sh -c 'zcat /var/www/html/td-agent/openstack/<service>/*.gz 2>/dev/null' | grep "<search-keyword>" | tail -20
 done
 ```
 
@@ -81,9 +82,10 @@ done
 server 查 `openstack/nova`。如果用户明确要求直接看日志, 可以跳过数据库查询。
 
 ```bash
-for i in 0 1 2; do
-  echo "=== fluentd-$i ==="
-  kubectl exec -n openstack fluentd-$i -c httpd -- sh -c 'zgrep -h -F "<resource-uuid>" /var/www/html/td-agent/openstack/<service>/*.gz 2>/dev/null' | tail -50
+fluentd_pods=$(kubectl get pods -n openstack -o name | sed 's#^pod/##' | grep '^fluentd-[0-9]\+$')
+for pod in $fluentd_pods; do
+  echo "=== $pod ==="
+  kubectl exec -n openstack "$pod" -c httpd -- sh -c 'zgrep -h -F "<resource-uuid>" /var/www/html/td-agent/openstack/<service>/*.gz 2>/dev/null' | tail -50
 done
 ```
 

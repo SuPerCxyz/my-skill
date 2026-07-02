@@ -43,15 +43,6 @@ easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpse
 easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID> --cmd 'kubectl get namespaces | grep openstack'
 ```
 
-### 参数入口
-
-| 示例 | 模式 | 典型落点 |
-|------|------|----------|
-| `<TARGET_IP>` | 直连模式 | 目标控制节点登录 shell |
-| `<JUMP_IP>` | 跳板机模式, 内层默认到 `<CONTROL_NODE_IP>` | 控制节点登录 shell |
-| `172.<N>.0.2` | BJ-xx SSH config 跳板直达模式 | 目标资产上的登录 shell |
-| `<ASSET_NAME>` | JumpServer 菜单模式 | 目标资产上的登录 shell |
-
 ## BJ-xx SSH config 跳板直达模式
 
 当用户说 `xx 环境` / `BJ-xx 环境` 时, 默认认为需要通过跳板/堡垒机访问。
@@ -85,21 +76,9 @@ Host 172.*.0.2
     ControlPath ~/.ssh/control/%C
 ```
 
-访问方式:
-
-```bash
-easystack-env-debugging/scripts/env-access.sh --target 172.<ENV_ID>.0.2
-```
-
-如果用户提供的是可直接 SSH 的环境别名, 也通过统一访问脚本尝试:
-
-```bash
-easystack-env-debugging/scripts/env-access.sh --target <SSH_TARGET>
-```
-
-进入后按 [进入后台后](#进入后台后) 做只读验证并按需 `sudo su -`。如果需要
-一次性查询, 优先保持命令短小; 复杂排查进入交互 shell 后执行, 避免多层引号和
-TTY 行为影响结果。
+用户提供可直接 SSH 的环境别名时, 也通过统一访问脚本的 `--target <SSH_TARGET>`
+入口尝试。进入后按 [进入后台后](#进入后台后) 做只读验证。复杂排查先进入
+交互 shell, 避免多层引号和 TTY 行为影响结果。
 
 ```bash
 easystack-env-debugging/scripts/env-access.sh --target 172.<ENV_ID>.0.2 -- whoami
@@ -172,13 +151,6 @@ easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP> --cmd 'whoami
 脚本切换到 root 或报告权限/认证/超时问题
 ```
 
-### JumpServer 入口选择
-
-| 环境类型 | JumpServer | 说明 |
-|----------|------------|------|
-| 类似 `BJ-xx` 的测试环境 | `js.easystack.io:2222` | 用于访问测试环境资产 |
-| x86 / arm 生产环境 | `jumpserver.easystack.cn:2222` | 用于访问生产环境资产 |
-
 ### JumpServer 前置条件与配置缺失处理
 
 JumpServer 连接信息优先来自用户 SSH 配置。排障者只选择统一访问脚本参数,
@@ -215,19 +187,6 @@ Host <SSH_ALIAS>
 用户补齐后, 仍然通过统一访问脚本进入环境; 不要在排障文档中临时拼接一次性
 JumpServer SSH 命令。
 
-### JumpServer 脚本入口
-
-```bash
-# 通过统一访问脚本进入用户指定资产, 切到 root 后进入交互 shell
-easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver
-
-# 一次性只读查询, 命令结束后脚本会主动退出目标 shell 和 JumpServer 菜单
-easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver --cmd 'whoami; id -u; hostname; pwd; kubectl get nodes -o name'
-
-# 使用用户指定的资产名
-easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver
-```
-
 JumpServer 是交互式 TUI 菜单, 统一访问脚本内部会调用固化脚本处理菜单、
 资产选择、`sudo su -`、退出目标 shell 和超时递增。排障时不要复制 expect
 内容新建临时脚本, 也不要直接改固化脚本。脚本执行确实失败时, 先把失败目标、
@@ -249,16 +208,6 @@ JumpServer 是交互式 TUI 菜单, 统一访问脚本内部会调用固化脚�
 JumpServer 资产名由用户在任务中指定。用户说 “ssh js 到 `<ASSET_NAME>` 环境”
 或 “到 `<ASSET_NAME>` 环境” 时, 先判断能否转换为 `--env BJ-<ENV_ID>`。
 不能转换时, 把 `<ASSET_NAME>` 原样传给统一访问脚本的 `--asset` 参数。
-
-### 常见资产内特征
-
-| 属性 | 说明 |
-|------|------|
-| 登录用户 | 常见为 `dev` (JumpServer 系统用户)，以实际登录结果为准 |
-| sudo 权限 | 常见为 NOPASSWD，可免密 `sudo su -`，以实际资产权限为准 |
-| root 验证 | `whoami` 返回 `root`，`id -u` 返回 `0` |
-| 额外组 | 可能包含 `pamauth` (1000)，以实际 `id` 输出为准 |
-| JumpServer 复用 | 部分资产支持复用 SSH 连接 |
 
 ### 注意事项
 

@@ -80,7 +80,7 @@ port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |
 | OpenStack 组件部署、pod、启动方式详情 | [openstack/index.md](openstack/index.md) |
 | Ceph 组件部署、pod、启动方式详情 | [ceph/index.md](ceph/index.md) |
-| Kubernetes 组件部署、节点、pod、启动方式详情 | [k8s/index.md](k8s/index.md) |
+| Kubernetes 组件、pod、启动方式详情 | [k8s/index.md](k8s/index.md) |
 | 多容器 pod、label selector、StatefulSet 与 Deployment 区分 | [pods.md](pods.md) |
 | 启动脚本、configmap、配置和脚本查看 | [scripts.md](scripts.md) |
 | /opt mount code overlay debugging, explicit authorization required | [code-debug.md](code-debug.md) |
@@ -114,118 +114,20 @@ port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配
 | Ceph 组件总览 | [ceph/index.md](ceph/index.md) |
 | Kubernetes 组件总览 | [k8s/index.md](k8s/index.md) |
 
-## Environment Access Flow 环境访问流程
+## Environment Access Summary 环境访问摘要
 
-### Step 1: Determine Access Method 确定访问方式
+确认目标环境名称或 IP 后, 只选择 [access.md](access.md) 中的统一脚本参数。
+不要在 `SKILL.md` 复制访问命令, 避免与脚本入口漂移。
 
-向用户确认 **目标环境名称或 IP**。确认后只选择 `env-access.sh` 的参数, 不再
-手写登录命令。
+| 目标 | 入口 |
+|------|------|
+| 普通可直连 IP | `env-access.sh --target <TARGET_IP>` |
+| `172.18.*` IP | `env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>` |
+| `172.<N>.0.2` 或 `BJ-xx` | `env-access.sh --env BJ-<ENV_ID>` |
+| JumpServer 资产名 | `env-access.sh --asset <ASSET_NAME> --mode jumpserver` |
 
-- 普通可直连 IP → `env-access.sh --target <TARGET_IP>`
-- `172.18.*` IP → `env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>`
-- `172.<N>.0.2` 或 `BJ-xx` → `env-access.sh --env BJ-<ENV_ID>`
-- 用户提供的 JumpServer 资产名 → `env-access.sh --asset <ASSET_NAME> --mode jumpserver`
-
-### Step 2: Run Access Script 执行统一访问脚本
-
-具体命令以 [access.md](access.md) 为准; 这里仅描述入口选择。
-
-如果用户给出 BJ-xx 环境:
-
-```bash
-easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID>
-```
-
-如果 IP 以 `172.18.` 开头:
-
-```bash
-easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>
-```
-
-其他 IP:
-
-```bash
-easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP>
-```
-
-JumpServer 资产名:
-
-```bash
-easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver
-```
-
-进入后台后, 通过主机名访问其他 K8s 节点(`/etc/hosts` 由部署工具维护, 始终使用主机名而非 IP):
-
-```bash
-ssh node-3 'hostname; whoami; pwd'
-```
-
-### Step 3: Verify Access 验证可访问性
-
-SSH 进入后, 先执行最小只读检查:
-
-```bash
-whoami
-id -u
-hostname
-pwd
-```
-
-如果目标节点有 kubectl 和 kubeconfig, 再执行:
-
-```bash
-kubectl get namespaces | grep openstack
-```
-
-然后用 Kubernetes node 名称确认环境节点列表:
-
-```bash
-kubectl get nodes -o name
-```
-
-- **identity/hostname 检查成功** → 环境 shell 访问已确认。
-- **找到 `openstack`** → Kubernetes 访问已确认。后续按上方参考文档执行只读排查。
-- **返回 node 名称** → 后续选择 SSH 节点或检查 pod 分布前, 以该列表作为权威节点清单。
-- **kubectl 失败** → 使用 kubeconfig 路径重试:
-  ```bash
-  kubectl get namespaces --kubeconfig=/etc/kubernetes/admin.conf | grep openstack
-  ```
-- **仍然失败** → 报告 shell 访问成功但 kubectl 不可用, 并询问用户正确节点或访问方式。
-
-### Step 4: Fallback 回退方案
-
-如果统一访问脚本的所有适用模式都失败:
-
-> ⚠ 环境访问脚本执行失败。请提供正确的目标、访问方式或允许修改统一访问脚本。
-
-等待用户提供正确访问命令后再继续。
-
-## Quick Start 快速开始 - 进入环境后
-
-```bash
-# Confirm identity and target host
-whoami
-id -u
-hostname
-pwd
-
-# Inspect namespaces and pods
-kubectl get namespaces | grep openstack
-kubectl get pods -n openstack
-
-# Check logs without changing state
-kubectl logs -n openstack -l service=<service-name> --tail=100
-
-# Inspect Helm release metadata
-helm list -n openstack
-helm history -n openstack <release-name>
-```
-
-节点清单查询:
-
-```bash
-kubectl get nodes -o name
-```
+进入环境后先按 [access.md](access.md#进入后台后) 完成身份、kubectl 和 node
+名称验证, 再按 Quick Reference 选择对应排查文档。
 
 ## Skill Maintenance Principles Skill 维护原则
 

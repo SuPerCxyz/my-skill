@@ -14,24 +14,6 @@ OpenStack CLI (busybox):      /usr/bin/openstack
 MySQL CLI (busybox):          /usr/bin/mysql
 ```
 
-## Default Credentials 默认凭据
-
-(需要向用户确认, 不同环境可能不同)
-
-```
-SSH jump host password:       easystack
-OpenStack admin password:     Admin@ES20!8
-MariaDB root password:        stored in /etc/mysql/admin_user.cnf on mariadb-0
-```
-
-## ChartMuseum
-
-```
-URL:     http://chartmuseum.openstack.svc.cluster.local:8090
-Pod:     chartmuseum-0
-NS:      openstack
-```
-
 ## Namespaces 命名空间
 
 | Namespace | 用途 |
