@@ -1,6 +1,6 @@
 # OpenStack barbican
 
-记录 `barbican` 相关组件在本次环境中的部署情况、pod 和启动方式。
+`barbican` 组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -234,4 +234,3 @@
 | `barbican` | `barbican-kms-int` | ClusterIP | 80/TCP |
 | `barbican` | `barbican-openapi` | ExternalName | 80/TCP |
 | `barbican` | `barbican-openapi-int` | ClusterIP | 80/TCP |
-

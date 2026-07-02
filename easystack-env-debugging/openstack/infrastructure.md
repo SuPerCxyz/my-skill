@@ -1,6 +1,6 @@
 # OpenStack infrastructure
 
-记录 `infrastructure` 相关组件在本次环境中的部署情况、pod 和启动方式。
+基础组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -267,4 +267,3 @@
 | `openstack` | `rabbitmq` | NodePort | 5672/TCP, 15672/TCP |
 | `openstack` | `rabbitmq-discovery` | ClusterIP | 5672/TCP |
 | `openstack` | `redis` | ClusterIP | 6379/TCP |
-

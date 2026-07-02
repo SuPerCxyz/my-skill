@@ -1,6 +1,6 @@
 # OpenStack keystone
 
-记录 `keystone` 相关组件在本次环境中的部署情况、pod 和启动方式。
+`keystone` 组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -136,4 +136,3 @@
 |-----------|---------|------|-------|
 | `openstack` | `keystone` | ExternalName | 80/TCP |
 | `openstack` | `keystone-api` | ClusterIP | 80/TCP, 35357/TCP |
-

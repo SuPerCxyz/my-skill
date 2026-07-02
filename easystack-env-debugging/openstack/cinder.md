@@ -1,6 +1,6 @@
 # OpenStack cinder
 
-记录 `cinder` 相关组件在本次环境中的部署情况、pod 和启动方式。
+`cinder` 组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -232,4 +232,3 @@
 | `openstack` | `cinder-dashboard` | ExternalName | 80/TCP |
 | `openstack` | `cinder-dashboard-int` | ClusterIP | 8080/TCP |
 | `openstack` | `cinder-golem` | ClusterIP | 8192/TCP |
-

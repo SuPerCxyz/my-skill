@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use for live EasyStack Kubernetes/OpenStack environment inspection over SSH, JumpServer, kubectl, pods, services, logs, auth, config, VM/server anomalies, and cloud volume issues. Do not use for offline eslog bundles, repository tox/CI fixes, EasyStack Cloud Web UI E2E, or media/Windows desktop tasks."
+description: "Use for live EasyStack Kubernetes/OpenStack environment inspection through the bundled env-access script: SSH/JumpServer access, kubectl, pods, services, logs, auth, config, VM/server anomalies, and cloud volume issues. Do not use for offline eslog, repo CI, Web UI E2E, or media/Windows tasks."
 ---
 
 # EasyStack Environment Debugging
@@ -8,7 +8,8 @@ description: "Use for live EasyStack Kubernetes/OpenStack environment inspection
 ## Overview 概览
 
 OpenStack 服务运行在 Kubernetes 中, 通常通过 Helm 部署在 `openstack` namespace。
-本 skill 根据目标环境名称或 IP 模式选择 SSH 访问方式。
+本 skill 通过固化的 [env-access.sh](scripts/env-access.sh) 进入目标环境, 再执行
+kubectl、OpenStack CLI、日志和配置等只读排查命令。
 
 当目标是可访问的运行中环境时使用本 skill。离线 `.eslog` 包使用
 `easystack-log-analysis`; 仓库 CI 失败使用 `easystack-ci-test`;
@@ -16,7 +17,7 @@ EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
 
 ## Read-Only Safety Gate 只读安全门禁
 
-默认只能执行查看类操作。进入环境后，除非用户明确授权某个具体变更动作，否则不要执行会影响环境状态的命令。
+默认只能执行查看类操作。进入环境后, 除非用户明确授权某个具体变更动作, 否则不要执行会影响环境状态的命令。
 
 允许的默认命令:
 
@@ -32,8 +33,8 @@ helm list -n openstack
 helm history -n openstack <release-name>
 ```
 
-`helm get values` 是只读命令，但部分环境会返回 `Unauthorized operation`。
-不要把它作为默认验证命令；失败时记录权限限制并继续其它只读检查。
+`helm get values` 是只读命令, 但部分环境会返回 `Unauthorized operation`。
+不要把它作为默认验证命令; 失败时记录权限限制并继续其它只读检查。
 
 禁止作为默认动作执行:
 
@@ -50,14 +51,31 @@ service ... restart
 mysql/update/delete/insert/alter/drop
 ```
 
-如果排障确实需要变更环境，先说明影响范围、回滚方式和验证方式，并等待用户确认。
+如果排障确实需要变更环境, 先说明影响范围、回滚方式和验证方式, 并等待用户确认。
+
+## Access Script Gate 访问脚本门禁
+
+进入目标环境时, MUST 使用 [scripts/env-access.sh](scripts/env-access.sh)。不要手写
+`ssh`、`ssh js`、多层跳板命令或临时 expect 脚本来登录环境。`env-access.sh`
+负责封装直连、`172.18.*` 跳板、BJ-xx SSH config 跳板直达和 JumpServer 菜单
+fallback。
+
+JumpServer 连接信息优先从用户 SSH 配置读取。读取不到 alias、host、user、
+port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配置缺失处理)
+说明缺失项并向用户索取, 不要猜测或硬编码。
+
+不要修改 [scripts/env-access.sh](scripts/env-access.sh) 或
+[scripts/jumpserver-env.sh](scripts/jumpserver-env.sh)。如果脚本执行确实失败, 先
+向用户报告目标、命令、完整错误现象和你需要的改动点; 只有获得用户明确允许后,
+才能修改脚本。
 
 ## Quick Reference 快速参考 - 文件索引
 
 | 需要做什么 | 阅读 |
 |------------------|------|
-| 环境后台访问、直连、172.18 跳板、BJ-xx SSH config 直达、JumpServer 堡垒机 | [access.md](access.md) |
-| JumpServer 菜单 fallback 脚本, 需要用户指定资产 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
+| 环境后台访问入口、172.18 跳板、BJ-xx SSH config 跳板直达、JumpServer 菜单 fallback | [access.md](access.md) |
+| 统一环境访问脚本, 登录链路封装后追加业务命令 | [scripts/env-access.sh](scripts/env-access.sh) |
+| JumpServer 菜单内部 fallback 脚本, 由统一访问脚本调用 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
 | OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |
 | OpenStack 组件部署、pod、启动方式详情 | [openstack/index.md](openstack/index.md) |
@@ -100,54 +118,43 @@ mysql/update/delete/insert/alter/drop
 
 ### Step 1: Determine Access Method 确定访问方式
 
-向用户确认 **目标环境名称或 IP**。
+向用户确认 **目标环境名称或 IP**。确认后只选择 `env-access.sh` 的参数, 不再
+手写登录命令。
 
-如果用户提到以下信息:
-- `BJ-xx` 环境, 且可以得到对应 `172.<N>.0.2` 资产 IP?
+- 普通可直连 IP → `env-access.sh --target <TARGET_IP>`
+- `172.18.*` IP → `env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>`
+- `172.<N>.0.2` 或 `BJ-xx` → `env-access.sh --env BJ-<ENV_ID>`
+- 用户提供的 JumpServer 资产名 → `env-access.sh --asset <ASSET_NAME> --mode jumpserver`
 
-→ 优先使用 [BJ-xx SSH config 直达模式](access.md#bj-xx-ssh-config-直达模式), 不需要临时生成 expect 脚本。
+### Step 2: Run Access Script 执行统一访问脚本
 
-如果用户提到以下信息:
-- `ssh js` / JumpServer / 堡垒机 / 类似 js 跳转到某个环境?
-- 用户明确给出的 JumpServer 资产名, 例如 `<ASSET_NAME>`?
+具体命令以 [access.md](access.md) 为准; 这里仅描述入口选择。
 
-→ JumpServer 模式，直接跳转到 [JumpServer 堡垒机模式](access.md#jumpserver-堡垒机模式)
-
-否则按 IP 模式判断:
-
-- IP 以 `172.18.` 开头 → 跳板机模式
-- 其他 IP → 直连模式
-
-示例入口:
-
-- 普通可直连 IP → 直连模式
-- `172.18.*` IP → 跳板机模式
-- `172.<N>.0.2` 且本机 SSH config 已配置 `Host 172.*.0.2` → BJ-xx SSH config 直达模式
-- 用户提供的 JumpServer 资产名 → JumpServer 模式
-
-### Step 2: Check IP Pattern and SSH In 检查 IP 模式并 SSH 接入
-
-具体命令以 [access.md](access.md) 为准；这里仅描述分流规则。
-
-如果 IP 以 `172.18.` 开头 → 跳板机模式:
+如果用户给出 BJ-xx 环境:
 
 ```bash
-# SSH via jump host
-sshpass -p "easystack" ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 root@<TARGET_IP> 'ssh -F /dev/null -i /root/.ssh/id_rsa.roller -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@<CONTROL_NODE_IP>'
+easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID>
 ```
 
-- 跳板机: 用户提供的 `172.18.x.x` 地址
-- K8s 控制节点 IP:通常 **10.20.0.3**，失败时询问用户
-
-其他 IP → 直连模式:
+如果 IP 以 `172.18.` 开头:
 
 ```bash
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 root@<TARGET_IP>
+easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>
 ```
 
-- 如果密码错误，先试 `easystack`，再问用户
+其他 IP:
 
-进入后台后，通过主机名访问其他 K8s 节点(`/etc/hosts` 由部署工具维护，始终使用主机名而非 IP):
+```bash
+easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP>
+```
+
+JumpServer 资产名:
+
+```bash
+easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver
+```
+
+进入后台后, 通过主机名访问其他 K8s 节点(`/etc/hosts` 由部署工具维护, 始终使用主机名而非 IP):
 
 ```bash
 ssh node-3 'hostname; whoami; pwd'
@@ -187,9 +194,9 @@ kubectl get nodes -o name
 
 ### Step 4: Fallback 回退方案
 
-如果 JumpServer、跳板机模式和直连模式都失败:
+如果统一访问脚本的所有适用模式都失败:
 
-> ⚠ SSH 连接失败。请提供正确的进入方法(SSH 命令、跳板机信息或其他方式)。
+> ⚠ 环境访问脚本执行失败。请提供正确的目标、访问方式或允许修改统一访问脚本。
 
 等待用户提供正确访问命令后再继续。
 
@@ -224,8 +231,8 @@ kubectl get nodes -o name
 
 不是每次调查都要更新 skill。只有满足以下条件才值得加:
 
-1. **通用性** — 多个环境都会遇到的模式或问题，而非某个特定组件的单次排查
-2. **复用性** — 下次排查同类问题时可以直接参考，不需要重新分析
-3. **跨环境** — 不依赖特定版本或配置，在不同部署中都有价值
+1. **通用性** — 多个环境都会遇到的模式或问题, 而非某个特定组件的单次排查
+2. **复用性** — 下次排查同类问题时可以直接参考, 不需要重新分析
+3. **跨环境** — 不依赖特定版本或配置, 在不同部署中都有价值
 
-单个组件的细节、特定场景的一次性排查步骤，不要写入 skill 文件。
+单个组件的细节、特定场景的一次性排查步骤, 不要写入 skill 文件。

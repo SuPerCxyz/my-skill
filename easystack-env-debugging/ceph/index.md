@@ -1,6 +1,6 @@
 # Ceph Components
 
-记录 Ceph 相关组件在本次环境中的部署情况、pod 和启动方式。
+Ceph 组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -328,4 +328,3 @@
 | `ceph` | `ceph-operator` | ClusterIP | 80/TCP |
 | `ceph` | `ceph-rgw` | ClusterIP | 8088/TCP |
 | `ceph` | `ceph-rgw-ingress` | ExternalName | 80/TCP |
-

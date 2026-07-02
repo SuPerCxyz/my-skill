@@ -1,6 +1,6 @@
 # Kubernetes Components
 
-记录 Kubernetes 控制面、网络、CSI、认证和系统组件的部署情况。
+Kubernetes 控制面、网络、CSI、认证和系统组件参考。
 
 ## 节点
 
@@ -224,4 +224,3 @@
 | `kube-system` | `kube-scheduler-discovery` | ClusterIP | 10251/TCP |
 | `kube-system` | `kubelet` | ClusterIP | 10250/TCP, 10255/TCP, 4194/TCP |
 | `kube-system` | `metrics-server` | ClusterIP | 443/TCP |
-

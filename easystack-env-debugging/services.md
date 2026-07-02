@@ -24,9 +24,9 @@ OpenStack 组件仓库布局统一维护在
 
 ## Ironic Namespace 命名空间
 
-Ironic services run in the independent `ironic` namespace. Do not assume they are
-in `openstack`. The exception is `nova-compute-ironic`, which belongs to the
-Nova side and may appear under the OpenStack deployment layout.
+Ironic namespace 规则和组件清单统一见
+[openstack/service-map.md](openstack/service-map.md#ironic-namespace-命名空间) 和
+[openstack/baremetal-ironic.md](openstack/baremetal-ironic.md)。本节只保留常用只读查询入口。
 
 ```bash
 kubectl get pods -n ironic

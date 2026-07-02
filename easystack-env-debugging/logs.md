@@ -3,6 +3,19 @@
 当问题涉及可访问环境中的运行时日志时阅读本文件。离线 `.eslog` 包应使用
 log-analysis skill。
 
+## Log Lookup Order 日志查询顺序
+
+调查刚发生或仍在发生的问题时, 先从相关业务 pod 读取当前日志。不要一开始就进入
+fluentd pod 查历史日志, 因为当前 pod 的 stdout/stderr 往往还保留最近错误,
+定位更快且能直接对应当前副本。
+
+使用 fluentd 的条件:
+
+- 当前业务 pod 日志没有目标时间段或关键 UUID
+- pod 已重启, 当前日志缺失, `--previous` 也没有足够信息
+- 同一服务多个 pod 中只有部分 pod 还能看到日志, 需要补齐其他副本或节点的历史日志
+- 需要跨节点、跨副本或按日期搜索完整历史
+
 ## Real-time Logs (kubectl) 实时日志
 
 服务日志输出到 stdout/stderr, 不写入 pod 内的 `/var/log/`。
@@ -49,9 +62,9 @@ kubectl exec -n openstack fluentd-0 -c httpd -- ls /var/www/html/td-agent/openst
 kubectl exec -n openstack fluentd-0 -c httpd -- zcat /var/www/html/td-agent/openstack/<service>/<component>.node-<N>.<date>.log.gz | tail -100
 ```
 
-**Search across all 3 fluentd pods** (requires interactive SSH shell on target node):
+**Search across all 3 fluentd pods** (requires shell on target node entered by env-access):
 ```bash
-# First enter the target node via SSH, then run:
+# First enter the target node via env-access.sh, then run:
 for i in 0 1 2; do
   echo "=== fluentd-$i ==="
   kubectl exec -n openstack fluentd-$i -c httpd -- ls /var/www/html/td-agent/openstack/<service>/ 2>/dev/null
@@ -80,5 +93,5 @@ done
 ```
 
 **何时使用 fluentd 或 kubectl logs:**
-- `kubectl logs` - 实时日志, 仅当前 pod, pod 重启后不保留
-- Fluentd - 历史日志, 覆盖所有节点, 持久化保存(按天轮转), 可跨副本搜索
+- `kubectl logs` - 默认优先, 适合刚发生的问题、当前 pod、当前副本和短时间窗口
+- Fluentd - 回退或补齐, 适合当前 pod 日志缺失、不完整、重启后丢失或需要跨副本搜索

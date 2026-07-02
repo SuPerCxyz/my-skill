@@ -40,7 +40,7 @@ kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && opensta
 根据查询结果分流:
 
 - `status` 为 `ERROR` 或存在 `fault` → 先查 `nova-api`、`nova-conductor`、
-  `nova-scheduler` 日志, 再结合 `fault` message 定位具体服务。
+  `nova-scheduler` 当前 pod 日志, 再结合 `fault` message 定位具体服务。
 - `OS-EXT-SRV-ATTR:host` 有值 → 同时查该计算节点上的 `nova-compute` pod。
 - 创建、调度、迁移、evacuation、host maintenance 相关问题 → 参考
   [openstack/nova.md](openstack/nova.md) 和
@@ -63,9 +63,9 @@ kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && opensta
 根据查询结果分流:
 
 - `status` 为 `error`、`error_extending`、`error_attaching` 或长期卡在中间态
-  → 查 `cinder-api`、`cinder-scheduler`、相关 `cinder-volume` 日志。
+  → 先查 `cinder-api`、`cinder-scheduler`、相关 `cinder-volume` 当前 pod 日志。
 - 创建失败后资源可能很快被删除; `volume show` 返回 404 时, 用 volume UUID 搜
-  cinder 当前日志和 fluentd 历史日志。
+  cinder 当前 pod 日志; 当前日志缺失或不完整时再查 fluentd 历史日志。
 - `Filtering removed all hosts` 且某个 filter 最终 `end: 0` → 按该 filter
   定位原因; `CapabilitiesFilter` 归零时优先检查 volume type/extra specs
   和后端 capabilities。
@@ -88,7 +88,7 @@ kubectl describe pod -n openstack <pod-name>
 kubectl logs -n openstack <pod-name> --tail=50
 kubectl logs -n openstack <pod-name> --previous   # Previous instance if crashed
 
-# 3. Check fluentd logs for recent activity
+# 3. If current pod logs are missing or incomplete, check fluentd logs
 kubectl exec -n openstack fluentd-0 -c httpd -- ls /var/www/html/td-agent/openstack/<service>/
 
 # 4. If config issue, inspect config only

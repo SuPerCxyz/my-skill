@@ -1,6 +1,6 @@
 # OpenStack networking
 
-记录 `networking` 相关组件在本次环境中的部署情况、pod 和启动方式。
+网络组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -412,4 +412,3 @@
 | `openstack` | `proton-dashboard-api-int` | ClusterIP | 80/TCP |
 | `openstack` | `proton-dashboard-int` | ClusterIP | 8080/TCP |
 | `openstack` | `proton-insight-api-int` | ClusterIP | 8032/TCP |
-

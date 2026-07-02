@@ -1,6 +1,6 @@
 # OpenStack glance
 
-记录 `glance` 相关组件在本次环境中的部署情况、pod 和启动方式。
+`glance` 组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -183,4 +183,3 @@
 | `openstack` | `glance-dashboard-api` | ClusterIP | 80/TCP |
 | `openstack` | `glance-dashboard-int` | ClusterIP | 8080/TCP |
 | `openstack` | `glance-storagepub-api` | ClusterIP | 9292/TCP |
-

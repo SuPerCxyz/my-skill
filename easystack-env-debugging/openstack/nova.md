@@ -1,6 +1,6 @@
 # OpenStack nova
 
-记录 `nova` 相关组件在本次环境中的部署情况、pod 和启动方式。
+`nova` 组件 pod、启动方式和排查入口参考。
 
 Nova maintenance、cell management、host maintenance、evacuation、migration debugging 等特殊操作说明统一见 [../special-operations.md](../special-operations.md#nova-maintenance-pod)。
 

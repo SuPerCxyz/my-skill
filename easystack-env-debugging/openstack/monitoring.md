@@ -1,6 +1,6 @@
 # OpenStack monitoring
 
-记录 `monitoring` 相关组件在本次环境中的部署情况、pod 和启动方式。
+监控组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -250,4 +250,3 @@
 | `openstack` | `thanos-ruler` | ClusterIP | 10902/TCP |
 | `openstack` | `thanos-ruler-operated` | ClusterIP | 10902/TCP, 10901/TCP |
 | `openstack` | `thanos-ruler-vmm` | ClusterIP | 10902/TCP |
-

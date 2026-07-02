@@ -1,6 +1,6 @@
 # OpenStack extended-services
 
-记录 `extended-services` 相关组件在本次环境中的部署情况、pod 和启动方式。
+扩展服务 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -569,4 +569,3 @@
 | `openstack` | `ota-nginx-int` | ClusterIP | 8081/TCP |
 | `openstack` | `ota-openapi-int` | ClusterIP | 80/TCP |
 | `openstack` | `roller-dashboard` | ClusterIP | 80/TCP |
-

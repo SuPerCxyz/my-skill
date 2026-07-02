@@ -1,6 +1,6 @@
 # OpenStack aodh
 
-记录 `aodh` 相关组件在本次环境中的部署情况、pod 和启动方式。
+`aodh` 组件 pod、启动方式和排查入口参考。
 
 ## Helm Release
 
@@ -136,4 +136,3 @@
 |-----------|---------|------|-------|
 | `openstack` | `aodh` | ExternalName | 80/TCP |
 | `openstack` | `aodh-api` | ClusterIP | 8042/TCP |
-

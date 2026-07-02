@@ -5,6 +5,8 @@ runtime code, or changing startup scripts affects the environment and must not b
 used during default read-only inspection.
 
 使用此工作流前, 必须获得用户对目标服务、目标节点、待修改文件、回滚方式和验证命令的明确授权。
+进入环境仍必须先使用 [access.md](access.md) 中的统一访问脚本; `scp` 只是在用户
+授权后传递文件的动作, 不能作为默认环境登录方式。
 
 许多服务 pod 会把宿主机节点的 `/opt` 目录挂载到 pod 内的 `/opt`, 这提供了代码调试路径。
 
@@ -18,7 +20,8 @@ used during default read-only inspection.
 
 ```bash
 # Step 1: Copy your debug code to the host node's /opt directory
-# e.g., scp to the K8s node, or use the interactive SSH shell to paste it
+# e.g., after entering the environment through env-access, paste it in the shell
+# or use scp only when the user explicitly authorizes that transfer path
 scp <your-code.py> root@<TARGET_NODE_IP>:/opt/<service>/
 
 # Step 2: Edit the startup script so it copies code from /opt into the runtime package path first
