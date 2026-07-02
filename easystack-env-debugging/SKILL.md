@@ -56,8 +56,8 @@ mysql/update/delete/insert/alter/drop
 
 | 需要做什么 | 阅读 |
 |------------------|------|
-| 环境后台访问、三种 SSH 入口、JumpServer 堡垒机 | [access.md](access.md) |
-| JumpServer 固化访问脚本, 需要用户指定资产 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
+| 环境后台访问、直连、172.18 跳板、BJ-xx SSH config 直达、JumpServer 堡垒机 | [access.md](access.md) |
+| JumpServer 菜单 fallback 脚本, 需要用户指定资产 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
 | OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |
 | OpenStack 组件部署、pod、启动方式详情 | [openstack/index.md](openstack/index.md) |
@@ -103,6 +103,11 @@ mysql/update/delete/insert/alter/drop
 向用户确认 **目标环境名称或 IP**。
 
 如果用户提到以下信息:
+- `BJ-xx` 环境, 且可以得到对应 `172.<N>.0.2` 资产 IP?
+
+→ 优先使用 [BJ-xx SSH config 直达模式](access.md#bj-xx-ssh-config-直达模式), 不需要临时生成 expect 脚本。
+
+如果用户提到以下信息:
 - `ssh js` / JumpServer / 堡垒机 / 类似 js 跳转到某个环境?
 - 用户明确给出的 JumpServer 资产名, 例如 `<ASSET_NAME>`?
 
@@ -117,6 +122,7 @@ mysql/update/delete/insert/alter/drop
 
 - 普通可直连 IP → 直连模式
 - `172.18.*` IP → 跳板机模式
+- `172.<N>.0.2` 且本机 SSH config 已配置 `Host 172.*.0.2` → BJ-xx SSH config 直达模式
 - 用户提供的 JumpServer 资产名 → JumpServer 模式
 
 ### Step 2: Check IP Pattern and SSH In 检查 IP 模式并 SSH 接入

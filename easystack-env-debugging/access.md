@@ -16,7 +16,60 @@
 |------|------|----------|
 | `192.168.3.3` | 直连模式 | `root@node-1.domain.tld` |
 | `172.18.0.118` | 跳板机模式，内层默认到 `10.20.0.3` | 外层 `root@x8-f-install-7-0-1-alpha-103-jump-server-k2deji6cqvck.novalocal`，内层 `root@node-6.domain.tld` |
-| `<ASSET_NAME>` | JumpServer 模式 | 目标资产上的登录 shell |
+| `172.<N>.0.2` | BJ-xx SSH config 直达模式 | 目标资产上的登录 shell |
+| `<ASSET_NAME>` | JumpServer 菜单模式 | 目标资产上的登录 shell |
+
+## BJ-xx SSH config 直达模式
+
+当本机 `~/.ssh/config` 已配置 `Host 172.*.0.2` 时, BJ-xx 测试环境可以直接通过
+资产 IP 访问, 不需要进入 JumpServer TUI 菜单, 也不需要临时生成 expect 脚本。
+
+一次性准备控制连接目录:
+
+```bash
+mkdir -p ~/.ssh/control
+chmod 700 ~/.ssh/control
+```
+
+SSH config 示例:
+
+```sshconfig
+Host 172.*.0.2
+    HostName js.easystack.io
+    Port 2222
+    User "<JUMPSERVER_USER>#dev#%n"
+    IdentityFile ~/.ssh/es-rsa
+    IdentitiesOnly yes
+    RequestTTY force
+
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+
+    ControlMaster auto
+    ControlPersist 8h
+    ControlPath ~/.ssh/control/%C
+```
+
+访问方式:
+
+```bash
+ssh 172.<ENV_ID>.0.2
+```
+
+进入后按 [进入后台后](#进入后台后) 做只读验证并按需 `sudo su -`。如果需要
+一次性查询, 优先保持命令短小; 复杂排查进入交互 shell 后执行, 避免多层引号和
+TTY 行为影响结果。
+
+```bash
+ssh 172.<ENV_ID>.0.2 'whoami; id -u; hostname; pwd'
+```
+
+适用边界:
+
+- 适用: 用户给出 `BJ-xx` 环境, 且可确定资产 IP 为 `172.<N>.0.2`。
+- 适用: 本机已有上述 `Host 172.*.0.2` SSH config 或用户提供等价配置。
+- 不适用: 非 `172.*.0.2` 资产、需要通过 JumpServer 菜单搜索的资产、或本机缺少对应 SSH config。
+- 不适用时, 回退到 [JumpServer 堡垒机模式](#jumpserver-堡垒机模式) 或其它入口。
 
 ## 跳板机模式(IP 以 172.18. 开头)
 
@@ -59,6 +112,9 @@ ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o 
 ## JumpServer 堡垒机模式
 
 部分环境通过 JumpServer 堡垒机管理，而非直接 SSH 到 K8s 控制节点。
+对于 BJ-xx 且本机已配置 `Host 172.*.0.2` 的环境, 优先使用
+[BJ-xx SSH config 直达模式](#bj-xx-ssh-config-直达模式)。本节用于没有直达
+Host 配置、需要 TUI 菜单搜索、或用户明确要求 `ssh js` 菜单交互的场景。
 
 ### 连接流程
 
@@ -95,7 +151,8 @@ sudo su -                     → 切换到 root
 
 ### 交互式使用(expect 脚本)
 
-优先使用随 skill 固化的脚本, 避免每次临时生成 expect 脚本:
+没有 BJ-xx SSH config 直达条件时, 使用随 skill 固化的脚本, 避免每次临时生成
+expect 脚本:
 
 ```bash
 # 通过 ssh js 进入用户指定资产, 切到 root 后进入交互 shell
@@ -247,7 +304,8 @@ interact
 ### 资产名使用方式
 
 JumpServer 资产名由用户在任务中指定。用户说 “ssh js 到 `<ASSET_NAME>` 环境”
-时, 把 `<ASSET_NAME>` 原样传给固化脚本的 `--asset` 参数。
+时, 先判断是否可用 BJ-xx SSH config 直达。不可直达时, 把 `<ASSET_NAME>`
+原样传给固化脚本的 `--asset` 参数。
 
 ### 常见资产内特征
 
@@ -270,7 +328,8 @@ JumpServer 资产名由用户在任务中指定。用户说 “ssh js 到 `<ASSE
 
 ## 进入后台后
 
-以下步骤适用于直连、`172.18.*` 跳板、JumpServer 三种模式。默认只做查看操作。
+以下步骤适用于直连、`172.18.*` 跳板、BJ-xx SSH config 直达、JumpServer 菜单
+模式。默认只做查看操作。
 
 ### 连接验证
 

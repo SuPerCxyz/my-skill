@@ -7,7 +7,7 @@
 | 文件 | 内容 |
 |------|------|
 | [SKILL.md](SKILL.md) | Skill 主入口，快速参考 |
-| [access.md](access.md) | 环境后台访问、直连/跳板/JumpServer 三种入口 |
+| [access.md](access.md) | 环境后台访问、直连/跳板/BJ-xx SSH config 直达/JumpServer 入口 |
 | [auth.md](auth.md) | 认证与鉴权排查 |
 | [openstack/index.md](openstack/index.md) | OpenStack 组件部署、pod、启动方式详情 |
 | [ceph/index.md](ceph/index.md) | Ceph 组件部署、pod、启动方式详情 |
@@ -20,7 +20,7 @@
 | [reference.md](reference.md) | 常用命令、环境常量速查 |
 | [scenarios.md](scenarios.md) | 常见故障场景排查, 包括虚拟机异常和云硬盘异常 |
 | [scripts.md](scripts.md) | ConfigMap 结构、启动脚本只读查看 |
-| [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) | 固化的 JumpServer 访问脚本, 需要用户指定资产 |
+| [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) | JumpServer 菜单 fallback 脚本, 需要用户指定资产 |
 
 ## 组件详情
 
