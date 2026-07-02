@@ -24,6 +24,11 @@ Options:
   --cmd COMMAND         Command string to run after login.
   --control-node IP     Inner control node for 172.18.* jump host mode. Default: 10.20.0.3.
   --alias NAME          SSH config alias for JumpServer menu mode. Default: js.
+  --jumpserver-host HOST JumpServer SSH host when local SSH config is missing.
+  --jumpserver-user USER JumpServer SSH user when local SSH config is missing.
+  --jumpserver-port PORT JumpServer SSH port when local SSH config is missing.
+  --jumpserver-identity-file PATH
+                        JumpServer SSH identity file when local SSH config is missing.
   --asset-id ID         Asset ID for JumpServer menu mode.
   --timeout SECONDS     Timeout for JumpServer menu mode.
   --no-root             Do not run sudo/root shell after login.
@@ -42,6 +47,10 @@ asset_id=""
 remote_cmd=""
 control_node="10.20.0.3"
 jumpserver_alias="js"
+jumpserver_host=""
+jumpserver_user=""
+jumpserver_port=""
+jumpserver_identity_file=""
 single_timeout=""
 become_root="1"
 
@@ -73,6 +82,22 @@ while [[ $# -gt 0 ]]; do
       ;;
     --alias)
       jumpserver_alias="${2:?missing value for --alias}"
+      shift 2
+      ;;
+    --jumpserver-host)
+      jumpserver_host="${2:?missing value for --jumpserver-host}"
+      shift 2
+      ;;
+    --jumpserver-user)
+      jumpserver_user="${2:?missing value for --jumpserver-user}"
+      shift 2
+      ;;
+    --jumpserver-port)
+      jumpserver_port="${2:?missing value for --jumpserver-port}"
+      shift 2
+      ;;
+    --jumpserver-identity-file)
+      jumpserver_identity_file="${2:?missing value for --jumpserver-identity-file}"
       shift 2
       ;;
     --asset-id)
@@ -113,6 +138,42 @@ target_from_env() {
   return 1
 }
 
+ssh_config_value() {
+  local host="$1"
+  local key="$2"
+
+  ssh -G "$host" 2>/dev/null | awk -v want="$key" '
+    $1 == want {
+      print $2
+      exit
+    }
+  '
+}
+
+has_direct_target_ssh_config() {
+  local host="${1:?missing host}"
+  local resolved_host resolved_port
+
+  resolved_host="$(ssh_config_value "$host" hostname || true)"
+  resolved_port="$(ssh_config_value "$host" port || true)"
+
+  [[ -n "$resolved_host" && "$resolved_host" != "$host" ]] || return 1
+  [[ -n "$resolved_port" && "$resolved_port" != "22" ]] || return 1
+  return 0
+}
+
+has_jumpserver_alias_ssh_config() {
+  local alias="${1:?missing alias}"
+  local resolved_host resolved_port
+
+  resolved_host="$(ssh_config_value "$alias" hostname || true)"
+  resolved_port="$(ssh_config_value "$alias" port || true)"
+
+  [[ -n "$resolved_host" && "$resolved_host" != "$alias" ]] || return 1
+  [[ -n "$resolved_port" && "$resolved_port" != "22" ]] || return 1
+  return 0
+}
+
 if [[ -z "$target" && -n "$env_name" ]]; then
   if ! target="$(target_from_env "$env_name")"; then
     echo "unsupported --env value: $env_name" >&2
@@ -132,6 +193,12 @@ fi
 detect_mode() {
   if [[ -n "$target" && "$target" == 172.18.* ]]; then
     printf 'jump18\n'
+  elif [[ -n "$target" && "$target" =~ ^172\.[0-9]+\.0\.2$ ]]; then
+    if has_direct_target_ssh_config "$target"; then
+      printf 'ssh\n'
+    else
+      printf 'jumpserver\n'
+    fi
   elif [[ -n "$target" ]]; then
     printf 'ssh\n'
   elif [[ -n "$asset_name" ]]; then
@@ -159,7 +226,7 @@ ssh_destination() {
 }
 
 target_uses_interactive_ssh_config() {
-  [[ "$target" =~ ^172\.[0-9]+\.0\.2$ ]]
+  [[ "$target" =~ ^172\.[0-9]+\.0\.2$ ]] && has_direct_target_ssh_config "$target"
 }
 
 run_ssh_config_expect() {
@@ -262,6 +329,15 @@ EXPECT
 }
 
 run_ssh_target() {
+  if [[ "$target" =~ ^172\.[0-9]+\.0\.2$ ]] && ! has_direct_target_ssh_config "$target"; then
+    if [[ -n "$asset_name" ]]; then
+      run_jumpserver
+      return
+    fi
+    echo "no usable SSH config for $target; add a Host 172.*.0.2 entry or pass JumpServer auth info" >&2
+    exit 2
+  fi
+
   if target_uses_interactive_ssh_config; then
     run_ssh_config_expect
     return
@@ -345,6 +421,24 @@ run_jumpserver() {
   fi
   if [[ -n "$remote_cmd" ]]; then
     args+=(--cmd "$remote_cmd")
+  fi
+  if [[ -n "$jumpserver_host" ]]; then
+    args+=(--jumpserver-host "$jumpserver_host")
+  fi
+  if [[ -n "$jumpserver_user" ]]; then
+    args+=(--jumpserver-user "$jumpserver_user")
+  fi
+  if [[ -n "$jumpserver_port" ]]; then
+    args+=(--jumpserver-port "$jumpserver_port")
+  fi
+  if [[ -n "$jumpserver_identity_file" ]]; then
+    args+=(--jumpserver-identity-file "$jumpserver_identity_file")
+  fi
+
+  if [[ -z "$jumpserver_host" ]] && ! has_jumpserver_alias_ssh_config "$jumpserver_alias"; then
+    echo "missing JumpServer SSH config for alias $jumpserver_alias" >&2
+    echo "Provide --jumpserver-host/--jumpserver-user/--jumpserver-port/--jumpserver-identity-file or add a Host $jumpserver_alias block to ~/.ssh/config" >&2
+    exit 2
   fi
 
   "$script_dir/jumpserver-env.sh" "${args[@]}"

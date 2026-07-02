@@ -34,6 +34,15 @@ easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node 
 
 # JumpServer 菜单 fallback
 easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver -- whoami
+
+# 本地 SSH config 不完整时，显式传入 JumpServer 认证信息
+easystack-env-debugging/scripts/env-access.sh \
+  --env BJ-<ENV_ID> \
+  --jumpserver-host <JUMPSERVER_HOST> \
+  --jumpserver-user <JUMPSERVER_USER> \
+  --jumpserver-port <JUMPSERVER_PORT> \
+  --jumpserver-identity-file <IDENTITY_FILE> \
+  -- whoami
 ```
 
 带管道、循环、变量展开等复杂 shell 语法时, 用 `--cmd` 传一段命令字符串, 仍然只保留
@@ -155,6 +164,10 @@ easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP> --cmd 'whoami
 
 JumpServer 连接信息优先来自用户 SSH 配置。排障者只选择统一访问脚本参数,
 不要把 HostName、Port、User、IdentityFile 等字段硬编码到文档或临时命令里。
+如果本机 SSH config 没有对应的 JumpServer 入口，统一访问脚本支持通过
+`--jumpserver-host`、`--jumpserver-user`、`--jumpserver-port`、
+`--jumpserver-identity-file` 显式传入认证信息；脚本不会回退去用当前本机用户的
+普通 SSH 认证信息。
 
 读取顺序:
 

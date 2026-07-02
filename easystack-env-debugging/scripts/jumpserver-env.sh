@@ -9,6 +9,14 @@ Usage:
 
 Options:
   --alias NAME       SSH config alias for JumpServer. Default: js
+  --jumpserver-host HOST
+                     JumpServer SSH host when SSH config is unavailable.
+  --jumpserver-user USER
+                     JumpServer SSH user when SSH config is unavailable.
+  --jumpserver-port PORT
+                     JumpServer SSH port when SSH config is unavailable.
+  --jumpserver-identity-file PATH
+                     JumpServer SSH identity file when SSH config is unavailable.
   --asset NAME       JumpServer asset name or search text. Required.
   --query TEXT       JumpServer menu query. Default: same as --asset
   --asset-id ID      Asset ID to select after --query enters [Host]>.
@@ -22,17 +30,38 @@ EOF
 }
 
 jumpserver_alias="js"
+jumpserver_host=""
+jumpserver_user=""
+jumpserver_port=""
+jumpserver_identity_file=""
 asset_name=""
 asset_query=""
 asset_id=""
 remote_cmd=""
 single_timeout=""
 become_root="1"
+ssh_config="$HOME/.ssh/config"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --alias)
       jumpserver_alias="${2:?missing value for --alias}"
+      shift 2
+      ;;
+    --jumpserver-host)
+      jumpserver_host="${2:?missing value for --jumpserver-host}"
+      shift 2
+      ;;
+    --jumpserver-user)
+      jumpserver_user="${2:?missing value for --jumpserver-user}"
+      shift 2
+      ;;
+    --jumpserver-port)
+      jumpserver_port="${2:?missing value for --jumpserver-port}"
+      shift 2
+      ;;
+    --jumpserver-identity-file)
+      jumpserver_identity_file="${2:?missing value for --jumpserver-identity-file}"
       shift 2
       ;;
     --asset)
@@ -81,6 +110,52 @@ if [[ -z "$asset_query" ]]; then
   asset_query="$asset_name"
 fi
 
+expand_tilde_path() {
+  local value="$1"
+  if [[ "$value" == "~/"* ]]; then
+    printf '%s\n' "$HOME/${value#~/}"
+  else
+    printf '%s\n' "$value"
+  fi
+}
+
+build_ssh_spawn_script() {
+  local -a cmd=(
+    ssh
+    -tt
+    -o StrictHostKeyChecking=no
+    -o UserKnownHostsFile=/dev/null
+    -o ConnectTimeout=8
+  )
+
+  if [[ -n "$jumpserver_host" ]]; then
+    if [[ -z "$jumpserver_user" || -z "$jumpserver_port" || -z "$jumpserver_identity_file" ]]; then
+      echo "jumpserver overrides require --jumpserver-host, --jumpserver-user, --jumpserver-port, and --jumpserver-identity-file" >&2
+      exit 2
+    fi
+    cmd+=(
+      -F "$ssh_config"
+      -o "HostName=$jumpserver_host"
+      -o "User=$jumpserver_user"
+      -o "Port=$jumpserver_port"
+    )
+    if [[ -n "$jumpserver_identity_file" ]]; then
+      cmd+=(-i "$(expand_tilde_path "$jumpserver_identity_file")")
+    fi
+    cmd+=("$jumpserver_host")
+  else
+    cmd+=(-F "$ssh_config" "$jumpserver_alias")
+  fi
+
+  local snippet="exec"
+  local part quoted
+  for part in "${cmd[@]}"; do
+    printf -v quoted '%q' "$part"
+    snippet+=" $quoted"
+  done
+  printf '%s\n' "$snippet"
+}
+
 if [[ -n "$single_timeout" ]]; then
   timeouts=("$single_timeout")
 else
@@ -94,6 +169,7 @@ run_expect() {
   JS_ASSET_ID="$asset_id" \
   JS_REMOTE_CMD="$remote_cmd" \
   JS_BECOME_ROOT="$become_root" \
+  JS_SPAWN_SCRIPT="$(build_ssh_spawn_script)" \
   JS_TIMEOUT="$timeout_value" \
   expect <<'EXPECT'
 set timeout $env(JS_TIMEOUT)
@@ -102,6 +178,7 @@ set asset_query $env(JS_ASSET_QUERY)
 set asset_id $env(JS_ASSET_ID)
 set remote_cmd $env(JS_REMOTE_CMD)
 set become_root $env(JS_BECOME_ROOT)
+set spawn_script $env(JS_SPAWN_SCRIPT)
 set ssh_config "$env(HOME)/.ssh/config"
 set shell_re {\[[^]]+@[^]]+[[:space:]]+[^]]+\][#$][[:space:]]*$}
 set root_re {\[root@[^]]+[[:space:]]+[^]]+\]#[[:space:]]*$}
@@ -141,7 +218,7 @@ proc close_from_shell {shell_re menu_re} {
     }
 }
 
-spawn ssh -tt -F $ssh_config $jumpserver_alias
+spawn sh -c "$spawn_script"
 
 expect {
     -re $menu_re {
