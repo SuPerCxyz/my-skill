@@ -15,6 +15,8 @@
 也不要直接修改 [scripts/env-access.sh](scripts/env-access.sh) 或
 [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh)。如果脚本执行确实有问题,
 先向用户抛出目标、命令、错误输出和建议改动点; 获得明确允许后再修改脚本。
+调用这些脚本时优先通过 `bash` 启动, 不要依赖执行位; 这样同步后的安装副本
+即使暂时缺少 `+x` 也能正常运行。
 
 ## 推荐入口: 统一访问脚本
 
@@ -23,20 +25,20 @@ SSH、expect 和 shell 引号导致命令执行失败。
 
 ```bash
 # 打开交互 shell
-easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID>
+bash easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID>
 
 # BJ-xx / 172.<N>.0.2: 脚本先走本机 SSH config 跳板直达, 失败后按脚本逻辑回退
-easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID> -- whoami
-easystack-env-debugging/scripts/env-access.sh --target 172.<N>.0.2 -- kubectl get nodes -o name
+bash easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID> -- whoami
+bash easystack-env-debugging/scripts/env-access.sh --target 172.<N>.0.2 -- kubectl get nodes -o name
 
 # 172.18.*: 脚本封装外层跳板机和内层控制节点登录
-easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP> -- hostname
+bash easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP> -- hostname
 
 # JumpServer 菜单 fallback
-easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver -- whoami
+bash easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver -- whoami
 
 # 本地 SSH config 不完整时，显式传入 JumpServer 认证信息
-easystack-env-debugging/scripts/env-access.sh \
+bash easystack-env-debugging/scripts/env-access.sh \
   --env BJ-<ENV_ID> \
   --jumpserver-host <JUMPSERVER_HOST> \
   --jumpserver-user <JUMPSERVER_USER> \
@@ -49,7 +51,7 @@ easystack-env-debugging/scripts/env-access.sh \
 一层本地引号:
 
 ```bash
-easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID> --cmd 'kubectl get namespaces | grep openstack'
+bash easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID> --cmd 'kubectl get namespaces | grep openstack'
 ```
 
 ## BJ-xx SSH config 跳板直达模式
@@ -90,8 +92,8 @@ Host 172.*.0.2
 交互 shell, 避免多层引号和 TTY 行为影响结果。
 
 ```bash
-easystack-env-debugging/scripts/env-access.sh --target 172.<ENV_ID>.0.2 -- whoami
-easystack-env-debugging/scripts/env-access.sh --target 172.<ENV_ID>.0.2 --cmd 'whoami; id -u; hostname; pwd'
+bash easystack-env-debugging/scripts/env-access.sh --target 172.<ENV_ID>.0.2 -- whoami
+bash easystack-env-debugging/scripts/env-access.sh --target 172.<ENV_ID>.0.2 --cmd 'whoami; id -u; hostname; pwd'
 ```
 
 适用边界:
@@ -108,10 +110,10 @@ easystack-env-debugging/scripts/env-access.sh --target 172.<ENV_ID>.0.2 --cmd 'w
 
 ```bash
 # 打开控制节点交互 shell
-easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>
+bash easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>
 
 # 一步执行只读验证命令
-easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP> --cmd 'whoami; id -u; hostname; pwd'
+bash easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP> --cmd 'whoami; id -u; hostname; pwd'
 ```
 
 - `<JUMP_IP>` 由用户指定
@@ -127,10 +129,10 @@ easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node 
 
 ```bash
 # 打开交互 shell
-easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP>
+bash easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP>
 
 # 只读验证
-easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP> --cmd 'whoami; id -u; hostname; pwd'
+bash easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP> --cmd 'whoami; id -u; hostname; pwd'
 ```
 
 - 如果密码错误，先试 `easystack`，再问用户
