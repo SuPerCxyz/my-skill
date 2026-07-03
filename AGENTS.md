@@ -96,3 +96,21 @@ SKILL.md 必须包含一个文件索引表, 让 agent 知道何时查哪个文�
 - 描述与 SKILL.md description 口径一致, 不夸大不存在的功能
 - git clone URL 与实际 remote 一致 (当前: `ssh://git@git.soocoo.xyz:10022/superc/my-skills.git`)
 - `docs/` 等非 skill 目录需在列表后说明用途
+
+## share-skills 同步规则
+
+以下 EasyStack skill 在 `my-skills` 中修改并准备 push 时, 必须同步到与
+`my-skills` 同级的 `share-skills` 仓库, 且以 `my-skills` 内容为准:
+
+- `easystack-env-debugging`
+- `easystack-ci-test`
+- `easystack-cloud-web-e2e`
+- `easystack-log-analysis`
+
+执行要求:
+
+1. 先完成 `my-skills` 侧修改和验证。
+2. 将对应 skill 目录从 `my-skills` 覆盖同步到 `../share-skills/`。
+3. 在 `share-skills` 中检查 diff, 确认只包含需要同步的 skill 内容。
+4. 分别提交并 push `my-skills` 和 `share-skills`。
+5. 如果 `share-skills` 存在未提交的非本次改动, 不要覆盖或回滚; 先向用户说明冲突范围。

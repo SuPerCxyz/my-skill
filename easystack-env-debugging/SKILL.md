@@ -59,6 +59,8 @@ mysql/update/delete/insert/alter/drop
 `ssh`、`ssh js`、多层跳板命令或临时 expect 脚本来登录环境。`env-access.sh`
 负责封装直连、`172.18.*` 跳板、BJ-xx SSH config 跳板直达和 JumpServer 菜单
 fallback。
+一次性只读命令的默认超时与超时后重试也由 `env-access.sh` 统一处理; 详细规则见
+[access.md](access.md#查询超时选择)。
 
 JumpServer 连接信息优先从用户 SSH 配置读取。读取不到 alias、host、user、
 port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配置缺失处理)

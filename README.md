@@ -6,7 +6,7 @@
 
 | Skill | 描述 |
 |-------|------|
-| [context-efficient-rules](context-efficient-rules/) | 上下文精简 Agent 规则 — 适用于 Claude Code / Router / ccswitch，默认不调用 MCP、不读大文 / 不做大范围搜索，含工具调用限制、Autocompact 防护与大输出处理流程 |
+| [context-efficient-rules](context-efficient-rules/) | 上下文精简 Agent 规则 — 适用于 Claude Code / Router / ccswitch, 通过输出预防、渐进读取、搜索限流、MCP/子 Agent 约束和 Autocompact 恢复摘要减少 token 消耗 |
 | [easystack-ci-test](easystack-ci-test/) | EasyStack OpenStack 项目通用 CI 测试 — 运行 tox cover/pep8，自动修复失败项直到测试全部通过并满足覆盖率要求 |
 | [easystack-cloud-web-e2e](easystack-cloud-web-e2e/) | EasyStack 云平台 Web UI 端到端自动化测试 — 基于 agent-browser 的原子操作库、页面知识库与测试编排规范，支持云主机 / 云硬盘 / 网络等资源操作的 UI 自动化 |
 | [easystack-env-debugging](easystack-env-debugging/) | EasyStack 环境后台只读检查 — 支持直连、172.18.x.x 跳板机、JumpServer 三种入口，变更操作需明确授权 |

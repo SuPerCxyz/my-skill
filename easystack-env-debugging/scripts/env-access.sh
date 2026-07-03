@@ -30,11 +30,15 @@ Options:
   --jumpserver-identity-file PATH
                         JumpServer SSH identity file when local SSH config is missing.
   --asset-id ID         Asset ID for JumpServer menu mode.
-  --timeout SECONDS     Timeout for JumpServer menu mode.
+  --timeout SECONDS     Use one timeout instead of automatic command timeout ladder.
   --no-root             Do not run sudo/root shell after login.
   -h, --help            Show this help.
 
 Without CMD or --cmd, opens an interactive shell.
+One-shot read-only commands retry on timeout by default. Timeout ladders:
+  quick commands: 10 15 20 30 45 60
+  medium commands: 15 20 30 45 60
+  slow commands: 30 45 60
 EOF
 }
 
@@ -229,8 +233,99 @@ target_uses_interactive_ssh_config() {
   [[ "$target" =~ ^172\.[0-9]+\.0\.2$ ]] && has_direct_target_ssh_config "$target"
 }
 
+command_retry_safe() {
+  local cmd="${remote_cmd,,}"
+  local service_restart_re='service[[:space:]][^;|&]+[[:space:]]+restart'
+
+  [[ -n "$cmd" ]] || return 1
+
+  if [[ "$cmd" =~ kubectl[[:space:]]+(edit|delete|apply|patch|scale) ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ kubectl[[:space:]]+rollout[[:space:]]+restart ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ helm[[:space:]]+rollback ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ systemctl[[:space:]]+restart ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ $service_restart_re ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ mysql.*[[:space:]](update|delete|insert|alter|drop)[[:space:]] ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ openstack[[:space:]].*[[:space:]](create|delete|set|unset|add|remove|reboot|start|stop|suspend|resume|migrate|resize|evacuate)[[:space:]] ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ cinder[[:space:]].*[[:space:]](create|delete|set|reset-state|manage|unmanage)[[:space:]] ]]; then
+    return 1
+  fi
+  return 0
+}
+
+command_timeout_ladder() {
+  local cmd="${remote_cmd,,}"
+
+  if [[ -n "$single_timeout" ]]; then
+    printf '%s\n' "$single_timeout"
+    return
+  fi
+  if [[ -z "$remote_cmd" ]]; then
+    printf '60\n'
+    return
+  fi
+  if ! command_retry_safe; then
+    printf '60\n'
+    return
+  fi
+
+  if [[ "$cmd" =~ (zgrep|zcat|/var/www/html/td-agent|journalctl|find[[:space:]]|du[[:space:]]|kubectl[[:space:]]+describe|helm[[:space:]]+history) ]]; then
+    printf '%s\n' 30 45 60
+  elif [[ "$cmd" =~ (kubectl[[:space:]]+get[[:space:]]+pods|kubectl[[:space:]]+logs|grep|openstack[[:space:]].*[[:space:]]list|cinder[[:space:]]+list|nova[[:space:]]+list|mysql) ]]; then
+    printf '%s\n' 15 20 30 45 60
+  else
+    printf '%s\n' 10 15 20 30 45 60
+  fi
+}
+
+run_with_timeout_ladder() {
+  local label="$1"
+  shift
+
+  if [[ -z "$remote_cmd" ]]; then
+    "$@"
+    return
+  fi
+
+  if [[ -n "$single_timeout" ]] || ! command_retry_safe; then
+    CURRENT_TIMEOUT="$(command_timeout_ladder | tail -1)"
+    "$@"
+    return
+  fi
+
+  local timeout_value rc
+  for timeout_value in $(command_timeout_ladder); do
+    echo "try $label timeout: ${timeout_value}s" >&2
+    set +e
+    CURRENT_TIMEOUT="$timeout_value" "$@"
+    rc=$?
+    set -e
+    if [[ "$rc" -eq 0 ]]; then
+      return 0
+    fi
+    if [[ "$rc" -ne 124 ]]; then
+      return "$rc"
+    fi
+    echo "$label timed out after ${timeout_value}s" >&2
+  done
+  return 124
+}
+
 run_ssh_config_expect() {
-  local timeout_value="${single_timeout:-60}"
+  local timeout_value="${CURRENT_TIMEOUT:-${single_timeout:-60}}"
 
   SSH_TARGET="$target" \
   SSH_REMOTE_CMD="$remote_cmd" \
@@ -357,9 +452,9 @@ run_ssh_target() {
 
   if [[ -n "$remote_cmd" ]]; then
     if [[ "$become_root" == "1" && "$destination_is_root" == "0" ]]; then
-      ssh "${ssh_opts[@]}" "$destination" 'sudo -n bash -s' <<<"$remote_cmd"
+      timeout "${CURRENT_TIMEOUT:-60}" ssh "${ssh_opts[@]}" "$destination" 'sudo -n bash -s' <<<"$remote_cmd"
     else
-      ssh "${ssh_opts[@]}" "$destination" 'bash -s' <<<"$remote_cmd"
+      timeout "${CURRENT_TIMEOUT:-60}" ssh "${ssh_opts[@]}" "$destination" 'bash -s' <<<"$remote_cmd"
     fi
   else
     if [[ "$become_root" == "1" && "$destination_is_root" == "0" ]]; then
@@ -392,7 +487,7 @@ run_jump18() {
   printf -v inner_cmd '%q ' "${inner[@]}"
 
   if [[ -n "$remote_cmd" ]]; then
-    "${outer[@]}" "root@$target" "${inner_cmd} bash -s" <<<"$remote_cmd"
+    timeout "${CURRENT_TIMEOUT:-60}" "${outer[@]}" "root@$target" "${inner_cmd} bash -s" <<<"$remote_cmd"
   else
     "${outer[@]}" -tt "root@$target" "${inner_cmd}"
   fi
@@ -413,7 +508,9 @@ run_jumpserver() {
   if [[ -n "$asset_id" ]]; then
     args+=(--asset-id "$asset_id")
   fi
-  if [[ -n "$single_timeout" ]]; then
+  if [[ -n "${CURRENT_TIMEOUT:-}" ]]; then
+    args+=(--timeout "$CURRENT_TIMEOUT")
+  elif [[ -n "$single_timeout" ]]; then
     args+=(--timeout "$single_timeout")
   fi
   if [[ "$become_root" == "0" ]]; then
@@ -448,7 +545,7 @@ case "$mode" in
   ssh)
     [[ -n "$target" ]] || { echo "ssh mode requires --target or --env" >&2; exit 2; }
     set +e
-    run_ssh_target
+    run_with_timeout_ladder "ssh command" run_ssh_target
     ssh_rc=$?
     set -e
     if [[ "$ssh_rc" -eq 0 ]]; then
@@ -456,17 +553,17 @@ case "$mode" in
     fi
     if [[ "$requested_mode" == "auto" && -n "$asset_name" ]]; then
       echo "ssh mode failed, falling back to JumpServer menu for asset: $asset_name" >&2
-      run_jumpserver
+      run_with_timeout_ladder "JumpServer command" run_jumpserver
     else
       exit "$ssh_rc"
     fi
     ;;
   jump18)
     [[ -n "$target" ]] || { echo "jump18 mode requires --target" >&2; exit 2; }
-    run_jump18
+    run_with_timeout_ladder "jump18 command" run_jump18
     ;;
   jumpserver)
-    run_jumpserver
+    run_with_timeout_ladder "JumpServer command" run_jumpserver
     ;;
   *)
     echo "unsupported --mode: $mode" >&2

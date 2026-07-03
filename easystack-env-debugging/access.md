@@ -207,14 +207,19 @@ JumpServer 是交互式 TUI 菜单, 统一访问脚本内部会调用固化脚�
 
 ### 查询超时选择
 
-- 连接、菜单、`whoami`、`id -u`、`hostname`、`pwd`、`kubectl get namespaces`
-  这类快速查询从 10 秒开始。
-- `kubectl get pods`、单个 namespace 的 `kubectl describe`、短日志 `--tail`
-  可从 15 或 20 秒开始。
-- 多 namespace 查询、较大的 `kubectl describe`、`helm history`、跨多个 pod 的
-  只读检查可从 30 或 45 秒开始。
-- 历史日志、`zgrep`、大目录扫描、跨多个 fluentd pod 的只读搜索可直接使用 60 秒。
-- 超时只表示本轮查询未完成；不要因为超时执行重启、删除、回滚等变更操作。
+`env-access.sh` 对一次性只读命令默认启用超时梯度。简单命令先用短超时,
+只有本轮以 timeout 退出时才自动加大超时重试; 非超时错误立即返回。
+显式传入 `--timeout` 时只使用用户指定的单一超时时间。
+
+- 快速查询默认使用 `10 15 20 30 45 60` 秒梯度, 例如连接验证、菜单选择、
+  `whoami`、`id -u`、`hostname`、`pwd`、`kubectl get namespaces`。
+- 中等查询默认使用 `15 20 30 45 60` 秒梯度, 例如 `kubectl get pods`、
+  `kubectl logs --tail=<N>`、`grep`、OpenStack / Cinder / Nova list 查询。
+- 慢查询默认使用 `30 45 60` 秒梯度, 例如历史日志、`zgrep`、`journalctl`、
+  大目录扫描、较大的 `kubectl describe`、`helm history`。
+- 不确定是否安全重复执行的命令不要依赖自动重试; 先确认它是只读查询, 或使用
+  `--timeout <SECONDS>` 指定单次执行时长。
+- 超时只表示本轮查询未完成; 不要因为超时执行重启、删除、回滚等变更操作。
 
 ### 资产名使用方式
 
