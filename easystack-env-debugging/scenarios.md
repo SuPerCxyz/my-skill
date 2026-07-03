@@ -7,8 +7,8 @@
 | 操作类型 | 执行位置 | 说明 |
 |---------|---------|------|
 | 普通 openstack 操作 | **busybox** pod | `source /openrc` 后执行 |
-| Nova 高级信息查看 | **nova-maintenance-xxx** pod | 仅查看 pod 和日志；管理操作需授权 |
-| Cinder 信息查看 | **cinder-volume** pod | 仅查看日志和配置；manage 操作需授权 |
+| Nova 高级信息查看 | **nova-maintenance-xxx** pod | 仅查看 pod 和日志; 管理操作需授权 |
+| Cinder 信息查看 | **cinder-volume** pod | 仅查看日志和配置; manage 操作需授权 |
 | 业务日志查看 | 对应业务 pod | 用 `kubectl logs` 查看 |
 
 ## SSH 访问与节点跳转
@@ -21,16 +21,25 @@
 虚拟机异常和云硬盘异常属于常见问题。用户说 “看某个虚拟机异常原因”、
 “查 server/instance 状态异常”、“云硬盘挂载失败”、“volume 创建失败” 或
 “磁盘状态异常” 时, 先按 [access.md](access.md) 进入环境并完成只读验证,
-再按本节选择资源查询入口。
+再按本节选择日志优先的根因排查入口。
 
 OpenStack 资源状态查询统一在 busybox 中执行, 认证方式见 [auth.md](auth.md)。
 不要在 `nova-api`、`cinder-api`、`cinder-golem` 等业务 pod 中直接执行
 `openstack` 命令。
 
+如果用户问的是 “原因”、“为什么失败”、“创建失败”、“挂载失败”, 或已经提供
+traceback / error message / UUID, 先查相关服务日志。资源状态查询不是第一步,
+除非用户明确要求状态, 或日志线索已经指向需要补充 server/volume 上下文。
+允许先用 `kubectl get pods` 或 label 查询发现要读取日志的 pod。
+
 ### Virtual Machine Issues 虚拟机问题
 
-先确认用户提供的是虚拟机名称还是 UUID。只做查询时, 优先查看 server 基本状态、
-fault 信息、所在计算节点和 task/power 状态, 再决定看哪个组件日志。
+先确认用户提供的是虚拟机名称还是 UUID。根因排查时, 优先用 server UUID 或
+错误关键字查看 `nova-api`、`nova-conductor`、`nova-scheduler` 和相关
+`nova-compute` 当前 pod 日志; 当前日志缺失或不完整时再查 fluentd 历史日志。
+
+以下 OpenStack CLI 只用于补充上下文或用户明确要求查看资源状态, 不作为异常原因
+排查的默认第一步:
 
 ```bash
 kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack server show <server-id-or-name>'
@@ -39,8 +48,8 @@ kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && opensta
 
 根据查询结果分流:
 
-- `status` 为 `ERROR` 或存在 `fault` → 先查 `nova-api`、`nova-conductor`、
-  `nova-scheduler` 当前 pod 日志, 再结合 `fault` message 定位具体服务。
+- `status` 为 `ERROR` 或存在 `fault` → 用 `fault` message 中的异常、server UUID
+  或 request id 回到 Nova 日志定位具体服务。
 - `OS-EXT-SRV-ATTR:host` 有值 → 同时查该计算节点上的 `nova-compute` pod。
 - 创建、调度、迁移、evacuation、host maintenance 相关问题 → 参考
   [openstack/nova.md](openstack/nova.md) 和
@@ -51,9 +60,16 @@ kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && opensta
 
 ### Cloud Volume Issues 云硬盘问题
 
-先确认用户提供的是云硬盘名称还是 UUID。只做查询时, 优先查看 volume 基本状态、
-挂载信息、关联虚拟机和后端错误线索, 再决定看 `cinder-api`、`cinder-scheduler`、
-`cinder-volume` 或后端存储日志。
+先确认用户提供的是云硬盘名称还是 UUID。根因排查时, 优先用 volume UUID 或
+错误关键字查看 `cinder-api`、`cinder-scheduler`、`cinder-volume` 当前 pod
+日志; 当前日志缺失或不完整时再查 fluentd 历史日志。
+
+如果 Nova 日志中出现 `VolumeNotCreated`, 这只表示 Nova 等待 Cinder 创建卷超时。
+不要先查 `volume show`; 先用 volume UUID 搜 Cinder 日志, 再按 Cinder 日志中的
+backend、host、request id 或异常栈继续定位。
+
+以下 OpenStack CLI 只用于补充上下文或用户明确要求查看资源状态, 不作为创建失败
+根因排查的默认第一步:
 
 ```bash
 kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && openstack volume show <volume-id-or-name>'
@@ -63,7 +79,7 @@ kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && opensta
 根据查询结果分流:
 
 - `status` 为 `error`、`error_extending`、`error_attaching` 或长期卡在中间态
-  → 先查 `cinder-api`、`cinder-scheduler`、相关 `cinder-volume` 当前 pod 日志。
+  → 回到 `cinder-api`、`cinder-scheduler`、相关 `cinder-volume` 当前 pod 日志定位异常。
 - 创建失败后资源可能很快被删除; `volume show` 返回 404 时, 用 volume UUID 搜
   cinder 当前 pod 日志; 当前日志缺失或不完整时再查 fluentd 历史日志。
 - `Filtering removed all hosts` 且某个 filter 最终 `end: 0` → 按该 filter

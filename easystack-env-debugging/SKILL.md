@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use for live EasyStack Kubernetes/OpenStack environment inspection through the bundled env-access script: SSH/JumpServer access, kubectl, pods, services, logs, auth, config, VM/server anomalies, and cloud volume issues. Do not use for offline eslog, repo CI, Web UI E2E, or media/Windows tasks."
+description: "Use for live EasyStack Kubernetes/OpenStack environment debugging through the bundled env-access script, especially logs-first root-cause checks for VM/server and cloud volume failures. Covers SSH/JumpServer access, kubectl, pods, service logs, auth, and config. Do not use for offline eslog, repo CI, Web UI E2E, or media/Windows tasks."
 ---
 
 # EasyStack Environment Debugging
@@ -71,6 +71,23 @@ port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配
 向用户报告目标、命令、完整错误现象和你需要的改动点; 只有获得用户明确允许后,
 才能修改脚本。
 
+## Root Cause Triage Order 根因排查顺序
+
+用户询问 “为什么失败”、“异常原因”、“创建失败”、“挂载失败”, 或提供 traceback、
+错误栈、server UUID、volume UUID 时, 将任务视为根因排查, 而不是资源清单查询。
+
+进入环境并完成最小连接验证后, 先读取相关业务 pod 当前日志。只允许用
+`kubectl get pods` / label 查询来发现日志目标; 不要把 `openstack server show`,
+`openstack volume show` 或 list 类资源状态查询作为第一步。
+
+如果当前 pod 日志没有目标 UUID 或时间段, 再按 [logs.md](logs.md) 使用 fluentd
+历史日志补齐。OpenStack CLI 状态查询只在日志线索需要补充上下文、需要确认关联
+server/volume, 或用户明确要求查看状态时使用。
+
+云硬盘创建失败且 Nova 报 `VolumeNotCreated` 时, Nova 栈只说明等待 Cinder 创建卷
+超时。先用 volume UUID 搜 `cinder-api`、`cinder-scheduler`、`cinder-volume`
+日志; 如果用户同时给出 server UUID, 再用 server UUID 搜 Nova 日志。
+
 ## Quick Reference 快速参考 - 文件索引
 
 | 需要做什么 | 阅读 |
@@ -78,6 +95,8 @@ port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配
 | 环境后台访问入口、172.18 跳板、BJ-xx SSH config 跳板直达、JumpServer 菜单 fallback | [access.md](access.md) |
 | 统一环境访问脚本, 登录链路封装后追加业务命令 | [scripts/env-access.sh](scripts/env-access.sh) |
 | JumpServer 菜单内部 fallback 脚本, 由统一访问脚本调用 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
+| 根因排查顺序、当前 pod 日志、fluentd 历史日志回退 | [logs.md](logs.md) |
+| 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
 | OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |
 | OpenStack 组件部署、pod、启动方式详情 | [openstack/index.md](openstack/index.md) |
@@ -87,8 +106,6 @@ port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配
 | 启动脚本、configmap、配置和脚本查看 | [scripts.md](scripts.md) |
 | /opt mount code overlay debugging, explicit authorization required | [code-debug.md](code-debug.md) |
 | 组件级特殊操作、maintenance pod、授权门禁 | [special-operations.md](special-operations.md) |
-| `kubectl logs`、fluentd 历史日志搜索 | [logs.md](logs.md) |
-| 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
 | 节点间网络排查(L1/L2/L3诊断)、ARP状态解读、VLAN子接口排查 | [network.md](network.md) |
 | 常用命令、环境常量、namespace | [reference.md](reference.md) |
 

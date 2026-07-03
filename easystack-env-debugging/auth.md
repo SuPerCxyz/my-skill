@@ -1,6 +1,8 @@
 # OpenStack Authentication
 
 Use this file after environment access is established and the task requires OpenStack CLI authentication, busybox pod usage, or credential checks. Do not use it as the first access path.
+For failure root-cause requests, read service logs first; use OpenStack CLI only
+after logs require extra resource context or the user asks for resource status.
 
 ## 重要:执行 OpenStack 命令前必须先 source 认证
 

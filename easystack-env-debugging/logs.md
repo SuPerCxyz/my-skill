@@ -9,6 +9,12 @@ log-analysis skill。
 fluentd pod 查历史日志, 因为当前 pod 的 stdout/stderr 往往还保留最近错误,
 定位更快且能直接对应当前副本。
 
+用户说 “看异常原因”、“为什么失败”、“创建失败”、“挂载失败”, 或提供 traceback、
+error message、server UUID、volume UUID 时, 即使没有明确说 “直接看日志”,
+也按日志优先处理。不要先进入 busybox 执行 `openstack server show`、
+`openstack volume show` 或 list 类资源状态查询。`kubectl get pods` / label
+查询只用于发现要读取日志的 pod, 不属于资源状态优先。
+
 使用 fluentd 的条件:
 
 - 当前业务 pod 日志没有目标时间段或关键 UUID
@@ -79,7 +85,8 @@ done
 ```
 
 按资源 UUID 搜日志时, 先搜对应服务目录, 例如 volume 查 `openstack/cinder`,
-server 查 `openstack/nova`。如果用户明确要求直接看日志, 可以跳过数据库查询。
+server 查 `openstack/nova`。根因排查默认可以跳过数据库和 OpenStack CLI 状态查询;
+只有日志缺少关联信息或用户明确要求资源状态时再补查。
 
 ```bash
 fluentd_pods=$(kubectl get pods -n openstack -o name | sed 's#^pod/##' | grep '^fluentd-[0-9]\+$')

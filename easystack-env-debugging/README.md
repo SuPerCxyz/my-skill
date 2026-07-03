@@ -1,6 +1,6 @@
 # EasyStack OSINOS 环境调试
 
-通过统一访问脚本进入 K8s 环境, 对运行在 Kubernetes 上的 OpenStack 服务进行调试。适用于可访问的运行中环境;离线 `.eslog` 分析、仓库 CI 修复和 EasyStack Cloud Web UI E2E 分别使用对应 skill。
+通过统一访问脚本进入 K8s 环境, 对运行在 Kubernetes 上的 OpenStack 服务进行调试。适用于可访问的运行中环境; 询问异常原因、创建失败或挂载失败时优先查业务 pod 日志, 资源状态只做补充上下文。离线 `.eslog` 分析、仓库 CI 修复和 EasyStack Cloud Web UI E2E 分别使用对应 skill。
 
 ## 文件说明
 
