@@ -39,10 +39,14 @@ Autocompact thrashing。
 
 ## Output Prevention 输出预防
 
-工具调用前必须预估输出规模, 并优先在命令源头限制结果。禁止先产生完整输出,
-再依赖后续摘要压缩上下文。
+工具调用前必须预估输出规模。优先在不改变查询语义的位置限制结果; 禁止先产生
+完整输出, 再依赖后续摘要压缩上下文。
 
-- 日志必须使用时间范围、`--tail`、`-n` 或等价参数限制
+- 日志优先使用时间范围、对象范围、namespace、pod、service、文件路径等条件缩小范围
+- 只看最新日志时可以在日志源头使用 `--tail`、`-n` 或等价参数
+- 按 UUID、request id、错误关键字、traceback 搜日志时, 不要在 `grep` / `awk` /
+  `sed` / `zgrep` 前使用 `--tail`、`head`、`tail` 截断日志; 先过滤, 再在管道末尾
+  限制最终输出
 - 搜索必须使用 `-m`、文件类型、目录、glob、符号名或关键词限制
 - diff 必须限定文件或使用 `--stat`
 - 可能产生大量 stderr 时, 同时限制 stderr
@@ -53,6 +57,18 @@ Autocompact thrashing。
 - 单次输出不超过 200 行
 - 同时不超过 20 KiB
 - 任一限制先达到即停止或缩小范围
+
+## Filter Before Truncate 先过滤再截断
+
+输出限制不能隐藏目标证据。判断截断位置时区分两类场景:
+
+- 最新状态/最新日志: 可以在数据源头截断, 例如只看最近 200 行日志
+- 条件检索/根因定位: 必须先按关键词、UUID、request id、错误码或时间范围过滤,
+  再对过滤后的结果做 `head` / `tail` / `sed -n` 限制
+
+不要为了满足行数限制写出会漏证据的管道, 例如先取日志末尾 100 行再 grep 某个
+历史 UUID。若必须避免扫描过大日志, 使用 `--since`、日期文件、服务目录、pod
+范围或更精确关键词缩小输入, 但最终行数限制仍放在过滤之后。
 
 ## Search Rules 搜索规则
 
@@ -124,7 +140,8 @@ rg -n 'def attach_volume|class .*Driver' cinder/volume/drivers -g '*.py'
 - 禁止无超时执行可能阻塞的命令
 - 测试优先执行目标测试、单文件测试或单用例
 - 禁止默认执行完整测试套件, 除非任务明确需要或仓库门禁要求
-- 日志命令必须指定时间范围或尾部行数
+- 日志命令必须指定时间范围、对象范围, 或在过滤后限制最终输出
+- 按关键词/UUID 搜日志时, 最终 `head` / `tail` 放在 `grep` / `zgrep` 之后
 - 禁止递归输出完整目录树
 - 禁止输出完整环境变量、完整配置和完整对象列表
 - 命令可能产生大量 stderr 时, 应同时限制 stderr
@@ -135,7 +152,9 @@ rg -n 'def attach_volume|class .*Driver' cinder/volume/drivers -g '*.py'
 timeout 60 pytest tests/unit/test_driver.py::TestDriver::test_attach -q
 journalctl -u ironic-conductor --since '10 minutes ago' -n 200 --no-pager
 kubectl logs pod-name --since=10m --tail=200
-command 2>&1 | head -200
+journalctl -u cinder-volume --since '2 hours ago' --no-pager | grep -F '<volume-id>' | tail -200
+kubectl logs pod-name --since=2h 2>&1 | grep -F '<resource-id>' -B 5 -A 20 | tail -200
+command 2>&1 | grep -F '<keyword>' | head -200
 ```
 
 ## Git-Aware Inspection Git 感知检查

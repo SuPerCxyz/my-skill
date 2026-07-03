@@ -4,6 +4,10 @@ This is an authorization-required workflow. Copying files to `/opt`, overlaying
 runtime code, or changing startup scripts affects the environment and must not be
 used during default read-only inspection.
 
+Use this file when the user explicitly asks to modify live environment code,
+debug a new feature, validate a code change in the environment, or temporarily
+overlay runtime code for diagnosis.
+
 使用此工作流前, 必须获得用户对目标服务、目标节点、待修改文件、回滚方式和验证命令的明确授权。
 进入环境仍必须先使用 [access.md](access.md) 中的统一访问脚本; `scp` 只是在用户
 授权后传递文件的动作, 不能作为默认环境登录方式。

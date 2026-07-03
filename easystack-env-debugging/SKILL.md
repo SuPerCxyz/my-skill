@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use for live EasyStack Kubernetes/OpenStack environment debugging through the bundled env-access script, especially logs-first root-cause checks for VM/server and cloud volume failures. Covers SSH/JumpServer access, kubectl, pods, service logs, auth, and config. Do not use for offline eslog, repo CI, Web UI E2E, or media/Windows tasks."
+description: "Use for live EasyStack Kubernetes/OpenStack environment debugging through the bundled env-access script, especially logs-first root-cause checks for VM/server and cloud volume failures, plus explicitly authorized environment code debugging for new feature validation. Do not use for offline eslog, repo CI, Web UI E2E, or media/Windows tasks."
 ---
 
 # EasyStack Environment Debugging
@@ -53,6 +53,15 @@ mysql/update/delete/insert/alter/drop
 
 如果排障确实需要变更环境, 先说明影响范围、回滚方式和验证方式, 并等待用户确认。
 
+## Authorized Change Scope 授权变更范围
+
+本 skill 默认只读, 但并非只能做只读任务。用户明确要求在环境中修改代码、验证新功能、
+临时 overlay 运行时代码或调整启动脚本做调试时, 仍属于本 skill 范围。执行前必须
+获得用户对目标环境、目标服务、目标节点、待修改文件、回滚方式和验证命令的明确授权。
+
+经授权的代码调试流程见 [code-debug.md](code-debug.md)。未经授权时, 不要执行
+`scp`、编辑启动脚本、复制代码到 `/opt`、重启 pod 或任何会改变环境状态的操作。
+
 ## Access Script Gate 访问脚本门禁
 
 进入目标环境时, MUST 使用 [scripts/env-access.sh](scripts/env-access.sh)。不要手写
@@ -83,10 +92,6 @@ port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配
 如果当前 pod 日志没有目标 UUID 或时间段, 再按 [logs.md](logs.md) 使用 fluentd
 历史日志补齐。OpenStack CLI 状态查询只在日志线索需要补充上下文、需要确认关联
 server/volume, 或用户明确要求查看状态时使用。
-
-云硬盘创建失败且 Nova 报 `VolumeNotCreated` 时, Nova 栈只说明等待 Cinder 创建卷
-超时。先用 volume UUID 搜 `cinder-api`、`cinder-scheduler`、`cinder-volume`
-日志; 如果用户同时给出 server UUID, 再用 server UUID 搜 Nova 日志。
 
 ## Quick Reference 快速参考 - 文件索引
 

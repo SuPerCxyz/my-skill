@@ -64,9 +64,9 @@ kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && opensta
 错误关键字查看 `cinder-api`、`cinder-scheduler`、`cinder-volume` 当前 pod
 日志; 当前日志缺失或不完整时再查 fluentd 历史日志。
 
-如果 Nova 日志中出现 `VolumeNotCreated`, 这只表示 Nova 等待 Cinder 创建卷超时。
-不要先查 `volume show`; 先用 volume UUID 搜 Cinder 日志, 再按 Cinder 日志中的
-backend、host、request id 或异常栈继续定位。
+如果上游服务日志只显示等待云硬盘操作超时或状态异常, 不要停在上游错误栈。
+继续用 volume UUID、request id、backend、host 或异常关键字搜索 Cinder 日志,
+再按实际失败服务的日志定位根因。
 
 以下 OpenStack CLI 只用于补充上下文或用户明确要求查看资源状态, 不作为创建失败
 根因排查的默认第一步:

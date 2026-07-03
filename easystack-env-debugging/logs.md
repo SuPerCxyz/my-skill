@@ -25,6 +25,8 @@ error message、server UUID、volume UUID 时, 即使没有明确说 “直接�
 ## Real-time Logs (kubectl) 实时日志
 
 服务日志输出到 stdout/stderr, 不写入 pod 内的 `/var/log/`。
+以下 `--tail` 示例只适用于查看最新日志。按 UUID、request id、错误关键字或
+traceback 搜日志时, 不要在 `grep` 之前加 `--tail`; 先过滤, 再限制最终输出。
 
 ```bash
 # Single-container pod
@@ -41,6 +43,20 @@ kubectl logs -f -n openstack <pod-name> --tail=50
 
 # Previous instance (if crashed/restarted)
 kubectl logs -n openstack <pod-name> --previous
+```
+
+## Filter Before Tail 先过滤再截断
+
+按资源 UUID 或错误关键字查日志时, 前置 `--tail=100` 只会搜索最近 100 行,
+容易漏掉真正的失败日志。正确顺序是先用时间范围、pod、service 或文件范围缩小
+输入, 再 `grep` / `zgrep`, 最后用 `tail` / `head` 限制输出给 agent 的结果。
+
+```bash
+# Current pod logs: filter first, then limit final output
+kubectl logs -n openstack <pod-name> --since=2h 2>/dev/null | grep -F "<resource-uuid>" -B 5 -A 20 | tail -200
+
+# If the time window is unknown, do not add --tail before grep
+kubectl logs -n openstack <pod-name> 2>/dev/null | grep -F "<resource-uuid>" -B 5 -A 20 | tail -200
 ```
 
 ## Historical Logs (Fluentd) 历史日志
