@@ -9,24 +9,23 @@
 
 ## agent-browser 前置
 
-执行真实 UI 测试前必须满足:
+执行真实 UI 测试前先检查 `agent-browser`。命令不存在时, 不要自动安装; 先向用户
+报告缺失项、以下建议命令和环境影响, 等待明确确认。
 
 ```bash
-if ! command -v agent-browser >/dev/null 2>&1; then
-  npm i -g agent-browser
-  agent-browser install
-fi
-agent-browser skills get core
+command -v agent-browser
 ```
 
-若全局安装无权限，改用用户目录安装:
+用户确认后优先安装到用户目录:
 
 ```bash
 npm i -g --prefix "$HOME/.local" agent-browser
 "$HOME/.local/bin/agent-browser" install
+"$HOME/.local/bin/agent-browser" skills get core
 ```
 
-安装或启动失败时，停止 UI 测试，不降级到其他浏览器自动化框架。
+只有用户明确要求全局安装时才使用 `npm i -g agent-browser`。安装或启动失败时,
+停止 UI 测试, 不降级到其他浏览器自动化框架。
 
 ## 默认启动参数
 
@@ -178,7 +177,9 @@ JS
 ## 标准执行形态
 
 登录操作应合并为少量 `agent-browser` 调用。环境文件由 shell 读取后注入。
-测试环境密码可直接用于执行，但不要写入 skill 文档、操作库模板或测试报告。
+测试环境密码可直接用于执行, 但不要写入 skill 文档、操作库模板或测试报告。运行时
+生成的 VM 密码只保存在当前进程内存; 工具必须落盘时写入权限为 `0600` 的本次运行
+临时文件, 报告仅记录该临时引用和生成方式。验证结束后删除临时文件。
 
 ```bash
 export AGENT_BROWSER_SESSION="easystack-<run-id>"

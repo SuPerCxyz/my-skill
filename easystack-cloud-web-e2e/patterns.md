@@ -7,7 +7,8 @@
 ## 执行硬约束
 
 - 所有 UI 操作统一通过 `agent-browser` 执行。
-- 缺少 `agent-browser` 时必须先安装;安装或启动失败时停止真实 UI 测试。
+- 缺少 `agent-browser` 时先报告安装命令和影响, 等待用户确认; 未确认或安装失败时
+  停止真实 UI 测试。
 - 执行前加载 `agent-browser skills get core`。
 - 多步骤页面动作必须合并到单次 `agent-browser eval --stdin` 或
   `agent-browser batch` 调用中。
@@ -15,9 +16,8 @@
 - 不新增其他浏览器自动化模板或非 `agent-browser` 示例。
 - 历史测试片段不作为当前执行入口。
 - 长耗时用例需要后台任务执行时:
-  - Codex 场景:默认使用 `gpt-5.4-mini`，`reasoning_effort=medium`。
-  - Claude Code / OpenCode 场景:按当前会话模型和推理强度执行，无需指定。
-- 除非用户明确要求，Codex 场景不升级模型或推理强度。
+  - 不在 skill 中固定模型名称或推理等级。
+  - 按当前会话 `AGENTS.md`、用户要求和平台可用能力选择。
 
 这些约束的目标是减少跨步骤上下文、截图和 snapshot 消耗，避免长用例执行时
 token 膨胀。

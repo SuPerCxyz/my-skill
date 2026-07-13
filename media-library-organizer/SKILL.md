@@ -35,16 +35,17 @@ description: "Use when organizing local media library folders for movies, TV, va
 
 ## Key Safety Rules 关键安全规则
 
-1. **默认永远 dry-run**，不允许直接修改文件。
-2. 只有用户明确回复「确认执行 / 执行 / apply / run」后，才允许执行真实重命名。
-3. 目标文件已存在时默认跳过，禁止覆盖。
-4. TMDB 匹配置信度不足时，必须列出候选项让用户选择。
-5. 所有文件移动前必须生成 `_rename_mapping.json`。
-6. 所有真实操作完成后必须生成 `_rollback.sh`，并支持 dry-run 回滚。
-7. Kodi / Jellyfin / Emby 剧集识别依赖文件名中的 `SxxExx`，因此即使生成 NFO，文件名也必须保留标准季集号。
-8. 电影 NFO 默认生成与视频同名的 `.nfo`，可选额外生成 `movie.nfo`。
+1. **默认永远 dry-run**,不允许直接修改文件。
+2. 只有用户明确回复「确认执行 / 执行 / apply / run」后,才允许执行真实重命名。
+3. 目标文件已存在时默认跳过,禁止覆盖。
+4. TMDB 匹配置信度不足时,必须列出候选项让用户选择。
+5. 所有真实修改前必须生成 `_rename_mapping.json` 和可执行的 `_rollback.sh`。
+6. 回滚范围必须覆盖 rename/move、本次新建的 NFO/图片/目录、替换前备份和本次删除
+   的空目录; 回滚前先校验 mapping, 并支持 dry-run。
+7. Kodi / Jellyfin / Emby 剧集识别依赖文件名中的 `SxxExx`,因此即使生成 NFO,文件名也必须保留标准季集号。
+8. 电影 NFO 默认生成与视频同名的 `.nfo`,可选额外生成 `movie.nfo`。
 9. 剧集核心 NFO 为 `tvshow.nfo` + 每集同名 `.nfo`;`season.nfo` 可选生成。
-10. 图片下载失败不能阻断重命名，但必须记录失败清单。
+10. 图片下载失败不能阻断重命名,但必须记录失败清单。
 11. ffprobe 检测结果优先于文件名猜测。
 12. 任何 guessed 字段必须在预览中标记。
 13. 删除空目录前必须确认目录内没有非本次处理文件。
@@ -54,7 +55,7 @@ description: "Use when organizing local media library folders for movies, TV, va
 
 ## Input 输入
 
-用户提供一个**文件夹路径**，可以是:
+用户提供一个**文件夹路径**,可以是:
 
 - **单个资源文件夹**:如 `综艺/五十公里桃花坞/` 或 `电影/阿凡达/`
 - **多个资源的父文件夹**:如 `综艺/` 或 `电视剧/` 或 `下载/待整理/`
@@ -65,20 +66,20 @@ Skill 会自动扫描并逐个处理。
 
 ## Execution Route 执行路由
 
-1. 先读取 `workflow.md`，按步骤 1~9 生成 dry-run 预览。
+1. 先读取 `workflow.md`,按步骤 1~9 生成 dry-run 预览。
 2. 涉及参数、媒体库边界、dry-run 行为或文件扩展名识别时读取 `configuration.md`。
-3. 涉及命名、NFO、图片、TMDB、ffprobe 或回滚时，只读取对应子文件。
+3. 涉及命名、NFO、图片、TMDB、ffprobe 或回滚时,只读取对应子文件。
 4. 预览必须清楚标记低置信度匹配、冲突、guessed 字段和会修改的路径。
-5. 未通过执行门禁前，只能停留在扫描、查询和预览阶段。
+5. 未通过执行门禁前,只能停留在扫描、查询和预览阶段。
 
 ---
 
 ## Execution Gate 执行门禁
 
 ```
-默认永远 dry-run，不允许直接修改文件。
+默认永远 dry-run,不允许直接修改文件。
 
-只有用户明确回复以下任一内容，才允许执行真实文件修改:
+只有用户明确回复以下任一内容,才允许执行真实文件修改:
 - 确认执行
 - 执行
 - apply
@@ -100,11 +101,23 @@ Skill 会自动扫描并逐个处理。
 
 | 文件 | 内容 | 何时查阅 |
 |------|------|---------|
-| `workflow.md` | 步骤 1~9 完整工作流程 | 执行时按步骤查阅 |
-| `configuration.md` | 配置参数、媒体库边界、dry-run 行为、文件类型识别 | 判断参数、路径边界或文件类型时查阅 |
-| `naming-rules.md` | 电影/剧集/特殊内容命名规则 + 字段说明 | 生成文件名时查阅 |
-| `nfo-templates.md` | movie / tvshow / episodedetails / season NFO 模板 | 生成 NFO 时查阅 |
-| `artwork.md` | 图片下载列表、别名策略、图片来源 | 下载图片时查阅 |
-| `tmdb-api.md` | API Key、URL、append_to_response、置信度评分、图片拼接 | 查询 TMDB 时查阅 |
-| `technical-reference.md` | parse_filename、ffprobe 检测代码、技术信息优先级 | 需要实现脚本或技术字段判断时查阅 |
-| `safety.md` | 回滚要求、mapping 格式、校验策略、冲突处理、路径安全 | 回滚和冲突处理时查阅 |
+| [workflow.md](workflow.md) | 步骤 1~9 完整工作流程 | 执行时按步骤查阅 |
+| [configuration.md](configuration.md) | 配置参数、媒体库边界、dry-run 行为、文件类型识别 | 判断参数、路径边界或文件类型时查阅 |
+| [naming-rules.md](naming-rules.md) | 电影/剧集/特殊内容命名规则 + 字段说明 | 生成文件名时查阅 |
+| [nfo-templates.md](nfo-templates.md) | movie / tvshow / episodedetails / season NFO 模板 | 生成 NFO 时查阅 |
+| [artwork.md](artwork.md) | 图片下载列表、别名策略、图片来源 | 下载图片时查阅 |
+| [tmdb-api.md](tmdb-api.md) | API Key、URL、append_to_response、置信度评分、图片拼接 | 查询 TMDB 时查阅 |
+| [technical-reference.md](technical-reference.md) | parse_filename、ffprobe 检测代码、技术信息优先级 | 需要实现脚本或技术字段判断时查阅 |
+| [safety.md](safety.md) | 回滚要求、mapping 格式、校验策略、冲突处理、路径安全 | 回滚和冲突处理时查阅 |
+
+## Execution Feedback 执行反馈
+
+执行本 skill 时, 若规则不明确、工具限制导致绕行、同一步骤反复执行或流程无法顺利
+推进, 任务结束时必须向用户报告:
+
+- 触发位置和问题现象
+- 造成的中断、重复次数或额外开销
+- 实际采用的临时处理
+- 建议补充或修改的 skill 规则
+
+没有实际问题时不输出空反馈。反馈不得包含密码、token、cookie 或未脱敏的用户数据。

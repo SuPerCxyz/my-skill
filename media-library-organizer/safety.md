@@ -14,11 +14,13 @@ Use this file whenever a plan may move, rename, write, delete, or roll back file
 
 ## 回滚要求
 
-- 所有 rename / move 操作必须先写入 `_rename_mapping.json`
-- JSON 中记录 `old_path`、`new_path`、`hash_type`、`hash`、`size`、`mtime`、`operation`、`timestamp`
-- 回滚脚本默认只回滚 rename / move，不删除用户新增文件
-- 如果目标路径已经被其他文件占用，回滚中止并提示人工处理
-- 回滚脚本必须支持 dry-run
+- 所有计划修改必须先写入 `_rename_mapping.json`, 再生成 `_rollback.sh`
+- operation 支持 `rename`、`move`、`create`、`replace_backup`、`rmdir`
+- 每项记录 `status=pending|completed|failed`; 真实操作成功后原子更新状态
+- `create` 回滚只删除状态为 `completed`、由本次运行创建且 hash 匹配的文件
+- `replace_backup` 回滚从本次备份恢复; `rmdir` 回滚重建本次删除的空目录
+- 如果路径被其他文件占用或 hash 不匹配, 回滚中止并提示人工处理
+- 回滚脚本必须在任何真实修改前生成并支持 dry-run
 
 ## `_rename_mapping.json` 格式
 
@@ -34,7 +36,8 @@ Use this file whenever a plan may move, rename, write, delete, or roll back file
       "hash": "abc123...",
       "size": 1234567890,
       "mtime": "2026-06-15T12:00:00",
-      "operation": "rename"
+      "operation": "rename",
+      "status": "pending"
     }
   ]
 }

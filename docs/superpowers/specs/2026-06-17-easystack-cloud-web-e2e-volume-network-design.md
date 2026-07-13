@@ -1,4 +1,4 @@
-# easystack-ui-test volume/network 操作库迁移设计
+# easystack-cloud-web-e2e volume/network 操作库迁移设计
 
 ## 背景
 
@@ -18,9 +18,9 @@
 
 本轮只处理 `patterns` 操作库第二轮迁移:
 
-- `easystack-ui-test/patterns/volume-ops.md`
-- `easystack-ui-test/patterns/network-ops.md`
-- `easystack-ui-test/patterns/quick-reference.md`(仅同步索引)
+- `easystack-cloud-web-e2e/patterns/volume-ops.md`
+- `easystack-cloud-web-e2e/patterns/network-ops.md`
+- `easystack-cloud-web-e2e/patterns/quick-reference.md`(仅同步索引)
 
 ## 迁移策略
 

@@ -15,14 +15,14 @@
 ```
 1. 操作前先 Snapshot 确认桌面状态
 2. 按场景从 Quick Decision 表选工具(详见 SKILL.md)
-3. 浏览器内网页操作请改用 Playwright MCP，本 skill 仅用于真实 Windows 桌面
+3. 浏览器内网页操作请改用 `agent-browser`, 本 skill 仅用于真实 Windows 桌面
 ```
 
 ## 文件说明
 
 | 文件 | 内容 |
 |------|------|
-| [SKILL.md](SKILL.md) | Skill 主入口，Quick Decision 工具选型表与 Key Reminders |
+| [SKILL.md](SKILL.md) | Skill 主入口,Quick Decision 工具选型表与 Key Reminders |
 | [reference/observation.md](reference/observation.md) | Snapshot / Screenshot / Scrape 详情 |
 | [reference/window.md](reference/window.md) | App 窗口控制详情 |
 | [reference/mouse.md](reference/mouse.md) | Click / Move / Scroll / MultiSelect 鼠标操作 |

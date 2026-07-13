@@ -1,6 +1,6 @@
 ---
 name: easystack-ci-test
-description: "Use for EasyStack OpenStack repository CI validation and fixes: tox cover, tox pep8, flake8, coverage gaps, stestr, privsep tests, and Miniconda/tox setup. Do not use for live Kubernetes environment debugging, eslog/offline log analysis, Web UI E2E testing, or general non-EasyStack projects."
+description: "Use when validating and fixing EasyStack OpenStack repository CI: tox cover, tox pep8, flake8, coverage gaps, stestr, privsep tests, Miniconda/tox setup, and updating the current Gerrit change after tests pass. Do not use for live environments, offline logs, Web UI E2E, or non-EasyStack projects."
 ---
 
 # EasyStack CI Test
@@ -13,18 +13,22 @@ EasyStack OpenStack 项目使用 tox 进行 CI 测试。本 skill 覆盖运行 `
 
 ## Code Scope 代码范围
 
-运行 `tox -e pep8` 或 `tox -e cover` 时, 测试范围是以下**合并状态**:
+运行 `tox -e pep8` 或 `tox -e cover` 时, 当前 `HEAD` 必须是用户准备继续更新的
+Gerrit change。测试范围是以下**合并状态**:
 
-1. 当前分支上 `git log` 所示最近一个未合并 commit
+1. 当前 `HEAD` commit 相对其父提交的修改
 2. 全部未提交改动(已 `git add` 暂存 + 工作区未暂存)
 
-开发过程中代码可能部分已 `git add` 或仍在修改中。测试应覆盖这些改动的整合状态 - 把工作区视为待验证的完整代码库。
+不要根据“最近一个未合并 commit”猜测范围。先确认 `HEAD` commit message 包含目标
+Gerrit `Change-Id`; 无法确认时先向用户索取目标 change, 不创建新 commit。
 
 ## Quick Start 快速开始
 
 1. 先按 [setup.md](setup.md) 定位 Miniconda、激活或创建 `easystack-<project>-py<version>` 环境。
-2. 如果找不到 Miniconda, 让用户补充安装路径、安装 Miniconda, 或明确确认不使用虚拟环境直接运行 CI。
-3. 环境激活后运行 tox; 任一失败时按 [auto-fix.md](auto-fix.md) 循环修复, 直到两者全部通过。
+2. 如果找不到环境或依赖, 先报告建议安装命令和影响, 等待用户明确确认。
+3. 环境激活后运行 tox; 任一失败时按 [auto-fix.md](auto-fix.md) 循环修复。
+4. 两项通过后, 仅在用户明确要求提交时按 [gerrit-delivery.md](gerrit-delivery.md)
+   amend 当前 commit, 保留原 `Change-Id`, 再运行 `git review -r <remote>`。
 
 ```bash
 tox -e cover   # 覆盖率检查(先跑, 约 5 分钟)
@@ -43,3 +47,16 @@ tox -e pep8    # 代码风格检查(后跑, 约 40 秒)
 | 修复 pep8 / flake8 错误 | [pep8.md](pep8.md) |
 | 修复覆盖率缺口, 查看 HTML 报告 | [coverage.md](coverage.md) |
 | 测试 privsep entrypoint 装饰的函数 | [privsep.md](privsep.md) |
+| 测试通过后更新当前 Gerrit change | [gerrit-delivery.md](gerrit-delivery.md) |
+
+## Execution Feedback 执行反馈
+
+执行本 skill 时, 若规则不明确、工具限制导致绕行、同一步骤反复执行或流程无法顺利
+推进, 任务结束时必须向用户报告:
+
+- 触发位置和问题现象
+- 造成的中断、重复次数或额外开销
+- 实际采用的临时处理
+- 建议补充或修改的 skill 规则
+
+没有实际问题时不输出空反馈。反馈不得包含密码、token、cookie 或未脱敏的用户数据。

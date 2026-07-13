@@ -72,7 +72,7 @@ fi
 PY_SHORT="py${PYTHON_VER//./}"
 ```
 
-### Step 4: Build env name, activate or create
+### Step 4: Build env name, activate or request creation
 
 ```bash
 ENV_NAME="easystack-${PROJECT}-${PY_SHORT}"
@@ -81,18 +81,26 @@ if "${CONDA}" env list | grep -q "^${ENV_NAME} "; then
     echo "Found existing conda env: ${ENV_NAME}"
     conda activate "${ENV_NAME}"
 else
-    echo "Creating conda env: ${ENV_NAME} (python=${PYTHON_VER})"
-    conda create -n "${ENV_NAME}" python="${PYTHON_VER}" -y
-    conda activate "${ENV_NAME}"
-    pip install tox -q
+    echo "Missing conda env: ${ENV_NAME} (python=${PYTHON_VER})"
+    echo "Ask for confirmation before creating it and installing tox"
+    return 1 2>/dev/null || exit 1
 fi
 ```
 
-After activation, `tox` is available in PATH. Run `tox -e cover` and `tox -e pep8` directly.
+缺少环境时先报告以下建议命令和影响, 等待用户明确确认。确认后才执行:
+
+```bash
+"${CONDA}" create -n "${ENV_NAME}" python="${PYTHON_VER}" -y
+conda activate "${ENV_NAME}"
+python -m pip install tox
+```
+
+After activation, run `tox -e cover` and `tox -e pep8` directly.
 
 ## System Dependencies
 
-Install if tox fails building psycopg2 from source:
+If tox fails building psycopg2 from source, report the missing package and the following command.
+Run it only after explicit user confirmation because it changes system packages:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y libpq-dev

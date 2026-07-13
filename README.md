@@ -7,12 +7,12 @@
 | Skill | 描述 |
 |-------|------|
 | [context-efficient-rules](context-efficient-rules/) | 上下文精简 Agent 规则 - 适用于 Claude Code / Router / ccswitch, 通过输出预防、先过滤再截断、渐进读取、搜索限流、MCP/子 Agent 约束和 Autocompact 恢复摘要减少 token 消耗 |
-| [easystack-ci-test](easystack-ci-test/) | EasyStack OpenStack 项目通用 CI 测试 — 运行 tox cover/pep8，自动修复失败项直到测试全部通过并满足覆盖率要求 |
+| [easystack-ci-test](easystack-ci-test/) | EasyStack OpenStack 项目 CI 验证与定向修复, 通过后按授权 amend 当前 Gerrit change 并用指定 remote 续提 |
 | [easystack-cloud-web-e2e](easystack-cloud-web-e2e/) | EasyStack 云平台 Web UI 端到端自动化测试 — 基于 agent-browser 的原子操作库、页面知识库与测试编排规范，支持云主机 / 云硬盘 / 网络等资源操作的 UI 自动化 |
-| [easystack-env-debugging](easystack-env-debugging/) | EasyStack 环境后台日志优先根因排查和授权代码调试 - 支持直连、172.18.x.x 跳板机、JumpServer 入口, 变更操作需明确授权 |
-| [easystack-log-analysis](easystack-log-analysis/) | EasyStack OpenStack 集群日志分析 — eslog 解压、容器化日志目录映射、跨服务跨节点根因定位;覆盖云主机生命周期 / 云盘挂载卸载 / 网络 / 镜像 / 裸金属 Ironic 等场景 |
-| [media-library-organizer](media-library-organizer/) | 媒体库整理 — TMDB 刮削 + 重命名 + NFO 生成 + 图片下载，支持电影 / 电视剧 / 综艺 / 纪录片 / 动漫，含 dry-run 安全机制与回滚 |
-| [windows-mcp-operation](windows-mcp-operation/) | Windows MCP 桌面操作 — 通过 windows-mcp server 操作和观察真实 Windows 桌面，包括截屏、窗口控制、鼠标键盘操作、系统管理等 |
+| [easystack-env-debugging](easystack-env-debugging/) | EasyStack 环境后台日志优先根因排查和授权代码调试, 历史故障可联合本地 `.eslog` / `ecs.*` 离线分析 |
+| [easystack-log-analysis](easystack-log-analysis/) | EasyStack `.eslog` 安全解压、跨服务跨节点根因定位, 与 env-debugging 使用相同的无表格报告格式 |
+| [media-library-organizer](media-library-organizer/) | 媒体库 TMDB 刮削、重命名、NFO 和图片整理, 默认 dry-run 并为全部本次修改生成回滚计划 |
+| [windows-mcp-operation](windows-mcp-operation/) | 通过 windows-mcp 操作真实 Windows 桌面和系统工具, 浏览器页面操作交由 agent-browser |
 
 > 目录下 `docs/superpowers/` 为 superpowers 工作流产生的 plan/spec 设计文档存档，并非 skill，仅作参考留档。
 

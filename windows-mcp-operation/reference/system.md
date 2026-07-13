@@ -14,7 +14,9 @@ Use this file for PowerShell, process, filesystem, and registry operations. Pref
 
 ### PowerShell 注意事项
 
-- **Status Code 始终为 0**(反映 shell 调用本身，非内部命令结果)，需检查输出内容判断命令是否真正成功
+- **Status Code 始终为 0**(反映 shell 调用本身, 非内部命令结果)。执行外部命令时
+  同时输出 `$LASTEXITCODE`; PowerShell cmdlet 使用 `-ErrorAction Stop` + `try/catch`
+  输出明确成功/失败标记, 不只根据工具 Status Code 判断
 - 超时默认 30s，可调
 - 可用于 Snapshot 失败时获取窗口列表作为降级方案:
 
@@ -60,7 +62,8 @@ Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object Id, Proce
 
 - 绝对路径可访问非 Desktop 位置
 - UTF-16 文件需指定 `encoding: "utf-16"`(默认 utf-8 会乱码)
-- `overwrite=false` 不阻止覆盖(仍会覆盖)
+- `overwrite=false` 不阻止覆盖。写入前先用 `info` 或 `read` 检查目标; 目标存在时,
+  只有用户明确允许覆盖后才能调用 `write`
 - `write` 必须提供 `content` 参数
 - `delete` 非临时文件时需确认
 

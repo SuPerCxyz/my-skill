@@ -33,6 +33,8 @@ Use this file for common multi-tool sequences. For parameter details, switch to 
 - `PowerShell`:`Stop-Process -Name <process_name> -Force`
 - 或 `Shortcut` `alt+F4`
 
+关闭前先确认目标应用和未保存内容。用户没有明确要求关闭或终止时, 不执行上述操作。
+
 ## 键盘驱动操作
 
 1. `App` `mode=switch` 切换目标窗口

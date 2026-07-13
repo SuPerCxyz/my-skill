@@ -16,7 +16,7 @@ symptom description. Goal: produce a structured, evidence-cited analysis.
 │    - Bundle name (eslog filename gives outer time range)     │
 ├──────────────────────────────────────────────────────────────┤
 │ 2. Decompress (if not yet done)                              │
-│    ./decompress_eslog.sh                                     │
+│    bash scripts/decompress-eslog.sh --input <path>           │
 ├──────────────────────────────────────────────────────────────┤
 │ 3. Inventory: which nodes, which time range                  │
 │    ls -d ecs.*/                                              │
@@ -68,51 +68,20 @@ Before declaring a root cause, ask:
    node never rebooted but nova-compute claims it did — call this out,
    don't paper over.
 4. **Did you check the obvious infrastructure?** mariadb (WSREP), rabbitmq
-   (network partition), chrony (clock drift), ceph health — at least one
-   of these is the upstream cause in ~30% of multi-service incidents.
+   (network partition), chrony (clock drift), and ceph health are common
+   upstream causes of multi-service incidents.
 
 If you can't reach high confidence with the evidence at hand, **say so
 explicitly** and list what additional data would close the gap.
 
-## Output Report Template
+## Output Report Template 输出报告模板
 
-Use this structure when reporting back to the user. Keep it tight; cite
-files with `path:line` (clickable in terminals).
+使用 [report-format.md](report-format.md) 的无表格模板。第 1 至第 4 节固定输出,
+第 5 至第 8 节按实际需要输出。时间线按时间顺序使用普通 Markdown 列表, 每个事件
+包含时间、节点、服务、事件和 `path/to/file:line` 证据引用。
 
-```markdown
-## ✅ 结论
-
-<1–2 句直接回答:发生了什么、根因是什么、影响范围>
-
-## 🧭 关键时间线
-
-| 时间 (wrapper TS) | 节点 | 服务 | 事件 | 证据 |
-|-------------------|------|------|------|------|
-| 2026-06-18 10:24:25 | node-1 | nova-compute | 进程启动，进入 init_host | `ecs.node-1.../openstack/nova/nova-compute.*.log:1234` |
-| 2026-06-18 10:25:10 | node-1 | nova-compute | hard_reboot 触发 `_resume_guests_state` | `ecs.node-1.../openstack/nova/nova-compute.*.log:1450` |
-| ... | | | | |
-
-## 🔍 根因分析
-
-<结构化分析:现象 → 证据链 → 结论>
-
-- **现象**:<观察到的失败>
-- **证据 1**:<引用日志，最好附 1–3 行原文>
-- **证据 2**:<引用日志>
-- **推导**:<为什么这些证据指向该根因>
-- **不确定点**:<哪些证据是间接的，缺什么>
-
-## 💡 处置建议
-
-1. **立即缓解**:<快速恢复业务的步骤>
-2. **根因修复**:<永久修复方案，包含代码位置 / 配置变更>
-3. **加固/预防**:<避免复发的措施>
-
-## ⚠ 风险与未验证项
-
-- <未能从日志直接证实但很可能存在的因素>
-- <用户侧需要补充提供的信息>
-```
+命令使用 `bash` fenced code block, 日志使用 `text`, 配置使用对应语言标识。与
+`easystack-env-debugging` 联合分析时继续使用同一模板, 不切换输出结构。
 
 ## Anti-Patterns (Don't)
 
@@ -129,7 +98,7 @@ files with `path:line` (clickable in terminals).
 
 ## High-Signal Diagnostic Moves(高确定性手段，能用就先用)
 
-> 这几个手段配合出现就能 5 分钟内把根因锁死，远比"读完几千行 log"快。
+> 这些手段用于优先缩小搜索范围。只有证据链完整时才能确认根因, 不承诺固定耗时。
 
 1. **同节点 / 同时段对照组**
    故障 VM A 失败的同时，看节点上其它 VM 是否都失败 / 都成功。

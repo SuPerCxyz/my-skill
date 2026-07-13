@@ -47,6 +47,12 @@ Step 子标题 (H3) 保持 "Step N: " 前缀, 中英文随正文语言。
 - 保持段落简洁, 避免大段说明; 细节拆到子文件, SKILL.md 只做入口与索引
 - 修改已有 skill 时, 优先在原有规则、段落或示例上改写/补充, 不要因单次反馈新增独立章节、长清单或过细案例规则
 - 只将跨场景、可复用、能改变 agent 行为的内容写入主入口; 单个资源、单个错误名或一次性排查经验不要写成通用规则
+- skill 文档不得固定具体模型名称或推理等级; 子代理选择统一服从当前会话
+  `AGENTS.md`、用户要求和平台可用能力
+- 每个 `SKILL.md` 必须包含 `Execution Feedback 执行反馈` 规则。执行过程中若出现
+  说明不清、重复尝试、工具或权限阻塞、失效路径、额外绕行等不流畅情况, 任务结束
+  时必须向用户报告触发位置、问题现象、实际影响、临时处理和优化建议。没有实际问题
+  时不输出空反馈; 反馈中的凭据和用户数据必须脱敏
 
 ### 标点
 
@@ -116,3 +122,18 @@ SKILL.md 必须包含一个文件索引表, 让 agent 知道何时查哪个文�
 3. 在 `share-skills` 中检查 diff, 确认只包含需要同步的 skill 内容。
 4. 分别提交并 push `my-skills` 和 `share-skills`。
 5. 如果 `share-skills` 存在未提交的非本次改动, 不要覆盖或回滚; 先向用户说明冲突范围。
+
+## Env / Log Analysis 双向同步规则
+
+`easystack-env-debugging` 与 `easystack-log-analysis` 共同维护历史故障联合分析和问题
+分析结论格式。修改其中任一 skill 的以下内容时, 必须同步检查并更新另一个 skill:
+
+- 在线环境与本地 `.eslog` / `ecs.*` 的路由和优先级
+- 故障时间窗、离线日志路径和多 bundle 选择规则
+- 问题分析结论的章节、必选/可选规则和复制格式
+
+两个 `report-format.md` 必须保持完全一致。完成修改后运行:
+
+```bash
+cmp easystack-env-debugging/report-format.md easystack-log-analysis/report-format.md
+```

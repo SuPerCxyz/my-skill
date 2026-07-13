@@ -12,7 +12,8 @@ conda activate easystack-<project>-py<version>
 
 Both `tox -e cover` and `tox -e pep8` run in this same environment. **Never run `tox` directly without activating conda first.**
 
-When fixing pep8 or coverage for a change, follow this loop until both pass:
+When fixing pep8 or coverage for a change, follow this loop until both pass or a stop condition
+below is reached:
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -43,6 +44,9 @@ When fixing pep8 or coverage for a change, follow this loop until both pass:
 ## Key Points
 
 - New tests may introduce test failures - fix those before moving on
+- Stop and report instead of continuing when the same failure remains after three targeted fixes,
+  the required change leaves the user-approved scope, or it requires dependency, root config,
+  shared contract, schema, CI, or environment changes without approval.
 - DONE only when all three conditions are met:
   1. `tox -e cover` passes (all tests pass)
   2. cover HTML shows zero `mis` and zero `par` lines for all modified files
@@ -50,11 +54,13 @@ When fixing pep8 or coverage for a change, follow this loop until both pass:
 - To identify which files were modified (latest commit + uncommitted changes):
   ```bash
   # All three combined: committed + staged + unstaged
-  git diff HEAD~1 --name-only
+  git diff HEAD^ --name-only
   git diff --name-only
   git diff --cached --name-only
   ```
-  Use this combined list to scope your HTML coverage checks.
+  Use this combined list only after confirming `HEAD` is the target Gerrit change.
+- After all checks pass, use [gerrit-delivery.md](gerrit-delivery.md) only when the user explicitly
+  asks to amend and upload the current change.
 
 ## Useful Commands During the Loop
 
@@ -64,6 +70,6 @@ When fixing pep8 or coverage for a change, follow this loop until both pass:
 | Run pep8 | `tox -e pep8` |
 | Isolate lint | `flake8 path/to/file.py` (Miniconda env already has flake8 via tox) |
 | Run one test | `stestr run <pattern>` (Miniconda env already has stestr via tox) |
-| List modified files | `git diff HEAD~1 --name-only` + `git diff --name-only` + `git diff --cached --name-only` |
+| List modified files | `git diff HEAD^ --name-only` + `git diff --name-only` + `git diff --cached --name-only` |
 | Check coverage | See [coverage.md](coverage.md) |
 | Test privsep code | See [privsep.md](privsep.md) |

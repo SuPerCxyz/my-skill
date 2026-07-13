@@ -11,10 +11,10 @@ Use this file as the ordered execution flow for media organization. Read the spe
   → 步骤3: 从 TMDB 获取元数据
   → 步骤4: 生成完整预览(不改文件)
   → 步骤5: 用户明确确认后执行
-  → 步骤6: 执行重命名 + 字幕跟随 + 目录重组
+  → 步骤6: 生成 mapping / rollback 后执行重命名
   → 步骤7: 生成 NFO 文件
   → 步骤8: 下载图片(含别名 hardlink)
-  → 步骤9: 生成回滚脚本 + 校验
+  → 步骤9: 完成 mapping + 校验回滚能力
 ```
 
 ## 步骤1: 扫描路径
@@ -140,7 +140,7 @@ Use this file as the ordered execution flow for media organization. Read the spe
 - 如有问题可调整参数后重新预览
 - 禁止在模糊回复下执行
 
-## 步骤6: 执行重命名
+## 步骤6: 准备回滚并执行重命名
 
 **执行模式:**
 
@@ -161,14 +161,14 @@ Use this file as the ordered execution flow for media organization. Read the spe
 
 **执行顺序:**
 
-1. 创建完整映射(old_path → new_path)
-2. 写入 `_rename_mapping.json`
-3. 按映射执行移动 / 重命名
-4. 生成 NFO 文件
-5. 下载图片
-6. 校验结果(检查每集是否已生成对应的 `-thumb.jpg`，根目录是否已有 `season{nn}-poster.jpg` 等图片)
-7. 删除空目录(确认无非本次处理文件)
-8. 生成 `_rollback.sh`
+1. 创建包含全部计划操作的 `_rename_mapping.json`
+2. 根据 mapping 生成 `_rollback.sh`, 并先执行 rollback dry-run 校验
+3. 按映射执行移动 / 重命名, 成功后原子更新 operation 状态
+4. 生成 NFO 前记录 `create` operation, 成功后记录 hash 和 `completed`
+5. 下载图片前记录 `create` operation, 成功后记录 hash 和 `completed`
+6. 删除空目录前记录 `rmdir` operation, 并再次确认目录为空
+7. 校验结果和 mapping 状态
+8. 再次执行 rollback dry-run, 确认所有已完成操作均可回滚
 
 **文件名安全清洗:**
 
@@ -255,7 +255,7 @@ Show-S01E01.en.ass
 - 最大并发数默认 4，可通过 `max_workers` 参数调整
 - 所有下载失败必须记录，不能阻断重命名主流程
 
-## 步骤9: 生成回滚脚本 + 校验
+## 步骤9: 完成 mapping + 校验回滚能力
 
 详见 `safety.md`。
 
@@ -269,8 +269,11 @@ Show-S01E01.en.ass
 - 如果只记录 size + mtime:`hash_type=none`, `hash=null`
 
 **回滚要求:**
-- 所有 rename / move 操作必须先写入 `_rename_mapping.json`
-- JSON 中记录 `old_path`、`new_path`、`hash_type`、`hash`、`size`、`mtime`、`operation`、`timestamp`
-- 回滚脚本默认只回滚 rename / move，不删除用户新增文件
-- 如果目标路径已经被其他文件占用，回滚中止并提示人工处理
-- 回滚脚本必须支持 dry-run
+- 所有计划操作必须在真实修改前写入 `_rename_mapping.json`
+- JSON 记录 `old_path`、`new_path`、`hash_type`、`hash`、`size`、`mtime`、
+  `operation`、`status`、`timestamp`
+- operation 至少支持 `rename`、`move`、`create`、`replace_backup`、`rmdir`
+- 回滚只删除 mapping 中状态为 `completed` 且 hash 匹配的本次新建文件
+- 替换已有文件时从本次备份恢复; 删除的空目录按 mapping 重建
+- 如果目标路径被其他文件占用或校验不匹配, 回滚中止并提示人工处理
+- `_rollback.sh` 必须在真实修改前生成并支持 dry-run

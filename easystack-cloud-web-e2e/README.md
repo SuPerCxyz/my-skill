@@ -1,16 +1,16 @@
 # EasyStack Cloud Web E2E
 
-EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browser` 提供可复用的原子操作、页面知识库和测试编排规范，支持云主机、云硬盘、网络等核心资源的 UI 操作自动化。它面向 EasyStack Cloud 页面, 不处理后端 SSH/Kubernetes 排查、离线 eslog 分析或代码仓库 CI。
+EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browser` 提供可复用的原子操作、页面知识库和测试编排规范,支持云主机、云硬盘、网络等核心资源的 UI 操作自动化。它面向 EasyStack Cloud 页面, 不处理后端 SSH/Kubernetes 排查、离线 eslog 分析或代码仓库 CI。
 
 ## 概述
 
-本项目是一个 Claude Code Skill，用于通过 `agent-browser` 对 EasyStack Cloud Web 页面执行 UI 自动化操作和端到端测试。核心设计原则:
+本项目是一个 Claude Code Skill,用于通过 `agent-browser` 对 EasyStack Cloud Web 页面执行 UI 自动化操作和端到端测试。核心设计原则:
 
-- **统一入口**:所有 UI 操作统一通过 `agent-browser` CLI 执行，不混合其他浏览器自动化框架。
-- **原子操作库**:页面交互封装为可复用的原子操作(`patterns/`)，返回结构化结果。
+- **统一入口**:所有 UI 操作统一通过 `agent-browser` CLI 执行,不混合其他浏览器自动化框架。
+- **原子操作库**:页面交互封装为可复用的原子操作(`patterns/`),返回结构化结果。
 - **页面知识库**:按资源域维护页面字段、定位方式和交互细节(`instance/`、`volume/`、`network/`、`image/`)。
 - **测试编排**:定义测试用例结构、编排流程和结果约定(`patterns.md`、`execution.md`)。
-- **减少 token 消耗**:多步骤页面动作合并为批量调用，不逐步依赖 snapshot。
+- **减少 token 消耗**:多步骤页面动作合并为批量调用,不逐步依赖 snapshot。
 
 ## 文档结构
 
@@ -29,7 +29,7 @@ EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browse
 
 ### 前置条件
 
-- `agent-browser` CLI(如未安装，会自动安装)
+- `agent-browser` CLI(如未安装, 报告建议命令并等待用户确认后安装)
 - EasyStack 云平台访问地址和凭据
 - 环境配置文件 `/tmp/easystack-env.json`
 
@@ -48,8 +48,8 @@ EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browse
 ### 典型使用流程
 
 1. **加载 Skill**:在 Claude Code 中调用 `easystack-cloud-web-e2e` skill。
-2. **准备环境**:确保 `agent-browser` 可用，加载版本匹配说明。
-3. **配置登录**:读取 `/tmp/easystack-env.json`，执行登录或复用会话。
+2. **准备环境**:确保 `agent-browser` 可用,加载版本匹配说明。
+3. **配置登录**:读取 `/tmp/easystack-env.json`,执行登录或复用会话。
 4. **选择操作**:根据任务从 `patterns/quick-reference.md` 选择原子操作。
 5. **执行用例**:按 `execution.md` 和 `patterns.md` 编排测试流程。
 6. **报告结果**:记录资源映射、执行结果和截图路径。
@@ -73,9 +73,9 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 
 | 状态 | 含义 |
 |------|------|
-| `ready-validated` | 已通过真实 EasyStack Web UI 用例验证，可直接使用 |
-| `ready-template` | 已补齐操作模板但尚未完成真实用例闭环验证，执行时需现场确认页面状态 |
-| `planned` | 仅保留操作名称清单，不作为当前可执行入口 |
+| `ready-validated` | 已通过真实 EasyStack Web UI 用例验证,可直接使用 |
+| `ready-template` | 已补齐操作模板但尚未完成真实用例闭环验证,执行时需现场确认页面状态 |
+| `planned` | 仅保留操作名称清单,不作为当前可执行入口 |
 
 ### 已验证可用的核心操作 (`ready-validated`)
 
@@ -95,12 +95,12 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 
 ### 执行硬规则
 
-- 所有 UI 操作统一通过 `agent-browser` 执行，不混合其他框架。
+- 所有 UI 操作统一通过 `agent-browser` 执行,不混合其他框架。
 - 多步骤页面动作合并到单次 `agent-browser eval --stdin` 或 `agent-browser batch`。
 - 不逐步依赖 snapshot 驱动操作;snapshot 只用于必要诊断。
-- 每个测试用例必须创建新的测试资源，不复用历史资源。
+- 每个测试用例必须创建新的测试资源,不复用历史资源。
 - 资源创建提交后未确认成功时记为 `creation_unconfirmed`。
-- 清理资源前必须先向用户说明待清理清单，得到确认后才执行。
+- 清理资源前必须先向用户说明待清理清单,得到确认后才执行。
 
 ### 资源命名
 
@@ -135,7 +135,8 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 
 ### 操作沉淀触发条件
 
-执行过程中发现以下情况时，必须更新 skill 文档:
+执行过程中发现以下情况时, 先在报告中记录 `skill_improvements`; 当前任务明确包含
+skill 维护或用户确认更新后, 再修改 skill 文档:
 
 - 同一页面动作可能被多个用例复用
 - 操作包含 3 步以上稳定页面交互
@@ -144,7 +145,7 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 ### 后台任务
 
 长耗时用例后台任务策略:
-- **Codex 场景**:默认使用 `gpt-5.4-mini` 模型、`reasoning_effort=medium`。
-- **Claude Code / OpenCode 场景**:按当前会话模型和推理强度执行，无需指定。
+- skill 不固定模型名称或推理等级; 后台任务按当前会话 `AGENTS.md`、用户要求和
+  平台可用能力选择。
 
-后台任务只负责执行用例和写报告，发现可沉淀操作时记录 `skill_improvements`，由主会话统一更新。
+后台任务只负责执行用例和写报告,发现可沉淀操作时记录 `skill_improvements`,由主会话统一更新。

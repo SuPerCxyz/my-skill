@@ -1,4 +1,4 @@
-# easystack-ui-test 基础层与路径口径收敛设计
+# easystack-cloud-web-e2e 基础层与路径口径收敛设计
 
 ## 背景
 
@@ -37,20 +37,20 @@
 
 以下文件属于本轮权威层，要求完成系统性收敛:
 
-- `easystack-ui-test/connection.md`
-- `easystack-ui-test/navigation.md`
-- `easystack-ui-test/SKILL.md`
+- `easystack-cloud-web-e2e/connection.md`
+- `easystack-cloud-web-e2e/navigation.md`
+- `easystack-cloud-web-e2e/SKILL.md`
 
 ### 直接冲突同步层
 
 以下文件不做整篇重构，但会修正会直接误导执行的冲突片段:
 
-- `easystack-ui-test/patterns/platform-info.md`
-- `easystack-ui-test/relationships.md`
-- `easystack-ui-test/network/network.md`
-- `easystack-ui-test/network/router.md`
-- `easystack-ui-test/network/vnic.md`
-- `easystack-ui-test/image/image.md`
+- `easystack-cloud-web-e2e/patterns/platform-info.md`
+- `easystack-cloud-web-e2e/relationships.md`
+- `easystack-cloud-web-e2e/network/network.md`
+- `easystack-cloud-web-e2e/network/router.md`
+- `easystack-cloud-web-e2e/network/vnic.md`
+- `easystack-cloud-web-e2e/image/image.md`
 
 ### 本轮不做
 
@@ -230,7 +230,7 @@
 从 /tmp/easystack-env.json 读取 platform.url / platform.username / platform.password
 ```
 
-本轮不承诺清理整个 `easystack-ui-test` 目录，但凡本轮触碰到的目标文件，
+本轮不承诺清理整个 `easystack-cloud-web-e2e` 目录，但凡本轮触碰到的目标文件，
 不应继续保留真实凭证。
 
 ## 验证标准

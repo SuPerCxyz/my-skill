@@ -1,4 +1,4 @@
-# easystack-ui-test Volume Network Implementation Plan
+# easystack-cloud-web-e2e Volume Network Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -13,18 +13,18 @@
 ### Task 1: Rebuild `volume-ops.md` Around a Stable Ready/Planned Contract
 
 **Files:**
-- Modify: `easystack-ui-test/patterns/volume-ops.md`
-- Reference: `easystack-ui-test/patterns/login.md`
-- Reference: `easystack-ui-test/patterns/instance-ops.md`
-- Reference: `docs/superpowers/specs/2026-06-17-easystack-ui-test-volume-network-design.md`
+- Modify: `easystack-cloud-web-e2e/patterns/volume-ops.md`
+- Reference: `easystack-cloud-web-e2e/patterns/login.md`
+- Reference: `easystack-cloud-web-e2e/patterns/instance-ops.md`
+- Reference: `docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-volume-network-design.md`
 
 - [ ] **Step 1: Review the current volume operations doc and identify the high-value entries**
 
 Run:
 
 ```bash
-sed -n '1,260p' easystack-ui-test/patterns/volume-ops.md
-rg -n "创建云硬盘|删除云硬盘|上传镜像|删除镜像|创建云硬盘快照|扩容云硬盘" easystack-ui-test/patterns/volume-ops.md
+sed -n '1,260p' easystack-cloud-web-e2e/patterns/volume-ops.md
+rg -n "创建云硬盘|删除云硬盘|上传镜像|删除镜像|创建云硬盘快照|扩容云硬盘" easystack-cloud-web-e2e/patterns/volume-ops.md
 ```
 
 Expected: confirm `create_volume`, `delete_volume`, and `upload_image` are the ready targets; the rest can move to a planned name list.
@@ -166,8 +166,8 @@ Expected: the old long-form legacy snippets are replaced by a narrow planned lis
 Run:
 
 ```bash
-rg -n "https://172\\.|pgc@qq.com|1234qwer|playwright.sync_api" easystack-ui-test/patterns/volume-ops.md
-rg -n "^## `create_volume`|^## `delete_volume`|^## `upload_image`|^## 待迁移操作" easystack-ui-test/patterns/volume-ops.md
+rg -n "https://172\\.|pgc@qq.com|1234qwer|playwright.sync_api" easystack-cloud-web-e2e/patterns/volume-ops.md
+rg -n "^## `create_volume`|^## `delete_volume`|^## `upload_image`|^## 待迁移操作" easystack-cloud-web-e2e/patterns/volume-ops.md
 ```
 
 Expected: the first command shows no matches; the second shows the three ready sections and the planned section.
@@ -175,18 +175,18 @@ Expected: the first command shows no matches; the second shows the three ready s
 ### Task 2: Rebuild `network-ops.md` Around a Stable Ready/Planned Contract
 
 **Files:**
-- Modify: `easystack-ui-test/patterns/network-ops.md`
-- Reference: `easystack-ui-test/patterns/login.md`
-- Reference: `easystack-ui-test/navigation.md`
-- Reference: `docs/superpowers/specs/2026-06-17-easystack-ui-test-volume-network-design.md`
+- Modify: `easystack-cloud-web-e2e/patterns/network-ops.md`
+- Reference: `easystack-cloud-web-e2e/patterns/login.md`
+- Reference: `easystack-cloud-web-e2e/navigation.md`
+- Reference: `docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-volume-network-design.md`
 
 - [ ] **Step 1: Review the current network operations doc and identify the ready targets**
 
 Run:
 
 ```bash
-sed -n '1,260p' easystack-ui-test/patterns/network-ops.md
-rg -n "分配浮动 IP|创建网络|创建路由器|关联额外网络|解除网络关联|编辑安全组" easystack-ui-test/patterns/network-ops.md
+sed -n '1,260p' easystack-cloud-web-e2e/patterns/network-ops.md
+rg -n "分配浮动 IP|创建网络|创建路由器|关联额外网络|解除网络关联|编辑安全组" easystack-cloud-web-e2e/patterns/network-ops.md
 ```
 
 Expected: confirm `allocate_floating_ip`, `create_network`, and `create_router` are the ready targets; the instance-side helper actions become planned names.
@@ -312,8 +312,8 @@ Expected: non-migrated network helpers are name-only entries rather than mixed o
 Run:
 
 ```bash
-rg -n "https://172\\.|pgc@qq.com|1234qwer|playwright.sync_api" easystack-ui-test/patterns/network-ops.md
-rg -n "^## `allocate_floating_ip`|^## `create_network`|^## `create_router`|^## 待迁移操作" easystack-ui-test/patterns/network-ops.md
+rg -n "https://172\\.|pgc@qq.com|1234qwer|playwright.sync_api" easystack-cloud-web-e2e/patterns/network-ops.md
+rg -n "^## `allocate_floating_ip`|^## `create_network`|^## `create_router`|^## 待迁移操作" easystack-cloud-web-e2e/patterns/network-ops.md
 ```
 
 Expected: the first command shows no matches; the second shows the three ready sections and the planned section.
@@ -321,16 +321,16 @@ Expected: the first command shows no matches; the second shows the three ready s
 ### Task 3: Sync `quick-reference.md` With the New Ready/Planned State
 
 **Files:**
-- Modify: `easystack-ui-test/patterns/quick-reference.md`
-- Reference: `easystack-ui-test/patterns/volume-ops.md`
-- Reference: `easystack-ui-test/patterns/network-ops.md`
+- Modify: `easystack-cloud-web-e2e/patterns/quick-reference.md`
+- Reference: `easystack-cloud-web-e2e/patterns/volume-ops.md`
+- Reference: `easystack-cloud-web-e2e/patterns/network-ops.md`
 
 - [ ] **Step 1: Review the current quick-reference rows for volume and network entries**
 
 Run:
 
 ```bash
-sed -n '1,120p' easystack-ui-test/patterns/quick-reference.md
+sed -n '1,120p' easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: identify the current `legacy` volume rows and the currently `planned` network name-only rows that must now be updated.
@@ -361,7 +361,7 @@ Expected: the quick-reference status board matches the actual file state.
 Run:
 
 ```bash
-rg -n "create_volume|delete_volume|upload_image|allocate_floating_ip|create_network|create_router|ready|planned" easystack-ui-test/patterns/quick-reference.md
+rg -n "create_volume|delete_volume|upload_image|allocate_floating_ip|create_network|create_router|ready|planned" easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: output shows all six ready entries and the remaining planned entries.
@@ -369,9 +369,9 @@ Expected: output shows all six ready entries and the remaining planned entries.
 ### Task 4: Run Final Verification for the Volume/Network Migration
 
 **Files:**
-- Verify: `easystack-ui-test/patterns/volume-ops.md`
-- Verify: `easystack-ui-test/patterns/network-ops.md`
-- Verify: `easystack-ui-test/patterns/quick-reference.md`
+- Verify: `easystack-cloud-web-e2e/patterns/volume-ops.md`
+- Verify: `easystack-cloud-web-e2e/patterns/network-ops.md`
+- Verify: `easystack-cloud-web-e2e/patterns/quick-reference.md`
 
 - [ ] **Step 1: Verify there are no real URLs or credentials in the migrated target docs**
 
@@ -379,9 +379,9 @@ Run:
 
 ```bash
 rg -n "https://172\\.|pgc@qq.com|1234qwer|Admin@ES20|test@passw0rd" \
-  easystack-ui-test/patterns/volume-ops.md \
-  easystack-ui-test/patterns/network-ops.md \
-  easystack-ui-test/patterns/quick-reference.md
+  easystack-cloud-web-e2e/patterns/volume-ops.md \
+  easystack-cloud-web-e2e/patterns/network-ops.md \
+  easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: no output.
@@ -392,8 +392,8 @@ Run:
 
 ```bash
 rg -n "^## `create_volume`|^## `delete_volume`|^## `upload_image`|^## `allocate_floating_ip`|^## `create_network`|^## `create_router`|^## 待迁移操作" \
-  easystack-ui-test/patterns/volume-ops.md \
-  easystack-ui-test/patterns/network-ops.md
+  easystack-cloud-web-e2e/patterns/volume-ops.md \
+  easystack-cloud-web-e2e/patterns/network-ops.md
 ```
 
 Expected: all six ready sections and both planned-name sections are present.
@@ -403,7 +403,7 @@ Expected: all six ready sections and both planned-name sections are present.
 Run:
 
 ```bash
-sed -n '1,140p' easystack-ui-test/patterns/quick-reference.md
+sed -n '1,140p' easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: `quick-reference.md` shows the six new ready entries and does not leave them as legacy/planned.
@@ -414,11 +414,11 @@ Run:
 
 ```bash
 git status --short -- \
-  docs/superpowers/specs/2026-06-17-easystack-ui-test-volume-network-design.md \
-  docs/superpowers/plans/2026-06-17-easystack-ui-test-volume-network-plan.md \
-  easystack-ui-test/patterns/volume-ops.md \
-  easystack-ui-test/patterns/network-ops.md \
-  easystack-ui-test/patterns/quick-reference.md
+  docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-volume-network-design.md \
+  docs/superpowers/plans/2026-06-17-easystack-cloud-web-e2e-volume-network-plan.md \
+  easystack-cloud-web-e2e/patterns/volume-ops.md \
+  easystack-cloud-web-e2e/patterns/network-ops.md \
+  easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: only the scoped spec/plan files and the three target docs appear.

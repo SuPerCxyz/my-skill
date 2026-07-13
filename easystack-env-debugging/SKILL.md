@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use for live EasyStack Kubernetes/OpenStack environment debugging through the bundled env-access script, especially logs-first root-cause checks for VM/server and cloud volume failures, plus explicitly authorized environment code debugging for new feature validation. Do not use for offline eslog, repo CI, Web UI E2E, or media/Windows tasks."
+description: "Use when debugging live EasyStack Kubernetes/OpenStack environments through the bundled env-access script, especially for logs-first root-cause checks. For older incidents with local `.eslog` or extracted `ecs.*` input, combine with `easystack-log-analysis`. Do not use for repo CI, Web UI E2E, or unrelated tasks."
 ---
 
 # EasyStack Environment Debugging
@@ -11,8 +11,9 @@ OpenStack 服务运行在 Kubernetes 中, 通常通过 Helm 部署在 `openstack
 本 skill 通过固化的 [env-access.sh](scripts/env-access.sh) 进入目标环境, 再执行
 kubectl、OpenStack CLI、日志和配置等只读排查命令。
 
-当目标是可访问的运行中环境时使用本 skill。离线 `.eslog` 包使用
-`easystack-log-analysis`; 仓库 CI 失败使用 `easystack-ci-test`;
+当目标是可访问的运行中环境时使用本 skill。仅分析离线 `.eslog` 或已解压的
+`ecs.*` 目录时使用 `easystack-log-analysis`; 历史故障同时涉及当前环境和本地离线
+日志时联合使用两个 skill。仓库 CI 失败使用 `easystack-ci-test`;
 EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
 
 ## Read-Only Safety Gate 只读安全门禁
@@ -95,6 +96,34 @@ port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配
 历史日志补齐。OpenStack CLI 状态查询只在日志线索需要补充上下文、需要确认关联
 server/volume, 或用户明确要求查看状态时使用。
 
+## Offline Historical Log Coordination 离线历史日志协同
+
+故障时间超出当前 pod 或 fluentd 的可用日志时间窗, 且用户提供本地 `.eslog` 文件
+或已解压的 `ecs.*` 目录时, MUST 同时加载并使用 `easystack-log-analysis`, 不要只
+依赖运行中环境的当前状态推断历史根因。用户明确要求结合本地离线日志时也直接触发,
+不再用主观的“时间较久”作为唯一判断条件。
+
+按以下顺序解析离线日志位置:
+
+1. 用户指定文件或目录路径时, 仅使用该路径。
+2. 用户未指定路径时, 只在当前工作目录查找 `.eslog` 文件和顶层 `ecs.*` 目录。
+3. 不要递归扫描当前工作目录以外的位置, 也不要把普通日志文件自动纳入此流程。
+4. 找不到匹配项时, 明确报告已检查的当前目录, 再向用户索取路径。
+5. 同一 bundle 同时存在 `.eslog` 和对应 `ecs.*` 时, 优先使用已解压目录。
+6. 存在多个候选时, 先按文件名时间窗与故障时间匹配; 多个候选都覆盖故障时间时
+   联合分析。用户未提供故障时间且无法唯一选择时, 再向用户确认。
+
+联合分析时, 用 `easystack-log-analysis` 确认离线包时间窗、解压并构建历史证据链;
+用本 skill 补充仍有价值的当前环境状态或执行验证。当前状态与历史日志不一致时,
+按事件发生时间区分证据, 不得用当前正常状态否定历史故障。最终结论统一按
+[report-format.md](report-format.md) 输出, 不使用表格; 离线证据保留本地 `file:line`
+引用, 在线证据标明 pod、服务、对象和时间。
+
+完成问题分析后, MUST 按 [report-format.md](report-format.md) 输出结论。问题分析结论
+禁止使用 Markdown 表格; 使用普通 Markdown 标题和列表组织内容, 命令、日志、配置
+可以使用独立的 fenced code block, 确保复制后保留换行和缩进。第 1 至第 4 节必须
+输出, 第 5 至第 8 节仅在有实际内容或确有必要时输出。
+
 ## Quick Reference 快速参考 - 文件索引
 
 | 需要做什么 | 阅读 |
@@ -103,6 +132,7 @@ server/volume, 或用户明确要求查看状态时使用。
 | 统一环境访问脚本, 登录链路封装后追加业务命令 | [scripts/env-access.sh](scripts/env-access.sh) |
 | JumpServer 菜单内部 fallback 脚本, 由统一访问脚本调用 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
 | 根因排查顺序、当前 pod 日志、fluentd 历史日志回退 | [logs.md](logs.md) |
+| 无表格、可复制的问题分析结论格式 | [report-format.md](report-format.md) |
 | 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
 | OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |
@@ -164,3 +194,15 @@ server/volume, 或用户明确要求查看状态时使用。
 3. **跨环境** — 不依赖特定版本或配置, 在不同部署中都有价值
 
 单个组件的细节、特定场景的一次性排查步骤, 不要写入 skill 文件。
+
+## Execution Feedback 执行反馈
+
+执行本 skill 时, 若规则不明确、工具限制导致绕行、同一步骤反复执行或流程无法顺利
+推进, 任务结束时必须向用户报告:
+
+- 触发位置和问题现象
+- 造成的中断、重复次数或额外开销
+- 实际采用的临时处理
+- 建议补充或修改的 skill 规则
+
+没有实际问题时不输出空反馈。反馈不得包含密码、token、cookie 或未脱敏的用户数据。

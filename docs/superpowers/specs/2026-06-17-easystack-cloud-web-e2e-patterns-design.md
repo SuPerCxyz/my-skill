@@ -1,8 +1,8 @@
-# easystack-ui-test patterns 层重构设计
+# easystack-cloud-web-e2e patterns 层重构设计
 
 ## 背景
 
-`easystack-ui-test` 当前已经形成了较完整的 UI 自动化知识库和
+`easystack-cloud-web-e2e` 当前已经形成了较完整的 UI 自动化知识库和
 操作示例，但 `patterns/` 目录作为“原子操作库”仍存在以下问题:
 
 - `SKILL.md` 声明统一使用 MCP Playwright 和
@@ -331,7 +331,7 @@ Playwright 模板。
 
 建议后续目标:
 
-- 对整个 `easystack-ui-test` 目录做一次去敏感化清理
+- 对整个 `easystack-cloud-web-e2e` 目录做一次去敏感化清理
 - 将所有样例统一替换为占位值或 env 配置引用
 - 明确“示例值”和“真实环境值”不能混写
 

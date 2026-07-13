@@ -1,8 +1,8 @@
-# easystack-ui-test Patterns Implementation Plan
+# easystack-cloud-web-e2e Patterns Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rework the `easystack-ui-test/patterns` core docs so they use one MCP Playwright contract, remove hard-coded credentials from the target docs, and publish a reusable instance-operations template.
+**Goal:** Rework the `easystack-cloud-web-e2e/patterns` core docs so they use one MCP Playwright contract, remove hard-coded credentials from the target docs, and publish a reusable instance-operations template.
 
 **Architecture:** Keep the work limited to documentation boundaries. `login.md` becomes the shared execution contract, `instance-ops.md` becomes the first domain-specific template with three migrated operations, and `quick-reference.md` becomes the index that declares migration state instead of pretending every operation is already a stable function.
 
@@ -13,17 +13,17 @@
 ### Task 1: Rebuild the Shared Login Contract
 
 **Files:**
-- Modify: `easystack-ui-test/patterns/login.md`
-- Reference: `easystack-ui-test/SKILL.md`
-- Reference: `docs/superpowers/specs/2026-06-17-easystack-ui-test-patterns-design.md`
+- Modify: `easystack-cloud-web-e2e/patterns/login.md`
+- Reference: `easystack-cloud-web-e2e/SKILL.md`
+- Reference: `docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-patterns-design.md`
 
 - [ ] **Step 1: Review the current login doc and record the required sections**
 
 Run:
 
 ```bash
-sed -n '1,220p' easystack-ui-test/patterns/login.md
-sed -n '1,220p' docs/superpowers/specs/2026-06-17-easystack-ui-test-patterns-design.md
+sed -n '1,220p' easystack-cloud-web-e2e/patterns/login.md
+sed -n '1,220p' docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-patterns-design.md
 ```
 
 Expected: confirm the new `login.md` must cover environment source, login contract, session reuse, waiting rules, notification cleanup, page verification, and a JS-only example.
@@ -112,7 +112,7 @@ Expected: the rewritten file contains no Python snippets, no real credentials, a
 Run:
 
 ```bash
-rg -n "playwright.sync_api|admin@example.org|pgc@qq.com|172\\.32|172\\.35|1234qwer|test@passw0rd|Admin@ES20" easystack-ui-test/patterns/login.md
+rg -n "playwright.sync_api|admin@example.org|pgc@qq.com|172\\.32|172\\.35|1234qwer|test@passw0rd|Admin@ES20" easystack-cloud-web-e2e/patterns/login.md
 ```
 
 Expected: no output.
@@ -120,17 +120,17 @@ Expected: no output.
 ### Task 2: Restructure Instance Operations Around a Stable Template
 
 **Files:**
-- Modify: `easystack-ui-test/patterns/instance-ops.md`
-- Reference: `easystack-ui-test/patterns/login.md`
-- Reference: `docs/superpowers/specs/2026-06-17-easystack-ui-test-patterns-design.md`
+- Modify: `easystack-cloud-web-e2e/patterns/instance-ops.md`
+- Reference: `easystack-cloud-web-e2e/patterns/login.md`
+- Reference: `docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-patterns-design.md`
 
 - [ ] **Step 1: Review the current instance operations file and mark the three operations to migrate first**
 
 Run:
 
 ```bash
-sed -n '1,260p' easystack-ui-test/patterns/instance-ops.md
-rg -n "创建 VM|删除 VM|挂载云硬盘" easystack-ui-test/patterns/instance-ops.md
+sed -n '1,260p' easystack-cloud-web-e2e/patterns/instance-ops.md
+rg -n "创建 VM|删除 VM|挂载云硬盘" easystack-cloud-web-e2e/patterns/instance-ops.md
 ```
 
 Expected: identify the current `create`, `delete`, and `attach volume` sections and confirm the rest can be left as legacy content.
@@ -293,8 +293,8 @@ Expected: readers can tell exactly which operations are migrated and which are n
 Run:
 
 ```bash
-rg -n "admin@example.org|pgc@qq.com|172\\.32|172\\.35|1234qwer|test@passw0rd|Admin@ES20|playwright.sync_api" easystack-ui-test/patterns/instance-ops.md
-rg -n "^## `create_instance`|^## `delete_instance`|^## `attach_volume`|^## 待迁移操作" easystack-ui-test/patterns/instance-ops.md
+rg -n "admin@example.org|pgc@qq.com|172\\.32|172\\.35|1234qwer|test@passw0rd|Admin@ES20|playwright.sync_api" easystack-cloud-web-e2e/patterns/instance-ops.md
+rg -n "^## `create_instance`|^## `delete_instance`|^## `attach_volume`|^## 待迁移操作" easystack-cloud-web-e2e/patterns/instance-ops.md
 ```
 
 Expected: the first command prints no matches; the second command shows the migrated operations and the legacy marker section.
@@ -302,18 +302,18 @@ Expected: the first command prints no matches; the second command shows the migr
 ### Task 3: Convert Quick Reference Into a Migration-Aware Index
 
 **Files:**
-- Modify: `easystack-ui-test/patterns/quick-reference.md`
-- Reference: `easystack-ui-test/patterns/login.md`
-- Reference: `easystack-ui-test/patterns/instance-ops.md`
-- Reference: `easystack-ui-test/patterns/volume-ops.md`
-- Reference: `easystack-ui-test/patterns/network-ops.md`
+- Modify: `easystack-cloud-web-e2e/patterns/quick-reference.md`
+- Reference: `easystack-cloud-web-e2e/patterns/login.md`
+- Reference: `easystack-cloud-web-e2e/patterns/instance-ops.md`
+- Reference: `easystack-cloud-web-e2e/patterns/volume-ops.md`
+- Reference: `easystack-cloud-web-e2e/patterns/network-ops.md`
 
 - [ ] **Step 1: Review the current quick reference and collect the operations that should stay visible**
 
 Run:
 
 ```bash
-sed -n '1,220p' easystack-ui-test/patterns/quick-reference.md
+sed -n '1,220p' easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: confirm the current file is a function list and identify which entries should be preserved in the new index.
@@ -374,7 +374,7 @@ Expected: the index becomes actionable instead of only descriptive.
 Run:
 
 ```bash
-rg -n "create_instance|delete_instance|attach_volume|ready|legacy" easystack-ui-test/patterns/quick-reference.md
+rg -n "create_instance|delete_instance|attach_volume|ready|legacy" easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: output shows the new legend and the three ready operations.
@@ -382,9 +382,9 @@ Expected: output shows the new legend and the three ready operations.
 ### Task 4: Run Final Documentation Verification
 
 **Files:**
-- Verify: `easystack-ui-test/patterns/login.md`
-- Verify: `easystack-ui-test/patterns/instance-ops.md`
-- Verify: `easystack-ui-test/patterns/quick-reference.md`
+- Verify: `easystack-cloud-web-e2e/patterns/login.md`
+- Verify: `easystack-cloud-web-e2e/patterns/instance-ops.md`
+- Verify: `easystack-cloud-web-e2e/patterns/quick-reference.md`
 
 - [ ] **Step 1: Verify there are no hard-coded credentials in the target docs**
 
@@ -392,9 +392,9 @@ Run:
 
 ```bash
 rg -n "admin@example.org|pgc@qq.com|172\\.32|172\\.35|1234qwer|test@passw0rd|Admin@ES20" \
-  easystack-ui-test/patterns/login.md \
-  easystack-ui-test/patterns/instance-ops.md \
-  easystack-ui-test/patterns/quick-reference.md
+  easystack-cloud-web-e2e/patterns/login.md \
+  easystack-cloud-web-e2e/patterns/instance-ops.md \
+  easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: no output.
@@ -405,9 +405,9 @@ Run:
 
 ```bash
 rg -n "playwright.sync_api|def login\\(|page\\.goto\\('|page\\.fill\\('|page\\.click\\('" \
-  easystack-ui-test/patterns/login.md \
-  easystack-ui-test/patterns/instance-ops.md \
-  easystack-ui-test/patterns/quick-reference.md
+  easystack-cloud-web-e2e/patterns/login.md \
+  easystack-cloud-web-e2e/patterns/instance-ops.md \
+  easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: no output from Python-specific patterns; JS examples may remain only in fenced `javascript` blocks using `async (page`.
@@ -417,9 +417,9 @@ Expected: no output from Python-specific patterns; JS examples may remain only i
 Run:
 
 ```bash
-sed -n '1,220p' easystack-ui-test/patterns/login.md
-sed -n '1,260p' easystack-ui-test/patterns/instance-ops.md
-sed -n '1,220p' easystack-ui-test/patterns/quick-reference.md
+sed -n '1,220p' easystack-cloud-web-e2e/patterns/login.md
+sed -n '1,260p' easystack-cloud-web-e2e/patterns/instance-ops.md
+sed -n '1,220p' easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: confirm the scope stayed limited to the three target docs and that the migrated operations are exactly `create_instance`, `delete_instance`, and `attach_volume`.
@@ -429,10 +429,10 @@ Expected: confirm the scope stayed limited to the three target docs and that the
 Run:
 
 ```bash
-git diff -- docs/superpowers/plans/2026-06-17-easystack-ui-test-patterns-plan.md \
-  easystack-ui-test/patterns/login.md \
-  easystack-ui-test/patterns/instance-ops.md \
-  easystack-ui-test/patterns/quick-reference.md
+git diff -- docs/superpowers/plans/2026-06-17-easystack-cloud-web-e2e-patterns-plan.md \
+  easystack-cloud-web-e2e/patterns/login.md \
+  easystack-cloud-web-e2e/patterns/instance-ops.md \
+  easystack-cloud-web-e2e/patterns/quick-reference.md
 ```
 
 Expected: diff only shows the planned documentation refactor and no unrelated file changes.

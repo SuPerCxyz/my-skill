@@ -1,8 +1,8 @@
-# easystack-ui-test Foundation Paths Implementation Plan
+# easystack-cloud-web-e2e Foundation Paths Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Unify the EasyStack UI test foundation docs around one MCP Playwright contract, one env schema, and one dual-track page-path model while removing sensitive samples from the touched files.
+**Goal:** Unify the EasyStack Cloud Web E2E foundation docs around one MCP Playwright contract, one env schema, and one dual-track page-path model while removing sensitive samples from the touched files.
 
 **Architecture:** Treat `connection.md`, `navigation.md`, and `SKILL.md` as the authority layer, then fix only the directly conflicting path fragments in a small set of downstream docs. Use “current primary path + historical/alias path + note” everywhere paths are authoritative, and keep non-authoritative docs narrowly patched instead of broadly rewritten.
 
@@ -13,19 +13,19 @@
 ### Task 1: Rebuild `connection.md` as the Authority for Env and Login Rules
 
 **Files:**
-- Modify: `easystack-ui-test/connection.md`
-- Reference: `easystack-ui-test/patterns/login.md`
-- Reference: `easystack-ui-test/SKILL.md`
-- Reference: `docs/superpowers/specs/2026-06-17-easystack-ui-test-foundation-paths-design.md`
+- Modify: `easystack-cloud-web-e2e/connection.md`
+- Reference: `easystack-cloud-web-e2e/patterns/login.md`
+- Reference: `easystack-cloud-web-e2e/SKILL.md`
+- Reference: `docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-foundation-paths-design.md`
 
 - [ ] **Step 1: Review the current connection doc and the new authority contract**
 
 Run:
 
 ```bash
-sed -n '1,220p' easystack-ui-test/connection.md
-sed -n '1,220p' easystack-ui-test/patterns/login.md
-sed -n '1,220p' docs/superpowers/specs/2026-06-17-easystack-ui-test-foundation-paths-design.md
+sed -n '1,220p' easystack-cloud-web-e2e/connection.md
+sed -n '1,220p' easystack-cloud-web-e2e/patterns/login.md
+sed -n '1,220p' docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-foundation-paths-design.md
 ```
 
 Expected: confirm `connection.md` must become an MCP Playwright authority doc for env source, login rules, session reuse, waiting, and verification; it must no longer look like a Python script tutorial.
@@ -111,7 +111,7 @@ Expected: the new file is JS-only, env-driven, de-sensitized, and aligned with `
 Run:
 
 ```bash
-rg -n "playwright.sync_api|admin@example.org|pgc@qq.com|172\\.32|172\\.35|1234qwer|test@passw0rd|Admin@ES20" easystack-ui-test/connection.md
+rg -n "playwright.sync_api|admin@example.org|pgc@qq.com|172\\.32|172\\.35|1234qwer|test@passw0rd|Admin@ES20" easystack-cloud-web-e2e/connection.md
 ```
 
 Expected: no output.
@@ -119,20 +119,20 @@ Expected: no output.
 ### Task 2: Rebuild `navigation.md` as the Authority for Menu and Path Baselines
 
 **Files:**
-- Modify: `easystack-ui-test/navigation.md`
-- Reference: `easystack-ui-test/patterns/platform-info.md`
-- Reference: `easystack-ui-test/network/network.md`
-- Reference: `easystack-ui-test/network/router.md`
-- Reference: `easystack-ui-test/network/vnic.md`
-- Reference: `easystack-ui-test/image/image.md`
+- Modify: `easystack-cloud-web-e2e/navigation.md`
+- Reference: `easystack-cloud-web-e2e/patterns/platform-info.md`
+- Reference: `easystack-cloud-web-e2e/network/network.md`
+- Reference: `easystack-cloud-web-e2e/network/router.md`
+- Reference: `easystack-cloud-web-e2e/network/vnic.md`
+- Reference: `easystack-cloud-web-e2e/image/image.md`
 
 - [ ] **Step 1: Review the current navigation doc and collect conflicting path systems**
 
 Run:
 
 ```bash
-sed -n '1,220p' easystack-ui-test/navigation.md
-rg -n "/neutron/|/ens/|/glance/|/container-registry/" easystack-ui-test/navigation.md easystack-ui-test/patterns/platform-info.md easystack-ui-test/network/network.md easystack-ui-test/network/router.md easystack-ui-test/network/vnic.md easystack-ui-test/image/image.md
+sed -n '1,220p' easystack-cloud-web-e2e/navigation.md
+rg -n "/neutron/|/ens/|/glance/|/container-registry/" easystack-cloud-web-e2e/navigation.md easystack-cloud-web-e2e/patterns/platform-info.md easystack-cloud-web-e2e/network/network.md easystack-cloud-web-e2e/network/router.md easystack-cloud-web-e2e/network/vnic.md easystack-cloud-web-e2e/image/image.md
 ```
 
 Expected: identify the current `/neutron/*` vs `/ens/*` and `/glance/*` vs `/container-registry/*` conflicts.
@@ -195,7 +195,7 @@ Expected: `navigation.md` becomes the authoritative path baseline and explicitly
 Run:
 
 ```bash
-rg -n "当前主路径|历史/别名路径|/ens/|/neutron/|/glance/|/container-registry/" easystack-ui-test/navigation.md
+rg -n "当前主路径|历史/别名路径|/ens/|/neutron/|/glance/|/container-registry/" easystack-cloud-web-e2e/navigation.md
 ```
 
 Expected: output shows the authority table and the dual-track wording.
@@ -203,18 +203,18 @@ Expected: output shows the authority table and the dual-track wording.
 ### Task 3: Align `SKILL.md` With the New Authority Layer and Remove Sensitive Samples
 
 **Files:**
-- Modify: `easystack-ui-test/SKILL.md`
-- Reference: `easystack-ui-test/connection.md`
-- Reference: `easystack-ui-test/navigation.md`
-- Reference: `easystack-ui-test/patterns/login.md`
+- Modify: `easystack-cloud-web-e2e/SKILL.md`
+- Reference: `easystack-cloud-web-e2e/connection.md`
+- Reference: `easystack-cloud-web-e2e/navigation.md`
+- Reference: `easystack-cloud-web-e2e/patterns/login.md`
 
 - [ ] **Step 1: Review `SKILL.md` sections that duplicate env, login, and path rules**
 
 Run:
 
 ```bash
-sed -n '1,280p' easystack-ui-test/SKILL.md
-rg -n "platform\\.url|platform\\.username|platform\\.password|/auth_login|/ens/|/neutron/|/glance/|/container-registry|1234qwer|pgc@qq.com|172\\.32|172\\.35" easystack-ui-test/SKILL.md
+sed -n '1,280p' easystack-cloud-web-e2e/SKILL.md
+rg -n "platform\\.url|platform\\.username|platform\\.password|/auth_login|/ens/|/neutron/|/glance/|/container-registry|1234qwer|pgc@qq.com|172\\.32|172\\.35" easystack-cloud-web-e2e/SKILL.md
 ```
 
 Expected: identify the duplicated env schema, path statements, and real credential examples that should now defer to `connection.md` and `navigation.md`.
@@ -266,7 +266,7 @@ Expected: no real URL, username, or password remain in touched sections.
 Run:
 
 ```bash
-rg -n "pgc@qq.com|1234qwer|172\\.32|172\\.35|Admin@ES20|test@passw0rd" easystack-ui-test/SKILL.md
+rg -n "pgc@qq.com|1234qwer|172\\.32|172\\.35|Admin@ES20|test@passw0rd" easystack-cloud-web-e2e/SKILL.md
 ```
 
 Expected: no output.
@@ -274,20 +274,20 @@ Expected: no output.
 ### Task 4: Sync Directly Conflicting Downstream Path Fragments to the Authority Model
 
 **Files:**
-- Modify: `easystack-ui-test/patterns/platform-info.md`
-- Modify: `easystack-ui-test/relationships.md`
-- Modify: `easystack-ui-test/network/network.md`
-- Modify: `easystack-ui-test/network/router.md`
-- Modify: `easystack-ui-test/network/vnic.md`
-- Modify: `easystack-ui-test/image/image.md`
-- Reference: `easystack-ui-test/navigation.md`
+- Modify: `easystack-cloud-web-e2e/patterns/platform-info.md`
+- Modify: `easystack-cloud-web-e2e/relationships.md`
+- Modify: `easystack-cloud-web-e2e/network/network.md`
+- Modify: `easystack-cloud-web-e2e/network/router.md`
+- Modify: `easystack-cloud-web-e2e/network/vnic.md`
+- Modify: `easystack-cloud-web-e2e/image/image.md`
+- Reference: `easystack-cloud-web-e2e/navigation.md`
 
 - [ ] **Step 1: Review the directly conflicting downstream path fragments**
 
 Run:
 
 ```bash
-rg -n "/neutron/|/ens/|/glance/|/container-registry/" easystack-ui-test/patterns/platform-info.md easystack-ui-test/relationships.md easystack-ui-test/network/network.md easystack-ui-test/network/router.md easystack-ui-test/network/vnic.md easystack-ui-test/image/image.md
+rg -n "/neutron/|/ens/|/glance/|/container-registry/" easystack-cloud-web-e2e/patterns/platform-info.md easystack-cloud-web-e2e/relationships.md easystack-cloud-web-e2e/network/network.md easystack-cloud-web-e2e/network/router.md easystack-cloud-web-e2e/network/vnic.md easystack-cloud-web-e2e/image/image.md
 ```
 
 Expected: collect the exact lines that need dual-track wording or direct path correction.
@@ -327,7 +327,7 @@ Expected: only the directly conflicting path statements are changed; the rest of
 Run:
 
 ```bash
-rg -n "当前主路径|历史/别名路径|/neutron/|/ens/|/glance/|/container-registry/" easystack-ui-test/patterns/platform-info.md easystack-ui-test/relationships.md easystack-ui-test/network/network.md easystack-ui-test/network/router.md easystack-ui-test/network/vnic.md easystack-ui-test/image/image.md
+rg -n "当前主路径|历史/别名路径|/neutron/|/ens/|/glance/|/container-registry/" easystack-cloud-web-e2e/patterns/platform-info.md easystack-cloud-web-e2e/relationships.md easystack-cloud-web-e2e/network/network.md easystack-cloud-web-e2e/network/router.md easystack-cloud-web-e2e/network/vnic.md easystack-cloud-web-e2e/image/image.md
 ```
 
 Expected: output shows dual-track wording instead of unexplained conflicting single-path statements.
@@ -335,15 +335,15 @@ Expected: output shows dual-track wording instead of unexplained conflicting sin
 ### Task 5: Run Final Foundation-Layer Verification
 
 **Files:**
-- Verify: `easystack-ui-test/connection.md`
-- Verify: `easystack-ui-test/navigation.md`
-- Verify: `easystack-ui-test/SKILL.md`
-- Verify: `easystack-ui-test/patterns/platform-info.md`
-- Verify: `easystack-ui-test/relationships.md`
-- Verify: `easystack-ui-test/network/network.md`
-- Verify: `easystack-ui-test/network/router.md`
-- Verify: `easystack-ui-test/network/vnic.md`
-- Verify: `easystack-ui-test/image/image.md`
+- Verify: `easystack-cloud-web-e2e/connection.md`
+- Verify: `easystack-cloud-web-e2e/navigation.md`
+- Verify: `easystack-cloud-web-e2e/SKILL.md`
+- Verify: `easystack-cloud-web-e2e/patterns/platform-info.md`
+- Verify: `easystack-cloud-web-e2e/relationships.md`
+- Verify: `easystack-cloud-web-e2e/network/network.md`
+- Verify: `easystack-cloud-web-e2e/network/router.md`
+- Verify: `easystack-cloud-web-e2e/network/vnic.md`
+- Verify: `easystack-cloud-web-e2e/image/image.md`
 
 - [ ] **Step 1: Verify touched authority files contain no real credentials**
 
@@ -351,15 +351,15 @@ Run:
 
 ```bash
 rg -n "pgc@qq.com|1234qwer|172\\.32|172\\.35|Admin@ES20|test@passw0rd" \
-  easystack-ui-test/connection.md \
-  easystack-ui-test/navigation.md \
-  easystack-ui-test/SKILL.md \
-  easystack-ui-test/patterns/platform-info.md \
-  easystack-ui-test/relationships.md \
-  easystack-ui-test/network/network.md \
-  easystack-ui-test/network/router.md \
-  easystack-ui-test/network/vnic.md \
-  easystack-ui-test/image/image.md
+  easystack-cloud-web-e2e/connection.md \
+  easystack-cloud-web-e2e/navigation.md \
+  easystack-cloud-web-e2e/SKILL.md \
+  easystack-cloud-web-e2e/patterns/platform-info.md \
+  easystack-cloud-web-e2e/relationships.md \
+  easystack-cloud-web-e2e/network/network.md \
+  easystack-cloud-web-e2e/network/router.md \
+  easystack-cloud-web-e2e/network/vnic.md \
+  easystack-cloud-web-e2e/image/image.md
 ```
 
 Expected: no output.
@@ -370,8 +370,8 @@ Run:
 
 ```bash
 rg -n "playwright.sync_api|def login\\(|page\\.goto\\('|page\\.fill\\('|page\\.click\\('" \
-  easystack-ui-test/connection.md \
-  easystack-ui-test/navigation.md
+  easystack-cloud-web-e2e/connection.md \
+  easystack-cloud-web-e2e/navigation.md
 ```
 
 Expected: no output.
@@ -382,9 +382,9 @@ Run:
 
 ```bash
 rg -n "platform\\.url|platform\\.username|platform\\.password" \
-  easystack-ui-test/connection.md \
-  easystack-ui-test/SKILL.md \
-  easystack-ui-test/patterns/login.md
+  easystack-cloud-web-e2e/connection.md \
+  easystack-cloud-web-e2e/SKILL.md \
+  easystack-cloud-web-e2e/patterns/login.md
 ```
 
 Expected: all three files use the same `platform.*` contract.
@@ -395,13 +395,13 @@ Run:
 
 ```bash
 rg -n "当前主路径|历史/别名路径" \
-  easystack-ui-test/navigation.md \
-  easystack-ui-test/patterns/platform-info.md \
-  easystack-ui-test/relationships.md \
-  easystack-ui-test/network/network.md \
-  easystack-ui-test/network/router.md \
-  easystack-ui-test/network/vnic.md \
-  easystack-ui-test/image/image.md
+  easystack-cloud-web-e2e/navigation.md \
+  easystack-cloud-web-e2e/patterns/platform-info.md \
+  easystack-cloud-web-e2e/relationships.md \
+  easystack-cloud-web-e2e/network/network.md \
+  easystack-cloud-web-e2e/network/router.md \
+  easystack-cloud-web-e2e/network/vnic.md \
+  easystack-cloud-web-e2e/image/image.md
 ```
 
 Expected: touched path-authority fragments use the dual-track wording.
@@ -412,17 +412,17 @@ Run:
 
 ```bash
 git status --short -- \
-  docs/superpowers/specs/2026-06-17-easystack-ui-test-foundation-paths-design.md \
-  docs/superpowers/plans/2026-06-17-easystack-ui-test-foundation-paths-plan.md \
-  easystack-ui-test/connection.md \
-  easystack-ui-test/navigation.md \
-  easystack-ui-test/SKILL.md \
-  easystack-ui-test/patterns/platform-info.md \
-  easystack-ui-test/relationships.md \
-  easystack-ui-test/network/network.md \
-  easystack-ui-test/network/router.md \
-  easystack-ui-test/network/vnic.md \
-  easystack-ui-test/image/image.md
+  docs/superpowers/specs/2026-06-17-easystack-cloud-web-e2e-foundation-paths-design.md \
+  docs/superpowers/plans/2026-06-17-easystack-cloud-web-e2e-foundation-paths-plan.md \
+  easystack-cloud-web-e2e/connection.md \
+  easystack-cloud-web-e2e/navigation.md \
+  easystack-cloud-web-e2e/SKILL.md \
+  easystack-cloud-web-e2e/patterns/platform-info.md \
+  easystack-cloud-web-e2e/relationships.md \
+  easystack-cloud-web-e2e/network/network.md \
+  easystack-cloud-web-e2e/network/router.md \
+  easystack-cloud-web-e2e/network/vnic.md \
+  easystack-cloud-web-e2e/image/image.md
 ```
 
 Expected: only the scoped spec/plan files and the touched authority/sync docs appear.

@@ -1,6 +1,6 @@
 ---
 name: easystack-log-analysis
-description: "Use for offline EasyStack `.eslog` bundle decompression and root-cause analysis across OpenStack, Kubernetes, OS, Ceph, RabbitMQ, MariaDB, and operation history logs. Do not use for live SSH/kubectl environment inspection, repository CI failures, Web UI E2E execution, or generic log files unrelated to EasyStack eslog."
+description: "Use when analyzing offline EasyStack `.eslog` bundles or extracted `ecs.*` directories across OpenStack, Kubernetes, OS, Ceph, RabbitMQ, MariaDB, and operation history. Combine with `easystack-env-debugging` for older incidents that also require live checks. Do not use for unrelated generic logs."
 ---
 
 # EasyStack Log Analysis
@@ -13,15 +13,20 @@ EasyStack 诊断日志以带密码的 `.eslog` 文件形式下发。解压后得
 
 ## Scope Boundary 适用边界
 
-适用于用户提供 `.eslog` 或已解压 `ecs.*` 目录的离线分析。若需要登录运行中环境执行 kubectl/SSH 检查, 使用 `easystack-env-debugging`; 若需要修复代码仓库测试, 使用 `easystack-ci-test`; 若需要操作 Web 页面完成 E2E, 使用 `easystack-cloud-web-e2e`。
+适用于用户提供 `.eslog` 或已解压 `ecs.*` 目录的离线分析。历史故障同时需要登录
+运行中环境执行 kubectl/SSH 检查时, MUST 联合使用 `easystack-env-debugging`, 并以两个
+skill 共同维护的无表格报告格式输出。代码仓库测试使用 `easystack-ci-test`; Web 页面
+E2E 使用 `easystack-cloud-web-e2e`。
 
 ## Quick Reference 快速参考
 
 | 需要做什么 | 阅读 |
 |------------|------|
 | **标准端到端分析流程 + 报告模板** | [analysis-playbook.md](analysis-playbook.md) |
+| 无表格、可复制的问题分析结论格式 | [report-format.md](report-format.md) |
 | **跨域关联分析矩阵(云主机/云盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
 | 解压 eslog 文件 | [decompress.md](decompress.md) |
+| 安全解压脚本 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) |
 | 日志行格式(wrapper / 字段 / awk 配方) | [log-format.md](log-format.md) |
 | 日志目录结构映射 | [directory-map.md](directory-map.md) |
 | 按问题类型检索的模式 | [search-patterns.md](search-patterns.md) |
@@ -31,14 +36,17 @@ EasyStack 诊断日志以带密码的 `.eslog` 文件形式下发。解压后得
 
 ### Step 1: 解压
 
-运行解压脚本(一次性处理当前目录下所有 `.eslog`):
+用户指定路径时显式传给 `--input`; 未指定时脚本默认处理当前目录顶层的所有
+`.eslog`。输出目录默认是当前目录, 也可通过 `--output` 指定:
 
 ```bash
-# Decompress all .eslog files in current directory
-./decompress_eslog.sh
+bash scripts/decompress-eslog.sh --input <FILE_OR_DIR> --output <OUTPUT_DIR>
 ```
 
-输出: `ecs.<host>.<date>..[N]/` 目录(每个 host 一个)。
+输出: `ecs.<host>.<date>.<N>/` 目录(每个 host 一个)。再次解压时直接合并同名目录:
+同路径文件使用新内容覆盖, 新文件追加, 本次 bundle 未包含的旧文件保留。不要因已有
+结果而跳过解压。默认保留 `.log.gz` 以避免大 bundle 耗尽磁盘; 只有确认空间充足
+时才传 `--decompress-logs`。
 
 > **时间窗提示**: eslog 文件名本身编码了采集时间范围:
 > `ecs.20260618-20260623183823.eslog` = 2026-06-18 00:00 -> 2026-06-23 18:38:23。
@@ -143,7 +151,7 @@ grep -r "req-<REQ_UUID>" .
 4. `alcubierre/alcubierre-node.*.log` - iSCSI 连接
 5. `os/messages.*.log` - 系统层错误
 
-同时探测**上游基础设施** - 约 30% 的多服务问题最终追溯到这些层:
+同时探测**上游基础设施**。多服务问题常会追溯到这些层, 不能只检查业务服务:
 
 - `openstack/mariadb/mariadb.*.log` -- Galera WSREP 状态
 - `openstack/rabbitmq/rabbitmq.*.log` -- AMQP 脑裂 / 断连
@@ -151,14 +159,23 @@ grep -r "req-<REQ_UUID>" .
 - `ceph/host.ceph.*.log` -- 集群健康
 - `openstack/dozer/bash-history.*.log` -- 最近运维动作
 
-### Step 7: 用报告模板汇总
+### Step 7: Report 汇总报告
 
-用 [analysis-playbook.md](analysis-playbook.md) 定义的结构化输出格式:
+MUST 使用 [report-format.md](report-format.md) 的无表格结构。第 1 至第 4 节固定输出,
+第 5 至第 8 节按实际需要输出。关键时间线使用普通 Markdown 列表, 命令、日志和配置
+使用 fenced code block。每条结论用 `path/to/file:line` 引证, 便于用户审计证据链。
 
-- **结论**(1-2 句)
-- **关键时间线**(表格, 多源, 按 wrapper TS 排序)
-- **根因分析**(现象 -> 证据 -> 推导, 附 file:line 引用)
-- **处置建议**(立即 / 根因 / 预防)
-- **风险与未验证项**
+与 `easystack-env-debugging` 联合分析时, 两个 skill 使用相同模板, 不再切换为表格或
+其他报告结构。
 
-每条结论用 `path/to/file:line` 引证, 便于用户审计证据链。
+## Execution Feedback 执行反馈
+
+执行本 skill 时, 若规则不明确、工具限制导致绕行、同一步骤反复执行或流程无法顺利
+推进, 任务结束时必须向用户报告:
+
+- 触发位置和问题现象
+- 造成的中断、重复次数或额外开销
+- 实际采用的临时处理
+- 建议补充或修改的 skill 规则
+
+没有实际问题时不输出空反馈。反馈不得包含密码、token、cookie 或未脱敏的用户数据。

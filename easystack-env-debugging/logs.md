@@ -1,7 +1,9 @@
 # Logs
 
-当问题涉及可访问环境中的运行时日志时阅读本文件。离线 `.eslog` 包应使用
-log-analysis skill。
+当问题涉及可访问环境中的运行时日志时阅读本文件。仅分析离线 `.eslog` 或已解压
+`ecs.*` 目录时使用 `easystack-log-analysis`。若问题发生时间较久且本地同时存在
+这两类离线日志, 按 [SKILL.md](SKILL.md#offline-historical-log-coordination-离线历史日志协同)
+联合使用两个 skill。
 
 ## Log Lookup Order 日志查询顺序
 

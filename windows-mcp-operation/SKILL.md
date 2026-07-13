@@ -1,11 +1,11 @@
 ---
 name: windows-mcp-operation
-description: "Use when operating a real Windows desktop through windows-mcp: screenshots, UI tree, windows, mouse/keyboard, PowerShell, files, registry, processes, clipboard, and notifications. Do not use for browser-page automation better handled by Playwright/agent-browser, ordinary shell tasks, platform-specific workflows, or non-Windows environments."
+description: "Use when operating a real Windows desktop through windows-mcp: screenshots, UI tree, windows, mouse/keyboard, PowerShell, files, registry, processes, clipboard, and notifications. Do not use for browser-page automation better handled by agent-browser, ordinary shell tasks, platform-specific workflows, or non-Windows environments."
 ---
 
 # Windows MCP
 
-通过 windows-mcp server 操作和观察真实 Windows 桌面，包括截屏、窗口控制、鼠标键盘操作、系统管理等。
+通过 windows-mcp server 操作和观察真实 Windows 桌面,包括截屏、窗口控制、鼠标键盘操作、系统管理等。
 
 ## Scope Boundary 适用边界
 
@@ -16,7 +16,7 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 | 场景 | 首选工具 | 备注 |
 |------|----------|------|
 | 查看桌面 / 截屏 | `Snapshot` | 需 UI 元素坐标时加 `use_ui_tree: true` |
-| 快速纯截图 | `Screenshot` | 无 UI 树，速度更快 |
+| 快速纯截图 | `Screenshot` | 无 UI 树,速度更快 |
 | 启动应用 | `App` mode=launch | 需开始菜单中的完整名称 |
 | 切换窗口 | `App` mode=switch | 支持部分名称匹配 |
 | 调整窗口大小/位置 | `App` mode=resize | 省略 name 则操作活动窗口 |
@@ -28,7 +28,7 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 | 批量填表 | `MultiEdit` | labels 或 locs 模式 |
 | 等待 UI 就绪 | `WaitFor` | 支持 text/element/window 条件 |
 | 固定等待 | `Wait` | 秒级暂停 |
-| 执行命令/脚本 | `PowerShell` | Status Code 始终为 0，需检查输出 |
+| 执行命令/脚本 | `PowerShell` | Status Code 始终为 0,需检查输出 |
 | 进程查看/终止 | `Process` | mode=list / mode=kill |
 | 文件操作 | `FileSystem` | read/write/copy/move/delete/list/search/info |
 | 注册表 | `Registry` | get/set/delete/list |
@@ -53,7 +53,7 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 
 ## When NOT to Use This Skill 何时不应使用本 skill
 
-- 浏览器内操作(导航、填表、点击网页元素)→ 用 Playwright MCP
+- 浏览器内操作(导航、填表、点击网页元素) -> 用 `agent-browser`
 - 纯命令行 / shell 操作 → 直接用 Bash
 - 不需要与 Windows 桌面交互的任何任务
 - 判断标准:是否需要操作真实的 Windows 窗口、图标、桌面应用
@@ -61,8 +61,21 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 ## Key Reminders 关键提醒
 
 - 操作前先 `Snapshot` 确认桌面状态
-- `Type` / `Move` / `Click` 的 `label` 必须为整数 ID，非字符串
-- `PowerShell` 返回的 Status Code 始终为 0，需检查输出内容
+- `Type` / `Move` / `Click` 的 `label` 必须为整数 ID,非字符串
+- `PowerShell` 返回的 Status Code 始终为 0,需检查输出内容
 - `App` launch 需要完整应用名(由 `Snapshot` UI 树获取)
-- 截图功能需安装 `mss`:`uv tool install windows-mcp --with mss --force`
-- 远程桌面中窗口枚举可能不稳定，优先使用 UI 树替代
+- 截图功能缺少 `mss` 时先报告安装命令和影响, 等待用户明确确认后再运行
+  `uv tool install windows-mcp --with mss --force`
+- 远程桌面中窗口枚举可能不稳定,优先使用 UI 树替代
+
+## Execution Feedback 执行反馈
+
+执行本 skill 时, 若规则不明确、工具限制导致绕行、同一步骤反复执行或流程无法顺利
+推进, 任务结束时必须向用户报告:
+
+- 触发位置和问题现象
+- 造成的中断、重复次数或额外开销
+- 实际采用的临时处理
+- 建议补充或修改的 skill 规则
+
+没有实际问题时不输出空反馈。反馈不得包含密码、token、cookie 或未脱敏的用户数据。

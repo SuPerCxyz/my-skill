@@ -5,20 +5,25 @@ Use this file when `tox -e cover` reports missing coverage or test failures rela
 ## 0. Scope - Which Files to Check
 
 The coverage report covers the **entire project**, but you only need to ensure
-100% coverage for files modified in the current change set. This includes both:
+100% coverage for files modified in the current change set. Current `HEAD` must be the Gerrit
+change being updated. The scope includes both:
 
-1. The latest unmerged commit on the current branch
+1. The current `HEAD` commit relative to its parent
 2. All uncommitted changes (staged and unstaged)
 
 ```bash
-# List all modified files: committed (latest) + uncommitted (staged + unstaged)
-git diff HEAD~1 --name-only   # files changed in latest commit
+# List all modified files: current HEAD + uncommitted changes
+git diff HEAD^ --name-only    # files changed in the current Gerrit change
 git diff --name-only          # unstaged changes
 git diff --cached --name-only # staged but not committed changes
 ```
 
 Every line in these modified files must be covered - zero `mis` (missing) and
 zero `par` (partial) in the HTML report. Lines in untouched files are out of scope.
+
+Before using `HEAD^`, verify that `HEAD` has a parent and its commit message contains the target
+`Change-Id`. If either check fails, stop and ask the user to identify the Gerrit change; do not
+silently fall back to another base.
 
 ## 1. Find Uncovered Lines
 
