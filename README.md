@@ -10,7 +10,7 @@
 | [easystack-ci-test](easystack-ci-test/) | EasyStack OpenStack 项目 CI 验证与定向修复, 通过后按授权 amend 当前 Gerrit change 并用指定 remote 续提 |
 | [easystack-cloud-web-e2e](easystack-cloud-web-e2e/) | EasyStack 云平台 Web UI 端到端自动化测试 — 基于 agent-browser 的原子操作库、页面知识库与测试编排规范，支持云主机 / 云硬盘 / 网络等资源操作的 UI 自动化 |
 | [easystack-env-debugging](easystack-env-debugging/) | EasyStack 环境后台日志优先根因排查和授权代码调试, 历史故障可联合本地 `.eslog` / `ecs.*` 离线分析 |
-| [easystack-log-analysis](easystack-log-analysis/) | EasyStack `.eslog` 安全解压、跨服务跨节点根因定位, 与 env-debugging 使用相同的无表格报告格式 |
+| [easystack-log-analysis](easystack-log-analysis/) | EasyStack `.eslog` 安全解压、跨服务跨节点根因定位, 与 env-debugging 使用相同的行首安全、无表格报告格式 |
 | [media-library-organizer](media-library-organizer/) | 媒体库 TMDB 刮削、重命名、NFO 和图片整理, 默认 dry-run 并为全部本次修改生成回滚计划 |
 | [windows-mcp-operation](windows-mcp-operation/) | 通过 windows-mcp 操作真实 Windows 桌面和系统工具, 浏览器页面操作交由 agent-browser |
 

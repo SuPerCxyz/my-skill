@@ -8,6 +8,9 @@ Use this file when the user explicitly asks to modify live environment code,
 debug a new feature, validate a code change in the environment, or temporarily
 overlay runtime code for diagnosis.
 
+代码调试可以是调用本 skill 的主要目标, 不需要先证明环境存在故障, 也不需要先执行
+完整根因调查。只做足以确认目标服务、当前版本、运行位置和回滚基线的最小只读检查。
+
 使用此工作流前, 必须获得用户对目标服务、目标节点、待修改文件、回滚方式和验证命令的明确授权。
 进入环境仍必须先使用 [access.md](access.md) 中的统一访问脚本; `scp` 只是在用户
 授权后传递文件的动作, 不能作为默认环境登录方式。
@@ -44,3 +47,17 @@ exec /usr/bin/python3 -m <service>.main
 | cinder-volume | `/opt/cinder/` | `/opt/cinder/` |
 | nova-compute | `/opt/nova-compute/` | `/opt/nova-compute/` |
 | nova-api-os-compute | `/opt/nova-api-os-compute/` | `/opt/nova-api-os-compute/` |
+
+## Result Report 调试结果
+
+纯代码调试完成后报告以下内容, 不套用问题分析结论的第 1 至第 8 节模板:
+
+1. 授权范围: 环境、服务、节点、文件和允许的变更动作。
+2. 调试基线: 修改前版本、pod、文件状态和关键行为。
+3. 实际改动: 传入文件、overlay 路径、启动脚本或重启范围。
+4. 验证结果: 已执行命令、预期结果、实际结果和未执行项。
+5. 回滚状态: 回滚命令或备份位置, 以及当前是否已回滚。
+6. 剩余风险: 临时改动、跨节点差异、pod 重建影响和后续动作。
+
+任务同时包含故障根因判断时, 另按 [report-format.md](report-format.md) 输出问题分析
+结论, 再附上述代码调试记录。

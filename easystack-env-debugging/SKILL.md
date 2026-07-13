@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use when debugging live EasyStack Kubernetes/OpenStack environments through the bundled env-access script, especially for logs-first root-cause checks. For older incidents with local `.eslog` or extracted `ecs.*` input, combine with `easystack-log-analysis`. Do not use for repo CI, Web UI E2E, or unrelated tasks."
+description: "Use when accessing a live EasyStack Kubernetes/OpenStack environment through env-access for logs-first incident investigation or authorized code debugging, overlay changes, and new feature validation. For older incidents with local `.eslog` or extracted `ecs.*`, combine with `easystack-log-analysis`. Do not use for repo CI or Web UI E2E."
 ---
 
 # EasyStack Environment Debugging
@@ -8,13 +8,25 @@ description: "Use when debugging live EasyStack Kubernetes/OpenStack environment
 ## Overview 概览
 
 OpenStack 服务运行在 Kubernetes 中, 通常通过 Helm 部署在 `openstack` namespace。
-本 skill 通过固化的 [env-access.sh](scripts/env-access.sh) 进入目标环境, 再执行
-kubectl、OpenStack CLI、日志和配置等只读排查命令。
+本 skill 通过固化的 [env-access.sh](scripts/env-access.sh) 进入目标环境, 支持两个
+同等有效的入口: 在线问题调查, 以及用户明确授权后的环境代码调试与新功能验证。
 
 当目标是可访问的运行中环境时使用本 skill。仅分析离线 `.eslog` 或已解压的
 `ecs.*` 目录时使用 `easystack-log-analysis`; 历史故障同时涉及当前环境和本地离线
 日志时联合使用两个 skill。仓库 CI 失败使用 `easystack-ci-test`;
 EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
+
+## Task Mode Selection 任务模式选择
+
+进入环境前先根据用户目标选择模式, 不要把所有请求都当作问题调查:
+
+1. 问题调查模式: 用户询问故障原因、异常状态或提供错误、UUID、故障时间时, 使用
+   日志优先的只读根因排查流程。
+2. 代码调试模式: 用户要求修改运行时代码、部署临时 overlay、调试代码路径、验证
+   patch 或新功能时, 在完成授权门禁后直接使用 [code-debug.md](code-debug.md)。该模式
+   不要求先构造故障根因或执行完整日志调查。
+3. 混合模式: 用户需要通过代码改动验证故障假设时, 先记录只读基线, 再执行授权修改,
+   最后同时报告根因证据、代码变更、验证结果和回滚状态。
 
 ## Read-Only Safety Gate 只读安全门禁
 
@@ -56,9 +68,10 @@ mysql/update/delete/insert/alter/drop
 
 ## Authorized Change Scope 授权变更范围
 
-本 skill 默认只读, 但并非只能做只读任务。用户明确要求在环境中修改代码、验证新功能、
-临时 overlay 运行时代码或调整启动脚本做调试时, 仍属于本 skill 范围。执行前必须
-获得用户对目标环境、目标服务、目标节点、待修改文件、回滚方式和验证命令的明确授权。
+代码调试是本 skill 的一等入口, 不是根因调查失败后的 fallback。用户明确要求在环境中
+修改代码、验证新功能、临时 overlay 运行时代码或调整启动脚本做调试时, 仍属于本
+skill 范围。执行前必须获得用户对目标环境、目标服务、目标节点、待修改文件、回滚
+方式和验证命令的明确授权。
 
 经授权的代码调试流程见 [code-debug.md](code-debug.md)。未经授权时, 不要执行
 `scp`、编辑启动脚本、复制代码到 `/opt`、重启 pod 或任何会改变环境状态的操作。
@@ -116,13 +129,18 @@ server/volume, 或用户明确要求查看状态时使用。
 联合分析时, 用 `easystack-log-analysis` 确认离线包时间窗、解压并构建历史证据链;
 用本 skill 补充仍有价值的当前环境状态或执行验证。当前状态与历史日志不一致时,
 按事件发生时间区分证据, 不得用当前正常状态否定历史故障。最终结论统一按
-[report-format.md](report-format.md) 输出, 不使用表格; 离线证据保留本地 `file:line`
-引用, 在线证据标明 pod、服务、对象和时间。
+[report-format.md](report-format.md) 输出, 先给出一句话总结且不使用表格; 离线证据
+保留本地 `file:line` 引用, 在线证据标明 pod、服务、对象和时间。
 
 完成问题分析后, MUST 按 [report-format.md](report-format.md) 输出结论。问题分析结论
-禁止使用 Markdown 表格; 使用普通 Markdown 标题和列表组织内容, 命令、日志、配置
-可以使用独立的 fenced code block, 确保复制后保留换行和缩进。第 1 至第 4 节必须
-输出, 第 5 至第 8 节仅在有实际内容或确有必要时输出。
+禁止使用 Markdown 表格, 标题使用普通文本, 列表使用数字项。任何一行都不得以
+`-`、`#` 或 `$` 开头, fenced code block 内同样适用; 原始证据命中时增加
+`原文: ` 前缀。第 1 至第 4 节必须输出, 第 5 至第 8 节仅在有实际内容或确有必要
+时输出。
+
+上述 [report-format.md](report-format.md) 仅约束问题调查或混合模式中的问题分析结论。
+纯代码调试任务不强制输出第 1 至第 8 节, 应按 [code-debug.md](code-debug.md) 记录
+授权范围、实际改动、验证结果、回滚状态和剩余风险。
 
 ## Quick Reference 快速参考 - 文件索引
 
@@ -132,7 +150,7 @@ server/volume, 或用户明确要求查看状态时使用。
 | 统一环境访问脚本, 登录链路封装后追加业务命令 | [scripts/env-access.sh](scripts/env-access.sh) |
 | JumpServer 菜单内部 fallback 脚本, 由统一访问脚本调用 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
 | 根因排查顺序、当前 pod 日志、fluentd 历史日志回退 | [logs.md](logs.md) |
-| 无表格、可复制的问题分析结论格式 | [report-format.md](report-format.md) |
+| 无表格、行首安全且含一句话总结的问题分析结论格式 | [report-format.md](report-format.md) |
 | 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
 | OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |

@@ -76,12 +76,13 @@ explicitly** and list what additional data would close the gap.
 
 ## Output Report Template 输出报告模板
 
-使用 [report-format.md](report-format.md) 的无表格模板。第 1 至第 4 节固定输出,
-第 5 至第 8 节按实际需要输出。时间线按时间顺序使用普通 Markdown 列表, 每个事件
-包含时间、节点、服务、事件和 `path/to/file:line` 证据引用。
+使用 [report-format.md](report-format.md) 的无表格模板, 标题后先输出一句话总结。
+第 1 至第 4 节固定输出, 第 5 至第 8 节按实际需要输出。时间线按时间顺序使用数字项,
+每个事件包含时间、节点、服务、事件和 `path/to/file:line` 证据引用。
 
-命令使用 `bash` fenced code block, 日志使用 `text`, 配置使用对应语言标识。与
-`easystack-env-debugging` 联合分析时继续使用同一模板, 不切换输出结构。
+命令使用 `bash` fenced code block, 日志使用 `text`, 配置使用对应语言标识。任何
+一行都不得以 `-`、`#` 或 `$` 开头。与 `easystack-env-debugging` 联合分析时继续
+使用同一模板, 不切换输出结构。
 
 ## Anti-Patterns (Don't)
 

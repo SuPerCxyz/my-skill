@@ -15,7 +15,8 @@ EasyStack 诊断日志以带密码的 `.eslog` 文件形式下发。解压后得
 
 适用于用户提供 `.eslog` 或已解压 `ecs.*` 目录的离线分析。历史故障同时需要登录
 运行中环境执行 kubectl/SSH 检查时, MUST 联合使用 `easystack-env-debugging`, 并以两个
-skill 共同维护的无表格报告格式输出。代码仓库测试使用 `easystack-ci-test`; Web 页面
+skill 共同维护的行首安全、无表格报告格式输出。代码仓库测试使用
+`easystack-ci-test`; Web 页面
 E2E 使用 `easystack-cloud-web-e2e`。
 
 ## Quick Reference 快速参考
@@ -23,7 +24,7 @@ E2E 使用 `easystack-cloud-web-e2e`。
 | 需要做什么 | 阅读 |
 |------------|------|
 | **标准端到端分析流程 + 报告模板** | [analysis-playbook.md](analysis-playbook.md) |
-| 无表格、可复制的问题分析结论格式 | [report-format.md](report-format.md) |
+| 无表格、行首安全且含一句话总结的问题分析结论格式 | [report-format.md](report-format.md) |
 | **跨域关联分析矩阵(云主机/云盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
 | 解压 eslog 文件 | [decompress.md](decompress.md) |
 | 安全解压脚本 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) |
@@ -161,9 +162,10 @@ grep -r "req-<REQ_UUID>" .
 
 ### Step 7: Report 汇总报告
 
-MUST 使用 [report-format.md](report-format.md) 的无表格结构。第 1 至第 4 节固定输出,
-第 5 至第 8 节按实际需要输出。关键时间线使用普通 Markdown 列表, 命令、日志和配置
-使用 fenced code block。每条结论用 `path/to/file:line` 引证, 便于用户审计证据链。
+MUST 使用 [report-format.md](report-format.md) 的无表格结构, 并先给出一句话总结。
+第 1 至第 4 节固定输出, 第 5 至第 8 节按实际需要输出。关键时间线使用数字项,
+任何一行都不得以 `-`、`#` 或 `$` 开头。每条结论用 `path/to/file:line` 引证,
+便于用户审计证据链。
 
 与 `easystack-env-debugging` 联合分析时, 两个 skill 使用相同模板, 不再切换为表格或
 其他报告结构。
