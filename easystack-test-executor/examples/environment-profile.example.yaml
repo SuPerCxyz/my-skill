@@ -1,0 +1,88 @@
+profile_version: 1
+profile_store: /tmp/easystack-test-executor-profiles
+captured_at_local: ""
+last_verified_at_local: ""
+
+environment:
+  name: ""
+  target: ""
+  control_node: ""
+  region: RegionOne
+  timezone: "<LOCAL_IANA_TIMEZONE>"
+  utc_offset_at_capture: "<+HH:MM>"
+
+authentication:
+  method: preloaded_environment
+  execution_location: busybox-openstack
+  project_id: ""
+  user_id: ""
+  auth_url: "<REDACTED>"
+  required_microversions:
+    volume: ""
+    compute: ""
+
+kubernetes:
+  namespace: openstack
+  selectors:
+    cinder_api: "application=cinder,component=api"
+    cinder_scheduler: "application=cinder,component=scheduler"
+    cinder_volume: "application=cinder,component=volume"
+    nova_api: "application=nova,component=os-api"
+    nova_scheduler: "application=nova,component=scheduler"
+    nova_conductor: "application=nova,component=conductor"
+    nova_compute: "application=nova,component=compute"
+    glance_api: "application=glance,component=api"
+    neutron_server: "application=neutron,component=server"
+    barbican_api: "application=barbican,component=api"
+  name_patterns:
+    busybox_openstack: "busybox-openstack"
+    cinder_volume: "cinder-volume"
+    nova_compute: "nova-compute"
+
+nova:
+  images: []
+  flavors: []
+  networks: []
+  external_network_id: ""
+  security_group_id: ""
+  keypair_name: ""
+  guest_user: ""
+  compute_hosts: []
+
+cinder:
+  volume_types: []
+  backends: []
+  availability_zones: []
+  encryption:
+    key_manager: barbican
+    user_specified_key_supported: false
+  image_volume_cache:
+    enabled: false
+    internal_project_id: ""
+
+cli_compatibility:
+  openstack_version: ""
+  image_command_help_verified: false
+  security_group_command_help_verified: false
+  floating_ip_command_help_verified: false
+  boot_from_volume_command_help_verified: false
+  server_network_option: ""
+  openstack_server_delete_force_supported: null
+  server_force_delete_strategy: ""
+  server_force_delete_help_verified: false
+
+execution:
+  cleanup_policy: preserve_on_failure
+  concurrency_policy: serial
+  result_root: /tmp/easystack-test-results
+  timeouts:
+    volume_seconds: 1800
+    snapshot_seconds: 1800
+    server_seconds: 900
+    migration_seconds: 3600
+    ssh_seconds: 600
+  retry:
+    max_attempts: 1
+    poll_interval_seconds: 10
+  failure_injection_allowed: false
+  destructive_operations: []

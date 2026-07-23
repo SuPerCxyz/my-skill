@@ -1,0 +1,71 @@
+cases:
+  - id: EXAMPLE-001
+    title: Example OpenStack test
+    domain: cross-service
+    objective: ""
+    enabled: true
+
+    impact_refs:
+      - IMPACT-001
+    capability_status: CONDITIONAL
+    capability_conditions: []
+
+    dependencies: []
+    preconditions: []
+
+    inputs:
+      source_volume_id: ""
+      source_snapshot_id: ""
+      source_image_id: ""
+      volume_type: ""
+      backend: ""
+      flavor_id: ""
+      network_id: ""
+      compute_host: ""
+      consumer_type: vm
+
+    actions:
+      - step: 1
+        id: STEP-01
+        phase: execute
+        description: ""
+        command_intent: ""
+        expected_created_resources: []
+
+    expected:
+      resource_states: []
+      data_integrity: ""
+      host_or_backend: ""
+      negative_behavior: ""
+      residue_absent: []
+      internal_paths:
+        - name: ""
+          expected_log_signals: []
+
+    verification:
+      - check: ""
+        expected: ""
+        evidence: ""
+
+    log_targets:
+      - service: cinder-volume
+        required: true
+        role: primary_worker
+      - service: cinder-api
+        required: false
+        reason: request_id_or_api_error_only
+      - service: cinder-scheduler
+        required: false
+        reason: scheduling_decision_only
+
+    timeouts:
+      operation_seconds: 1800
+      readiness_seconds: 600
+      poll_interval_seconds: 10
+
+    retry:
+      max_attempts: 1
+      idempotent: false
+
+    cleanup_policy: inherit
+    destructive_operations: []
