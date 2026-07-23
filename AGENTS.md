@@ -114,6 +114,7 @@ SKILL.md 必须包含一个文件索引表, 让 agent 知道何时查哪个文�
 - `easystack-ci-test`
 - `easystack-cloud-web-e2e`
 - `easystack-log-analysis`
+- `easystack-test-executor`
 
 执行要求:
 
