@@ -124,6 +124,10 @@ cleanup_status=PARTIAL
 
 ## Output Layout 输出目录
 
+`<RESULT_ROOT>` 格式为 `easystack-test-<RunID>`，其中 `RunID` 为 `R<YYYYMMDDHHmmss>` (精确到秒, 24 小时制本地时间)。例如 `easystack-test-R20260723150830`。
+
+`summary.md` 是给人看的单文件全量报告, 包含运行汇总和全部用例的执行结果与细节, 人只读这一个文件即可, 无需逐个进入 `cases/` 目录。`results.csv` 是同内容的机器可读镜像, `run.json` 是运行级元数据。`cases/<CASE_ID>/result.md` 是同一用例结果的独立副本, 供单用例深查和证据锚点引用, 内容与 `summary.md` 中对应 section 一致。三者保持一致, 不出现只存在于一处的用例状态。
+
 ```text
 <RESULT_ROOT>/
 ├── environment.yaml
@@ -167,14 +171,58 @@ cleanup_status=PARTIAL
 
 ## Run Summary 运行汇总
 
-`summary.md` 至少包含:
+`summary.md` 是给人看的单文件全量报告, 必须按以下顺序组织, 确保单文件即可看到每个
+用例的状态、时间、完整细节和运行汇总, 无需逐个进入 `cases/` 目录:
 
-- 环境标识、计划版本、IANA timezone、UTC offset 和本地运行时间。
-- 总用例数和四态统计。
-- 按 domain、backend 或 compute host 的结果。
-- 服务日志覆盖率和实例重启或替换。
-- 清理状态、剩余资源和最高优先级失败。
-- 每项结论的证据路径。
+1. 运行头: Run ID、`<RESULT_ROOT>` 绝对路径、计划版本、IANA timezone、UTC offset、
+   运行 `started_local` 和 `ended_local`、清理策略。
+2. 用例结果索引表: 每个用例一行, 并按 `overall_status` 排序 (`FAIL`、`BLOCKED`、
+   `INCONCLUSIVE`、`PASS`)。列至少包含:
+   ```text
+   case_id
+   title
+   domain
+   attempt
+   overall_status
+   functional_status
+   evidence_status
+   cleanup_status
+   case_start_local
+   case_end_local
+   case_duration_ms
+   result_link
+   ```
+   `result_link` 为同文件内锚点 `#case-<CASE_ID>`, 跳转到该用例详情 section。展示本地
+   时间, UTC 仅用于日志窗口边界。单页列出所有用例, 不折叠也不省略。
+3. 运行汇总: 四态统计、按 domain/backend/compute host 的分组结果、服务日志覆盖率和
+   实例重启或替换、清理状态、剩余资源台账入口和最高优先级失败。
+4. 全部用例详情: 索引表之后, 依次将每个用例按
+   [`../examples/result-template.md`](../examples/result-template.md) 完整内联为一个
+   `## <CASE_ID> <title>` section, 并设锚点 `case-<CASE_ID>` 供索引表跳转。步骤时间、
+   资源、证据、内部路径和清理结果全部写入此 section, 不指向其它文件即可看完。
+5. 每项结论的证据路径 (相对 `<RESULT_ROOT>`)。
+
+`results.csv` 是用例结果索引表的机器可读镜像，列与上表一致，UTF-8、含表头、按
+`case_id` 排序。任何用例的 `overall_status` 改变时同步更新 `summary.md` 和
+`results.csv`。
+
+`run.json` 至少包含运行级元数据:
+
+```text
+run_id
+result_root
+plan_version
+timezone
+utc_offset
+started_local
+ended_local
+total_cases
+status_counts[pass|fail|blocked|inconclusive]
+cleanup_policy
+remaining_resources
+summary_path
+results_csv_path
+```
 
 `log-coverage.csv` 至少包含:
 

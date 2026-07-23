@@ -90,9 +90,11 @@ description: "Use when planning or executing EasyStack OpenStack Compute, Storag
 
 ## Core Execution Rules 核心执行规则
 
-状态机、失败处理和重试以 [references/execution-lifecycle.md](references/execution-lifecycle.md)
-为唯一来源; 时间窗、UTC 日志归一化和游标推进以
-[references/log-evidence.md](references/log-evidence.md) 为唯一来源。
+状态机、失败处理、重试、用例门禁 (CASE_GATE) 和必守不变量以
+[references/execution-lifecycle.md](references/execution-lifecycle.md) 为唯一来源; 时间窗、
+UTC 日志归一化和游标推进以 [references/log-evidence.md](references/log-evidence.md) 为
+唯一来源。autocompact 或中断恢复时, 先重载 execution-lifecycle.md 的 Invariants 再继续,
+不依赖主上下文回忆整个 skill。
 
 ## Quick Reference 快速参考
 
@@ -122,6 +124,7 @@ description: "Use when planning or executing EasyStack OpenStack Compute, Storag
 5. Server 使用 Boot Volume、Floating IP 和 force delete, 或记录计划允许的例外。
 6. 测试 Image visibility 为 `public`, 或记录其它 visibility 的测试目的。
 7. UTC 日志保留原始 timestamp, 报告使用带明确 offset 的本地时间。
+8. Run ID 格式为 `R<YYYYMMDDHHmmss>` (精确到秒) 用作输出目录 `<RESULT_ROOT>` 名称和内部引用，不在资源名中包含时间戳。
 
 ## Execution Feedback 执行反馈
 

@@ -29,11 +29,36 @@ CLOSE_LOG_WINDOW
 COLLECT_LOGS
 COLLECT_RESOURCES
 RECORD_RESULT
+CASE_GATE
 APPLY_CLEANUP_POLICY
 ADVANCE_LOG_CURSOR
 ```
 
 无论失败发生在哪个阶段, 都必须进入关闭窗口、证据收集、结果记录和清理判断。
+
+## Invariants 必守不变量
+
+以下各项在任意阶段都不可降级, 不得用"看起来完成"替代。autocompact 或中断恢复时,
+先重读本节重新注入规则, 再继续未完用例; 不依赖主上下文回忆整个 skill。
+
+1. 每个用例必须有四态终态 (`PASS`/`FAIL`/`BLOCKED`/`INCONCLUSIVE`)。命令返回码为 0
+   不能单独证明功能通过; 证据缺失不得折叠为 `PASS`。
+2. 每个 action step 必须有 `start_local`、`end_local`、`timezone`、`duration_ms`、
+   return code 和 result; 步骤失败也要写结束时间, 不留无终态记录。
+3. 资源创建后立即写入用例级和运行级台账, 不等待用例结束; 至少含 type、name、UUID、
+   project、status、host/backend、cleanup policy。
+4. 证据收集完成后才允许清理; 清理按逆依赖顺序; 不得删除非本次运行创建的资源。
+5. 内部执行分支必须用日志直接证明; 无直接证据标 `INCONCLUSIVE`, 不从资源终态反推。
+6. 不得输出密码、Token、Secret payload、私钥或完整密钥材料; 日志和报告必须脱敏。
+7. 日志窗口从上一用例结束延续到当前用例结束; UTC 仅保留原始 timestamp, 展示用带
+   offset 的本地时间。
+8. `summary.md`、`results.csv` 和 `run.json` 的用例状态必须一致; 任一用例状态变更
+   时三者同步更新。
+
+`RECORD_RESULT` 之后执行 `CASE_GATE`: 逐条核对第 1-6 项中与本用例相关者。任一缺失
+则回到对应阶段补齐 (缺证据回 `COLLECT_LOGS`, 缺台账回 `COLLECT_RESOURCES`, 缺步骤时间
+回 `RECORD_RESULT`), 不进入清理和下一用例。补齐仍失败时, 将该用例标为
+`INCONCLUSIVE` 并在台账和 `result.md` 注明未过项, 再继续后续独立用例。
 
 ## Command Records 命令记录
 
