@@ -56,4 +56,11 @@ stestr run test_volume_utils.CopyVolumeTestCase.test_copy_volume_with_on_execute
 
 ## Note on allowlist_externals
 
-If `tox -e pep8` fails with `is not allowed, use allowlist_externals`, this is a local tox version mismatch - newer tox requires external scripts (like `tools/config/check_uptodate.sh`) to be listed in `tox.ini`'s `allowlist_externals`. If this happens, you can skip tox and run `flake8 .` directly to check for lint errors.
+If `tox -e pep8` fails with `is not allowed, use allowlist_externals`, treat it as a
+tox configuration blocker. `flake8 .` may be used only to diagnose source lint errors;
+it never replaces the final `tox -e pep8` gate.
+
+Changing `tox.ini`, including adding `allowlist_externals`, changes the project test
+environment. Show the exact proposed diff and impact, then wait for explicit user
+approval before editing it. Without approval, stop and report the blocker. Do not mark
+pep8 or the overall task as passed.

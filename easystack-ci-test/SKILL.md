@@ -22,6 +22,9 @@ Gerrit change。测试范围是以下**合并状态**:
 不要根据“最近一个未合并 commit”猜测范围。先确认 `HEAD` commit message 包含目标
 Gerrit `Change-Id`; 无法确认时先向用户索取目标 change, 不创建新 commit。
 
+`flake8` 只用于定向诊断, 不得替代最终 `tox -e pep8` 门禁。修改 `tox.ini` 属于测试
+环境变更; 必须先展示拟议 diff 和影响, 获得用户明确同意后才能修改。
+
 ## Quick Start 快速开始
 
 1. 先按 [setup.md](setup.md) 定位 Miniconda、激活或创建 `easystack-<project>-py<version>` 环境。

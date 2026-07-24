@@ -7,6 +7,7 @@
 
 - `tox -e cover` 覆盖率检查
 - `tox -e pep8` flake8 代码风格检查
+- `flake8` 只用于诊断, 最终必须通过 tox; 修改 `tox.ini` 前需用户明确同意
 - 自动修复循环:cover -> pep8 -> 定向修复, 达到停止条件时报告阻塞
 - 覆盖率缺口修复指导
 - privsep 函数测试处理

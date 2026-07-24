@@ -51,6 +51,9 @@ below is reached:
   1. `tox -e cover` passes (all tests pass)
   2. cover HTML shows zero `mis` and zero `par` lines for all modified files
   3. `tox -e pep8` passes
+- Direct `flake8` runs are diagnostic only and never replace `tox -e pep8`.
+- If completion requires changing `tox.ini`, show the proposed diff and wait for explicit
+  user approval. Without approval, report the environment blocker and stop.
 - To identify which files were modified (latest commit + uncommitted changes):
   ```bash
   # All three combined: committed + staged + unstaged
@@ -68,7 +71,7 @@ below is reached:
 |------|---------|
 | Run coverage | `tox -e cover` |
 | Run pep8 | `tox -e pep8` |
-| Isolate lint | `flake8 path/to/file.py` (Miniconda env already has flake8 via tox) |
+| Isolate lint | `. .tox/pep8/bin/activate && flake8 path/to/file.py` (diagnostic only) |
 | Run one test | `stestr run <pattern>` (Miniconda env already has stestr via tox) |
 | List modified files | `git diff HEAD^ --name-only` + `git diff --name-only` + `git diff --cached --name-only` |
 | Check coverage | See [coverage.md](coverage.md) |

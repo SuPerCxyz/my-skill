@@ -1,13 +1,16 @@
 ---
 name: easystack-cloud-web-e2e
-description: "Use when automating EasyStack Cloud Web UI with agent-browser: resource create/delete/attach/associate flows, floating IPs, buttons, tables, forms, E2E validation, page probing, and UI patterns. Do not use for backend debugging, offline eslog analysis, repository CI, or generic browser tasks."
+description: "Use when automating EasyStack Cloud Web UI with agent-browser: resource create/delete/attach/associate flows, buttons, tables, forms, E2E validation, and page probing. Combine `easystack-env-debugging` when a UI failure requires backend root-cause evidence. Do not use for offline eslog analysis, repository CI, or generic browser tasks."
 ---
 
 # EasyStack Cloud Web E2E
 
 ## Scope Boundary 适用边界
 
-使用本 skill 处理 EasyStack Cloud Web 页面上的真实 UI 操作、资源类 E2E 用例、按钮/表格/表单状态验证和可复用页面操作沉淀。后端服务排查归 `easystack-env-debugging`, 离线日志根因分析归 `easystack-log-analysis`, 仓库 CI 修复归 `easystack-ci-test`, 非 EasyStack Cloud 的普通网页自动化不属于本 skill 范围。
+使用本 skill 处理 EasyStack Cloud Web 页面上的真实 UI 操作、资源类 E2E 用例、
+按钮/表格/表单状态验证和可复用页面操作沉淀。UI 失败需要 backend 根因证据时联合
+`easystack-env-debugging`; 离线日志根因分析归 `easystack-log-analysis`, 仓库 CI
+修复归 `easystack-ci-test`, 非 EasyStack Cloud 的普通网页自动化不属于本 skill 范围。
 
 ## Hard Rules 执行硬规则
 

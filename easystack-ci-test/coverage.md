@@ -100,4 +100,5 @@ Write tests that cover the specific uncovered branches. See [privsep.md](privsep
 
 ## After Fixing
 
-Re-run `tox -e cover` to verify. Once coverage is clean, run `tox -e pep8` (or `flake8 .`) to fix any lint errors introduced by new tests.
+Re-run `tox -e cover` to verify. Once coverage is clean, run `tox -e pep8` to verify
+lint. A direct `flake8` run may isolate an error, but cannot replace the tox gate.
