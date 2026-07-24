@@ -23,6 +23,7 @@
 - 创建资源的名称、UUID、所属步骤和依赖关系。
 - API/UI 不可见执行分支的日志原文和证据位置。
 - 中文 Markdown 测试报告, OpenStack 专业术语保留英文。
+- 用例索引强制输出中文名称和一句简短测试需求, 技术组合保留为 scenario key。
 - 最终 Markdown 只显示 `成功` 或 `失败`, 内部保留功能、证据、清理和诊断状态。
 - Nova、Cinder、Barbican、Glance、Neutron 等关联服务。
 
@@ -149,3 +150,97 @@ Cinder boot-from-volume。因此测试需要分别验证普通卷能力和加密
 6. 静态演练环境缺失、单用例失败、多副本日志缺失和清理受限场景。
 
 不在设计验证阶段创建 OpenStack 资源或执行破坏性环境操作。
+
+## Deterministic Harness V3 确定性执行器 V3
+
+长任务不能依赖模型记忆工作流。V3 将模型限制为计划分析、环境判断和异常解释,
+将动作选择、命令执行、结果推导、资源捕获、恢复和完成门禁下沉到脚本。
+
+### Immutable Plan 不可变计划
+
+`compile-plan.py` 读取标准化用例、环境 profile、impact analysis 和 authorization,
+生成完整 `execution-contract.json`。Contract 固化:
+
+- Case 顺序、依赖、能力分类和 impact references。
+- 每个 Action 的 argv、执行位置、timeout、允许返回码和 capture 规则。
+- Declarative checks、日志要求、log targets 和 cleanup policy。
+- Profile、impact、authorization、skill 和 source plan digest。
+
+Contract 外的 Case 和 Step 不得执行。运行中 skill 变化只产生版本漂移告警; 运行仍按
+冻结 contract 验证。V2 运行只读兼容, 不允许继续执行旧式任意命令。
+
+### Enforced State Machine 强制状态机
+
+状态变化写入 append-only `events.jsonl`, 每个事件包含 sequence、previous hash、
+timestamp、Case、Step、event type 和 payload。`run-state.json` 和 `resume.md` 是事件
+投影, 不是唯一事实来源。
+
+模型不能直接指定 phase、Action status 或 Next action。`checkpoint.py next` 返回唯一
+action type、完整 launcher argv 和门禁原因。`run-action.py` 只执行 contract 中冻结的
+argv, 根据 expected outcome 自动写入终态。
+
+Lifecycle 使用两阶段结果:
+
+```text
+ACTIONS -> COLLECT_LOGS -> COLLECT_RESOURCES -> DERIVE_VERDICT
+-> APPLY_CLEANUP_POLICY -> FINALIZE_RESULT -> CASE_GATE -> COMPLETE
+```
+
+`case-verdict.json` 在 cleanup 前生成且不可修改。`result.json` 在 cleanup 后生成,
+只补充 cleanup、完整性和最终时间信息。
+
+### Reconciliation 对账
+
+完成门禁从 append-only event ledger 重建并对账以下事实:
+
+1. Contract 中的每个 Action 都有自动终态、时间和唯一 Command ID。
+2. Required Functional check 由 evaluator 决定, 模型不得手工聚合。
+3. Command、resource 和 result projection 与 event payload 一致。
+4. 每个 evidence file 的 path、size 和 SHA256 与 artifact manifest 一致。
+5. Required log target 有窗口、Pod UID、container、关联键和真实 evidence file。
+
+顶层 `执行结果` 仍只显示成功或失败。独立的 `execution_quality` 使用 `COMPLETE`、
+`COMPLETE_WITH_WARNINGS` 或 `INVALID`, 记录时间、证据和清理完整性。
+
+### Command Safety 命令安全
+
+每条命令使用唯一 Command ID 和独立输出文件, 支持 timeout、process group 终止、
+流式输出、Request ID 提取和追加记录。Action 只接受 argv array, 禁止 shell 拼接。
+允许返回码支持 negative test。Resource capture 与 Action event 一次提交, 台账由事件
+重建, 避免命令成功后模型漏记 UUID。
+
+### Recovery 恢复
+
+任何新 turn、context compaction 或模型切换后先执行:
+
+```text
+checkpoint.py next --result-root <RESULT_ROOT> --format json
+```
+
+输出只包含当前 Case、phase、Action、完整 launcher argv、未满足门禁和最近事件。
+恢复不重新解释聊天历史。
+
+### Environment And Logs 环境和日志
+
+环境 profile 使用稳定 environment key、权限检查、schema 校验和 environment
+fingerprint。日志工具保存 Pod 前后快照、current/previous stream、UTC 原始时间、
+本地归一化时间、关联结果和覆盖状态。
+
+### Knowledge Modules 知识模块
+
+OpenStack 发散测试按 Compute、Block Storage、Network、Image、Security Group、
+Encryption/Barbican 和 Bare Metal/Ironic 分模块维护。每个模块包含生命周期、消费者、
+不支持路径、失败恢复、证据目标和清理义务。
+
+### Automated Verification 自动验证
+
+使用标准库单元测试覆盖 transition、resume、expected non-zero、timeout、artifact
+tamper、结果推导、cleanup policy、日志关联、资源投影、partial run、Markdown
+snapshot 和 anchor collision。标准 `evals/evals.json` 覆盖长任务压缩恢复和弱模型
+漏步骤场景。
+
+## Context Budget 上下文预算
+
+`SKILL.md` 目标不超过 120 行和 6 KB, 只保留触发边界、硬门禁、主流程和文档路由。
+参考文档按环境、执行、报告和 OpenStack domain 分组, 每次仅加载相关文件。重复命令
+模板改为 machine-readable catalog, 不在多个 Markdown 文件中复制。

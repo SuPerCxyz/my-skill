@@ -11,7 +11,7 @@
 | [easystack-cloud-web-e2e](easystack-cloud-web-e2e/) | EasyStack 云平台 Web UI 端到端自动化测试 — 基于 agent-browser 的原子操作库、页面知识库与测试编排规范，支持云主机 / 云硬盘 / 网络等资源操作的 UI 自动化 |
 | [easystack-env-debugging](easystack-env-debugging/) | EasyStack 环境后台日志优先根因排查和授权代码调试, 历史故障可联合本地 `.eslog` / `ecs.*` 离线分析 |
 | [easystack-log-analysis](easystack-log-analysis/) | EasyStack `.eslog` 安全解压、跨服务跨节点根因定位, 与 env-debugging 使用相同的行首安全、无表格报告格式 |
-| [easystack-test-executor](easystack-test-executor/) | EasyStack OpenStack Compute、Storage、Network、Image、Security 功能影响分析、外部环境 profile 复用、OpenStack CLI、worker 日志证据、受控执行和中文 Markdown 报告 |
+| [easystack-test-executor](easystack-test-executor/) | EasyStack OpenStack Compute、Storage、Network、Image、Security、Bare Metal 影响分析, 基于 immutable contract 的确定性执行器、worker 日志证据和中文 Markdown 报告 |
 | [media-library-organizer](media-library-organizer/) | 媒体库 TMDB 刮削、重命名、NFO 和图片整理, 默认 dry-run 并为全部本次修改生成回滚计划 |
 | [windows-mcp-operation](windows-mcp-operation/) | 通过 windows-mcp 操作真实 Windows 桌面和系统工具, 浏览器页面操作交由 agent-browser |
 
