@@ -1,0 +1,46 @@
+{
+  "domain": "compute",
+  "operations": {
+    "server_create": {
+      "command": ["openstack", "server", "create", "--flavor", "<FLAVOR_ID>", "--volume", "<BOOT_VOLUME_ID>", "--network", "<NETWORK_ID>", "--security-group", "<SG_ID>", "<SERVER_NAME>", "-f", "json"],
+      "invariants": ["boot_from_volume", "bind_floating_ip_by_default"],
+      "services": ["nova-api", "nova-conductor", "nova-scheduler", "nova-compute", "cinder-volume", "neutron-server"],
+      "checks": ["server ACTIVE", "boot volume in-use", "attachment一致", "Floating IP可达", "无重复port或attachment"]
+    },
+    "server_force_delete": {
+      "command": ["<PROFILE_FORCE_DELETE_STRATEGY>", "<SERVER_ID>"],
+      "invariants": ["禁止soft delete回退", "删除boot volume按计划单独确认"],
+      "services": ["nova-api", "nova-conductor", "nova-compute", "neutron-server", "cinder-volume"]
+    },
+    "resize": {
+      "command": ["openstack", "server", "resize", "--flavor", "<FLAVOR_ID>", "<SERVER_ID>"],
+      "checks": ["VERIFY_RESIZE", "confirm或revert", "flavor和allocation一致", "volume attachment保持"],
+      "services": ["nova-api", "nova-conductor", "nova-scheduler", "nova-compute", "placement"]
+    },
+    "rebuild": {
+      "command": ["openstack", "server", "rebuild", "--image", "<IMAGE_ID>", "<SERVER_ID>"],
+      "checks": ["root source限制", "metadata和network保持", "guest内容更新", "失败可恢复"],
+      "services": ["nova-api", "nova-conductor", "nova-compute", "glance-api", "cinder-volume"]
+    },
+    "cold_migrate": {
+      "command": ["openstack", "server", "migrate", "<SERVER_ID>"],
+      "checks": ["VERIFY_RESIZE", "目标host改变", "confirm或revert", "placement一致"],
+      "services": ["nova-conductor", "nova-scheduler", "nova-compute", "placement"]
+    },
+    "live_migrate": {
+      "command": ["openstack", "server", "migrate", "--live-migration", "<SERVER_ID>"],
+      "checks": ["源目标compute日志", "guest连续性", "network和volume连接保持", "失败回滚"],
+      "services": ["nova-conductor", "nova-scheduler", "nova-compute", "neutron", "cinder"]
+    },
+    "evacuate": {
+      "command": ["openstack", "server", "evacuate", "<SERVER_ID>"],
+      "checks": ["源host不可用前提", "共享或块存储差异", "placement修复", "网络和卷重连"],
+      "services": ["nova-api", "nova-conductor", "nova-scheduler", "nova-compute", "placement"]
+    },
+    "volume_attach": {
+      "command": ["openstack", "server", "add", "volume", "<SERVER_ID>", "<VOLUME_ID>"],
+      "checks": ["attachment UUID", "volume in-use", "guest device", "detach后无残留"],
+      "services": ["nova-api", "nova-compute", "cinder-api", "cinder-volume"]
+    }
+  }
+}

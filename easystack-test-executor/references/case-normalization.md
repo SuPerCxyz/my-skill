@@ -11,24 +11,26 @@
 
 ```text
 id
+scenario_key
 title
+requirement_summary
 domain
 objective
 enabled
 impact_refs
 capability_status
 dependencies
-preconditions
-inputs
 actions
-expected
 verification
 log_requirement
 log_targets
-timeouts
 cleanup_policy
-destructive_operations
 ```
+
+`preconditions`、`inputs`、`timeouts`、`retry`、`destructive_operations` 和
+`expected_created_resources` 按场景添加。编译前可使用
+[`execution-plan.schema.json`](../schemas/execution-plan.schema.json) 做基础 schema
+检查, 最终以 `compile-plan.py` 的语义校验为准。
 
 `domain` 使用 `nova`、`cinder`、`glance`、`neutron` 或 `cross-service`。Security
 Group 用例归入 `neutron`。关联服务写入 `log_targets`, 不创建模糊的通用领域。
@@ -36,12 +38,17 @@ Group 用例归入 `neutron`。关联服务写入 `log_targets`, 不创建模糊
 `impact_refs` 指向 `feature-impact.yaml` 中的测试义务。`capability_status` 使用
 `SUPPORTED`、`UNSUPPORTED`、`CONDITIONAL`、`UNKNOWN` 或 `OUT_OF_SCOPE`。
 
+`scenario_key` 保存原始机器化场景标识, 例如 `encrypt-cirros+spec+hdd`。`title`
+是 2-40 个字符的中文可读名称, 技术名词可保留英文。`requirement_summary` 是 6-60
+个字符的单行中文句子, 简要说明测试动作和关键预期。
+
 ## Normalization Rules 标准化规则
 
-1. 保留用户原始编号、标题和预期。
+1. 保留用户原始编号和预期。机器化原始标题写入 `scenario_key`, 另生成中文 `title`
+   和一句简短的 `requirement_summary`, 不丢失原始语义。
 2. 关联功能影响项, 区分支持、条件支持和不支持路径。
 3. 将准备步骤、核心操作、等待和验证拆开。
-4. 为每个步骤定义 Step ID 和预期创建资源。
+4. 为每个步骤定义唯一 Step ID、PREPARE/EXECUTE/WAIT/VERIFY phase 和预期创建资源。
 5. 为每个异步操作定义终态、超时和轮询间隔。
 6. 明确资源由本用例创建、复用还是依赖其它用例。
 7. 明确成功路径、预期失败和允许的错误状态。
@@ -54,6 +61,11 @@ Group 用例归入 `neutron`。关联服务写入 `log_targets`, 不创建模糊
 12. 未声明清理策略时继承运行级 `preserve_on_failure`。
 13. 按 [common-operations.md](common-operations.md) 应用 Boot Volume、Floating IP、
     force delete 和 Image `public` 等全局资源默认值。
+14. 在执行前完成名称和测试需求标准化。禁止使用 `-`、`N/A`、`TBD`、`unknown`、
+    纯英文组合名或空值代替 `title` 和 `requirement_summary`。
+15. 每个 verification 定义唯一 Check ID、`check_type=functional|diagnostic|cleanup`、
+    `required` 和 `expected`; 每个用例至少一个 required functional check。
+16. dependency 必须引用更早的用例, 避免恢复状态机死锁。
 
 不得静默删除、合并或改写用例, 也不得替换 Image、Flavor、Volume Type、Backend、
 Compute Host、Secret 或预期结果。
@@ -114,5 +126,6 @@ NVMe、kernel 或 storage driver。
 
 ## Output 输出
 
-将标准化清单保存为 `normalized-cases.yaml`, 并使用
+将标准化清单保存为 YAML 或 JSON, 使用
 [`../examples/test-case.example.yaml`](../examples/test-case.example.yaml) 作为结构参考。
+运行 `compile-plan.py` 后, immutable 副本保存为 `normalized-cases.json`。

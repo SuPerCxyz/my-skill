@@ -9,6 +9,16 @@
 
 固定使用 `/tmp/easystack-test-executor-profiles` 避免依赖某个用户的 home 目录。
 不得在 skill 目录、源码仓库、`/home/<user>/tmp` 或可分发压缩包内创建环境 profile。
+目录权限必须为 `0700` 或更严格, 文件权限必须为 `0600` 或更严格。保存后运行:
+
+```bash
+python3 scripts/compile-profile.py --input <CAPTURED_PROFILE>
+python3 scripts/validate-profile.py \
+  --profile /tmp/easystack-test-executor-profiles/<environment-key>.yaml
+```
+
+`compile-profile.py` 校验必需字段、明文 Secret、fingerprint 和 timestamp, 再根据稳定
+environment key 原子写入固定 `/tmp` store。不要手工选择文件名。
 
 ## First Capture 首次采集
 
@@ -48,12 +58,19 @@
 - 通用命令只维护在 [common-operations.md](common-operations.md), 不复制到 profile。
 - 只有环境特有的参数差异或不支持项才进入 profile。
 
+### Fingerprint 环境指纹
+
+profile version 2 必须记录 Kubernetes cluster UID、OpenStack release、
+openstackclient version 和 storage/network backend fingerprint。environment key 由
+target、Region、Project、namespace 和 cluster UID 派生, 不使用 IP 或 home path 作为
+唯一身份。指纹变化时定向重建受影响部分。
+
 ## Reuse Flow 复用流程
 
 后续测试按以下顺序:
 
 1. 读取对应 profile。
-2. 使用精确 `show <ID>` 对本次会引用的 Image、Flavor、Network、Subnet、
+2. 先运行 `validate-profile.py`, 再使用精确 `show <ID>` 对本次会引用的 Image、Flavor、Network、Subnet、
    Security Group 和 Volume Type 做 freshness check。
 3. 全部引用仍有效时直接执行, 不重新 list 全部资源。
 4. 单个引用失效时只更新该类别。

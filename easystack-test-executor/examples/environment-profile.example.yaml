@@ -1,4 +1,4 @@
-profile_version: 1
+profile_version: 2
 profile_store: /tmp/easystack-test-executor-profiles
 captured_at_local: ""
 last_verified_at_local: ""
@@ -39,20 +39,38 @@ kubernetes:
     cinder_volume: "cinder-volume"
     nova_compute: "nova-compute"
 
+fingerprint:
+  cluster_uid: "<KUBERNETES_CLUSTER_UID>"
+  openstack_release: "<OPENSTACK_RELEASE>"
+  openstackclient_version: "<OPENSTACKCLIENT_VERSION>"
+  backend_fingerprint: "<STORAGE_AND_NETWORK_BACKEND_HASH>"
+
 nova:
-  images: []
-  flavors: []
-  networks: []
+  images:
+    - id: "<PUBLIC_IMAGE_ID>"
+      name: "<PUBLIC_IMAGE_NAME>"
+      visibility: public
+  flavors:
+    - id: "<FLAVOR_ID>"
+      name: "<FLAVOR_NAME>"
+  networks:
+    - id: "<NETWORK_ID>"
+      name: "<NETWORK_NAME>"
   external_network_id: ""
   security_group_id: ""
   keypair_name: ""
   guest_user: ""
-  compute_hosts: []
+  compute_hosts:
+    - "<COMPUTE_HOST>"
 
 cinder:
-  volume_types: []
-  backends: []
-  availability_zones: []
+  volume_types:
+    - id: "<VOLUME_TYPE_ID>"
+      name: "<VOLUME_TYPE_NAME>"
+  backends:
+    - name: "<HOST@BACKEND#POOL>"
+  availability_zones:
+    - "<VOLUME_AZ>"
   encryption:
     key_manager: barbican
     user_specified_key_supported: false

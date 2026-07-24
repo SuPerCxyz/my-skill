@@ -22,16 +22,18 @@
 
 分析调用链和部署边界时按需读取:
 
-- [Service Map](../../easystack-env-debugging/openstack/service-map.md)
-- [Nova](../../easystack-env-debugging/openstack/nova.md)
-- [Cinder](../../easystack-env-debugging/openstack/cinder.md)
-- [Glance](../../easystack-env-debugging/openstack/glance.md)
-- [Barbican](../../easystack-env-debugging/openstack/barbican.md)
-- [Keystone](../../easystack-env-debugging/openstack/keystone.md)
-- [Networking](../../easystack-env-debugging/openstack/networking.md)
-- [Bare Metal And Ironic](../../easystack-env-debugging/openstack/baremetal-ironic.md)
+- 若已安装 `easystack-env-debugging`, 按相关 service 读取其 OpenStack service map、
+  Nova、Cinder、Glance、Barbican、Keystone、Networking 和 Bare Metal/Ironic
+  文档。Standalone 模式使用本 skill catalog 和 upstream references。
 
 这些文档用于定位 EasyStack 服务和证据入口, 不能替代目标版本 capability 验证。
+
+生成测试义务时必须再读取与改动相关的本 skill 矩阵:
+
+- [Compute Impact Matrix](impact-compute.md)
+- [Storage Impact Matrix](impact-storage.md)
+- [Network Image Security Impact Matrix](impact-network-image-security.md)
+- [Cross-Service Impact Method](impact-cross-service.md)
 
 ## Impact Dimensions 影响维度
 

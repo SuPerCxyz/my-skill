@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create and update durable state for a long EasyStack test run."""
+"""Advance a test run only through contract-authorized transitions."""
 
 from __future__ import annotations
 
@@ -7,233 +7,470 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from zoneinfo import ZoneInfo
+from typing import Any
 
-from _harness import (
-    atomic_json,
-    atomic_text,
-    local_now,
-    object_digest,
-    read_json,
-    safe_component,
-    skill_digest,
+from _actions import bind_action
+from _case_gate import (
+    case_gate_errors,
+    command_records_for_step,
+    failed_dependencies,
 )
-
-
-PHASES = (
-    "DISCOVER_CASE_CONTEXT",
-    "OPEN_LOG_WINDOW",
-    "SNAPSHOT_SERVICE_INSTANCES",
-    "PREPARE",
-    "EXECUTE",
-    "WAIT",
-    "VERIFY",
-    "CLOSE_LOG_WINDOW",
-    "COLLECT_LOGS",
-    "COLLECT_RESOURCES",
-    "RECORD_RESULT",
-    "CASE_GATE",
-    "APPLY_CLEANUP_POLICY",
-    "ADVANCE_LOG_CURSOR",
-    "COMPLETE",
+from _contract import (
+    STEP_PHASES,
+    TERMINAL_STEP_STATUSES,
+    case_by_id,
 )
-STATUSES = {
-    "functional_status": ("PASS", "FAIL", "UNKNOWN"),
-    "timing_status": ("VALID", "INVALID", "PENDING"),
-    "evidence_status": (
-        "COMPLETE",
-        "PARTIAL",
-        "MISSING",
-        "INVALID",
-        "NOT_APPLICABLE",
-        "PENDING",
-    ),
-    "cleanup_status": ("COMPLETE", "PARTIAL", "PRESERVED", "PENDING"),
-    "diagnostic_status": ("CONCLUSIVE", "INCONCLUSIVE", "BLOCKED", "PENDING"),
-}
+from _events import append_event, load_events, project_state, verify_phase_events
+from _harness import atomic_json, atomic_text, read_json, safe_component
+from _resources import (
+    create_resource,
+    local_timestamp,
+    reconcile_resources,
+    update_resource,
+)
+from _projections import sync_event_views
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
-    commands = parser.add_subparsers(dest="action", required=True)
-    init = commands.add_parser("init")
-    init.add_argument("--result-root", required=True, type=Path)
-    init.add_argument("--run-id", required=True)
-    init.add_argument("--timezone", required=True)
-    init.add_argument("--cleanup-policy", default="preserve_on_failure")
-    init.add_argument("--case", action="append", default=[])
-
-    update = commands.add_parser("update")
-    update.add_argument("--result-root", required=True, type=Path)
-    update.add_argument("--case-id", required=True)
-    update.add_argument("--phase", required=True, choices=PHASES)
-    update.add_argument("--next-action", required=True)
-    for name, choices in STATUSES.items():
-        update.add_argument(f"--{name.replace('_', '-')}", choices=choices)
-
+def parser() -> argparse.ArgumentParser:
+    root = argparse.ArgumentParser()
+    commands = root.add_subparsers(dest="action", required=True)
+    for name in ("next", "show"):
+        command = commands.add_parser(name)
+        command.add_argument("--result-root", required=True, type=Path)
+    advance = commands.add_parser("advance")
+    advance.add_argument("--result-root", required=True, type=Path)
+    advance.add_argument("--case-id", required=True)
+    skip = commands.add_parser("skip")
+    skip.add_argument("--result-root", required=True, type=Path)
+    skip.add_argument("--case-id", required=True)
+    skip.add_argument("--action-id", required=True)
+    skip.add_argument("--reason", required=True)
+    abort = commands.add_parser("abort")
+    abort.add_argument("--result-root", required=True, type=Path)
+    abort.add_argument("--reason", required=True)
+    step = commands.add_parser("step")
+    step.add_argument("--result-root", required=True, type=Path)
+    step.add_argument("--case-id", required=True)
+    step.add_argument("--step-id", required=True)
+    step.add_argument("--status", required=True, choices=sorted(TERMINAL_STEP_STATUSES))
+    step.add_argument("--reason", default="")
+    step.add_argument("--evidence", action="append", default=[])
     resource = commands.add_parser("resource")
     resource.add_argument("--result-root", required=True, type=Path)
     resource.add_argument("--case-id", required=True)
-    resource.add_argument("--step-id", required=True)
-    resource.add_argument("--type", required=True)
-    resource.add_argument("--name", required=True)
-    resource.add_argument("--uuid", required=True)
-    resource.add_argument("--project", default="")
-    resource.add_argument("--status", default="")
-    resource.add_argument("--host-backend", default="")
-    resource.add_argument("--cleanup-policy", default="inherit")
-    resource.add_argument("--final-state", default="")
+    resource.add_argument("--mode", choices=("create", "update"), required=True)
+    resource.add_argument("--id", required=True)
+    resource.add_argument("--step-id")
+    resource.add_argument("--type")
+    resource.add_argument("--name")
+    resource.add_argument("--dependency", action="append", default=[])
+    resource.add_argument("--cleanup-policy", default="delete")
+    resource.add_argument("--cleanup-result", choices=("DELETED", "PRESERVED", "NOT_APPLICABLE", "FAILED"))
+    resource.add_argument("--final-state")
+    return root
 
-    show = commands.add_parser("show")
-    show.add_argument("--result-root", required=True, type=Path)
-    return parser
+def load_run(root: Path) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
+    contract = read_json(root / "execution-contract.json")
+    if not contract:
+        raise ValueError("execution-contract.json not found; run compile-plan.py first")
+    events = load_events(root / "events.jsonl")
+    if contract.get("schema_version") == 3:
+        sync_event_views(root)
+    errors = verify_phase_events(contract, events)
+    if errors:
+        raise ValueError("; ".join(errors))
+    return contract, events, project_state(contract, events)
 
+def incomplete_step(case: dict[str, Any], state: dict[str, Any]) -> dict[str, Any] | None:
+    phase = state["phase"]
+    for step in case["actions"]:
+        if step["phase"] == phase and step["id"] not in state["step_statuses"]:
+            return step
+    return None
 
-def write_resume(root: Path, state: dict) -> None:
-    current = state.get("current_case") or "未开始"
-    case = state.get("cases", {}).get(current, {})
+def next_instruction(
+    contract: dict[str, Any], state: dict[str, Any], root: Path | None = None
+) -> dict[str, Any]:
+    case_id = state["current_case"]
+    if contract.get("schema_version") != 3:
+        return {
+            "allowed_action": "legacy_read_only",
+            "reason": "V2 runs may only be rendered or validated",
+        }
+    case = case_by_id(contract, case_id)
+    current = state["cases"][case_id]
+    step = incomplete_step(case, current)
+    phases = ["NOT_STARTED", *contract["phase_order"]]
+    next_phase = phases[phases.index(current["phase"]) + 1] if current["phase"] != "COMPLETE" else None
+    blocked = failed_dependencies(root, case) if root and case.get("dependencies") else []
+    bound_argv = None
+    gate_reasons: list[str] = []
+    script_root = Path(__file__).resolve().parent
+    if state.get("run_status") == "RUN_ABORTED":
+        return {"allowed_action": "run_aborted", "reason": state["abort_reason"]}
+    action_type = "advance_phase"
+    launcher = [
+        sys.executable, str(script_root / "checkpoint.py"), "advance",
+        "--result-root", str(root), "--case-id", case_id,
+    ] if root else []
+    if step:
+        policy = (
+            contract["cleanup_policy"]
+            if case["cleanup_policy"] == "inherit"
+            else case["cleanup_policy"]
+        )
+        functional = (
+            read_json(
+                root / "cases" / case_id / "case-verdict.json", {}
+            ).get("functional_status")
+            if root else None
+        )
+        preserve_cleanup = bool(
+            step["phase"] == "APPLY_CLEANUP_POLICY"
+            and (
+                policy == "preserve_all"
+                or (
+                    functional == "FAIL"
+                    and policy in {"preserve_on_failure", "cleanup_on_success"}
+                )
+            )
+        )
+        should_skip = bool(blocked or preserve_cleanup)
+        action_type = "skip_action" if should_skip else "run_action"
+        script = "checkpoint.py" if should_skip else "run-action.py"
+        launcher = [
+            sys.executable, str(script_root / script),
+            "skip" if should_skip else "--result-root",
+        ]
+        if should_skip:
+            reason = (
+                f"failed dependencies: {','.join(blocked)}"
+                if blocked else f"cleanup preserved by policy: {policy}"
+            )
+            launcher += [
+                "--result-root", str(root), "--case-id", case_id,
+                "--action-id", step["id"], "--reason",
+                reason,
+            ]
+        else:
+            launcher += [
+                str(root), "--case-id", case_id, "--action-id", step["id"],
+            ]
+            try:
+                if root is None:
+                    raise ValueError("result root is required to bind action")
+                bound_argv = bind_action(
+                    contract, step, read_json(root / "resources-all.json", [])
+                )
+            except ValueError as error:
+                action_type = "blocked_contract"
+                launcher = []
+                gate_reasons.append(str(error))
+    elif current["phase"] == "DERIVE_VERDICT" and root and not (
+        root / "cases" / case_id / "case-verdict.json"
+    ).exists():
+        action_type = "derive_verdict"
+        launcher = [
+            sys.executable, str(script_root / "finalize-case.py"),
+            "--result-root", str(root), "--case-id", case_id,
+            "--stage", "verdict",
+        ]
+    elif current["phase"] == "FINALIZE_RESULT" and root and not (
+        root / "cases" / case_id / "result.json"
+    ).exists():
+        action_type = "finalize_result"
+        launcher = [
+            sys.executable, str(script_root / "finalize-case.py"),
+            "--result-root", str(root), "--case-id", case_id,
+            "--stage", "result",
+        ]
+    return {
+        "case_id": case_id,
+        "case_title": case["title"],
+        "current_phase": current["phase"],
+        "next_phase": next_phase,
+        "planned_action": step,
+        "planned_step": step,
+        "allowed_action": action_type,
+        "launcher_argv": launcher,
+        "bound_argv": bound_argv,
+        "gate_reasons": gate_reasons,
+        "blocked_by_failed_dependencies": blocked,
+    }
+
+def write_projection(root: Path, contract: dict[str, Any]) -> dict[str, Any]:
+    state = project_state(contract, load_events(root / "events.jsonl"))
+    instruction = next_instruction(contract, state, root) if state["current_case"] else {}
+    state["next_instruction"] = instruction
+    atomic_json(root / "run-state.json", state)
     lines = [
         "# Test Run Resume",
         "",
         f"- Run ID: `{state['run_id']}`",
-        f"- Timezone: `{state['timezone']}`",
-        f"- Current case: `{current}`",
-        f"- Current phase: `{case.get('phase', '未开始')}`",
-        f"- Next action: {case.get('next_action', '选择首个用例')}",
-        f"- Last checkpoint: `{state['updated_local']}`",
+        f"- Current case: `{instruction.get('case_id', '全部完成')}`",
+        f"- Current phase: `{instruction.get('current_phase', 'COMPLETE')}`",
+        f"- Allowed action: `{instruction.get('allowed_action', 'none')}`",
+        f"- Planned action: `{(instruction.get('planned_action') or {}).get('id', '-')}`",
         "",
-        "恢复时先读取 `execution-contract.json` 和 `run-state.json`, "
-        "再执行上面的 Next action. 不从对话历史推断遗漏状态.",
+        "恢复时先运行:",
+        "",
+        "```bash",
+        f"{sys.executable} {Path(__file__).resolve()} next --result-root {root}",
+        "```",
+        "",
+        "只执行新返回的 `launcher_argv`, 不直接执行本文件缓存的旧动作.",
+        "不得从对话历史推断进度或手工跳转 phase.",
     ]
     atomic_text(root / "resume.md", "\n".join(lines) + "\n")
+    return state
 
 
-def init_run(args: argparse.Namespace) -> None:
+def phase_gate(root: Path, contract: dict[str, Any], state: dict[str, Any], case_id: str) -> None:
+    case = case_by_id(contract, case_id)
+    phase = state["cases"][case_id]["phase"]
+    if phase == "NOT_STARTED":
+        incomplete = [
+            dep for dep in case.get("dependencies", [])
+            if state["cases"][dep]["phase"] != "COMPLETE"
+        ]
+        if incomplete:
+            raise ValueError(f"dependencies not complete: {','.join(incomplete)}")
+    if phase in STEP_PHASES:
+        planned = [step for step in case["actions"] if step["phase"] == phase]
+        statuses = state["cases"][case_id]["step_statuses"]
+        missing = [step["id"] for step in planned if step["id"] not in statuses]
+        if missing:
+            raise ValueError(f"planned steps not terminal: {','.join(missing)}")
+    case_root = root / "cases" / case_id
+    if phase == "COLLECT_LOGS" and case["log_requirement"] == "required":
+        if not (case_root / "logs" / "collection-status.json").exists():
+            raise ValueError("required log collection status missing")
+    if phase == "COLLECT_RESOURCES":
+        errors = reconcile_resources(root)
+        if errors:
+            raise ValueError("; ".join(errors))
+    if phase == "DERIVE_VERDICT":
+        verdict = read_json(case_root / "case-verdict.json")
+        if not verdict or not verdict.get("derived_by_harness"):
+            raise ValueError("harness-derived case-verdict.json missing")
+    if phase in {"FINALIZE_RESULT", "CASE_GATE"}:
+        result = read_json(case_root / "result.json")
+        if not result or not result.get("derived_by_harness"):
+            raise ValueError("harness-derived result.json missing")
+    if phase == "CASE_GATE":
+        errors = case_gate_errors(root, contract, case, state)
+        if errors:
+            raise ValueError("; ".join(errors))
+    if phase == "APPLY_CLEANUP_POLICY":
+        resources = read_json(case_root / "resources.json", [])
+        pending = [item["id"] for item in resources if item.get("cleanup_result") == "PENDING"]
+        if pending:
+            raise ValueError(f"resource cleanup still pending: {','.join(pending)}")
+
+
+def record_step(args: argparse.Namespace) -> None:
     root = args.result_root.resolve()
-    if root.exists() and any(root.iterdir()):
-        raise ValueError(f"result root is not empty: {root}")
-    ZoneInfo(args.timezone)
-    for case_id in args.case:
-        safe_component(case_id, "case ID")
-    root.mkdir(parents=True, exist_ok=True)
-    (root / "cases").mkdir()
-    skill_root = Path(__file__).resolve().parents[1]
-    started = local_now(args.timezone)
-    contract = {
-        "schema_version": 1,
-        "run_id": args.run_id,
-        "timezone": args.timezone,
-        "cleanup_policy": args.cleanup_policy,
-        "case_ids": args.case,
-        "required_h3": [
-            "执行结果",
-            "测试目标",
-            "测试步骤",
-            "结果检查",
-            "创建的资源",
-            "关键日志输出",
-        ],
-        "execution_result_mapping": {
-            "PASS": "成功",
-            "OTHER": "失败",
-        },
-        "skill_sha256": skill_digest(skill_root),
-        "created_local": started,
-    }
-    atomic_json(root / "execution-contract.json", contract)
-    state = {
-        "schema_version": 1,
-        "run_id": args.run_id,
-        "timezone": args.timezone,
-        "cleanup_policy": args.cleanup_policy,
-        "contract_sha256": object_digest(contract),
-        "started_local": started,
-        "updated_local": started,
-        "current_case": None,
-        "cases": {},
-    }
-    atomic_json(root / "run-state.json", state)
-    atomic_json(root / "resources-all.json", [])
-    write_resume(root, state)
-
-
-def update_case(args: argparse.Namespace) -> None:
-    root = args.result_root.resolve()
-    state = read_json(root / "run-state.json")
-    if not state:
-        raise ValueError("run-state.json not found; run init first")
-    safe_component(args.case_id, "case ID")
-    now = local_now(state["timezone"])
-    case = state["cases"].setdefault(args.case_id, {})
-    case.update(
-        {
-            "phase": args.phase,
-            "next_action": args.next_action,
-            "updated_local": now,
-        }
+    contract, _, state = load_run(root)
+    raise ValueError("manual step status is disabled; V2 runs are read-only")
+    case = case_by_id(contract, safe_component(args.case_id, "case ID"))
+    step_id = safe_component(args.step_id, "step ID")
+    step = next((item for item in case["actions"] if item["id"] == step_id), None)
+    if not step:
+        raise ValueError(f"step not in contract: {step_id}")
+    current = state["cases"][args.case_id]
+    expected = incomplete_step(case, current)
+    if not expected or expected["id"] != step_id:
+        raise ValueError(
+            f"next planned step is {expected['id'] if expected else None}, not {step_id}"
+        )
+    if current["phase"] != step["phase"]:
+        raise ValueError(f"step phase is {step['phase']}, current phase is {current['phase']}")
+    if step_id in current["step_statuses"]:
+        raise ValueError(f"step already terminal: {step_id}")
+    blocked = failed_dependencies(root, case)
+    if blocked and args.status != "SKIPPED_BY_PLAN":
+        raise ValueError(f"failed dependencies require SKIPPED_BY_PLAN: {','.join(blocked)}")
+    if args.status in {"PASS", "FAIL"} and not command_records_for_step(
+        root, args.case_id, step_id
+    ):
+        raise ValueError("PASS/FAIL requires a record-command.py record")
+    if args.status not in {"PASS", "FAIL"} and not args.reason.strip():
+        raise ValueError(f"{args.status} requires --reason")
+    append_event(
+        root,
+        contract["timezone"],
+        "STEP_STATUS",
+        args.case_id,
+        step_id,
+        {"status": args.status, "reason": args.reason, "evidence": args.evidence},
     )
-    for name in STATUSES:
-        value = getattr(args, name)
-        if value:
-            case[name] = value
-    state["current_case"] = args.case_id
-    state["updated_local"] = now
-    atomic_json(root / "run-state.json", state)
-    write_resume(root, state)
+    write_projection(root, contract)
 
 
-def record_resource(args: argparse.Namespace) -> None:
+def skip_action(args: argparse.Namespace) -> None:
     root = args.result_root.resolve()
-    state = read_json(root / "run-state.json")
-    if not state:
-        raise ValueError("run-state.json not found; run init first")
-    safe_component(args.case_id, "case ID")
-    safe_component(args.step_id, "step ID")
-    item = {
-        "type": args.type,
-        "name": args.name,
-        "uuid": args.uuid,
-        "project": args.project,
-        "status": args.status,
-        "host_backend": args.host_backend,
-        "created_local": local_now(state["timezone"]),
-        "timezone": state["timezone"],
-        "owning_case": args.case_id,
-        "owning_step": args.step_id,
-        "cleanup_policy": args.cleanup_policy,
-        "final_state": args.final_state,
-    }
-    case_path = root / "cases" / args.case_id / "resources.json"
-    all_path = root / "resources-all.json"
-    for path in (case_path, all_path):
-        resources = read_json(path, [])
-        resources = [entry for entry in resources if entry.get("uuid") != args.uuid]
-        resources.append(item)
-        atomic_json(path, resources)
-    state["current_case"] = args.case_id
-    state["updated_local"] = item["created_local"]
-    case = state["cases"].setdefault(args.case_id, {})
-    case["updated_local"] = item["created_local"]
-    case["next_action"] = "继续当前 phase, 资源已写入台账"
-    atomic_json(root / "run-state.json", state)
-    write_resume(root, state)
+    contract, _, state = load_run(root)
+    case_id = safe_component(args.case_id, "case ID")
+    action_id = safe_component(args.action_id, "action ID")
+    case = case_by_id(contract, case_id)
+    action = incomplete_step(case, state["cases"][case_id])
+    if not action or action["id"] != action_id:
+        raise ValueError("only the next action may be skipped")
+    blocked = failed_dependencies(root, case)
+    policy = (
+        contract["cleanup_policy"]
+        if case["cleanup_policy"] == "inherit"
+        else case["cleanup_policy"]
+    )
+    functional = read_json(
+        root / "cases" / case_id / "case-verdict.json", {}
+    ).get("functional_status")
+    cleanup_preserved = (
+        action["phase"] == "APPLY_CLEANUP_POLICY"
+        and (
+            policy == "preserve_all"
+            or (
+                functional == "FAIL"
+                and policy in {"preserve_on_failure", "cleanup_on_success"}
+            )
+        )
+    )
+    if not blocked and not cleanup_preserved:
+        raise ValueError("action is not eligible for automatic skip")
+    append_event(
+        root, contract["timezone"], "ACTION_SKIPPED", case_id, action_id,
+        {"status": "SKIPPED_BY_PLAN", "reason": args.reason},
+    )
+    if cleanup_preserved:
+        for resource in read_json(root / "cases" / case_id / "resources.json", []):
+            updated = {
+                **resource,
+                "cleanup_result": "PRESERVED",
+                "final_state": "PRESENT",
+            }
+            append_event(
+                root, contract["timezone"], "RESOURCE_UPDATED",
+                case_id, action_id, updated,
+            )
+        sync_event_views(root)
+    write_projection(root, contract)
+
+
+def abort_run(args: argparse.Namespace) -> None:
+    root = args.result_root.resolve()
+    contract, _, state = load_run(root)
+    if state.get("run_status") == "RUN_ABORTED":
+        raise ValueError("run is already aborted")
+    append_event(
+        root, contract["timezone"], "RUN_ABORTED",
+        payload={"reason": args.reason.strip()},
+    )
+    write_projection(root, contract)
+
+
+def advance(args: argparse.Namespace) -> None:
+    root = args.result_root.resolve()
+    contract, _, state = load_run(root)
+    if contract.get("schema_version") != 3:
+        raise ValueError("V2 runs are read-only")
+    case_id = safe_component(args.case_id, "case ID")
+    case_by_id(contract, case_id)
+    if case_id != state["current_case"]:
+        raise ValueError(f"only current case may advance: {state['current_case']}")
+    phase_gate(root, contract, state, case_id)
+    phases = ["NOT_STARTED", *contract["phase_order"]]
+    current = state["cases"][case_id]["phase"]
+    if current == "COMPLETE":
+        raise ValueError("case already complete")
+    target = phases[phases.index(current) + 1]
+    append_event(
+        root, contract["timezone"], "PHASE_ADVANCED", case_id,
+        payload={"from_phase": current, "to_phase": target},
+    )
+    write_projection(root, contract)
+
+
+def resource(args: argparse.Namespace) -> None:
+    root = args.result_root.resolve()
+    contract, _, state = load_run(root)
+    raise ValueError("manual resource mutation is disabled; V2 runs are read-only")
+    case_id = safe_component(args.case_id, "case ID")
+    case_by_id(contract, case_id)
+    if args.mode == "create":
+        if not args.type or not args.name or not args.step_id:
+            raise ValueError("create requires --type, --name and --step-id")
+        step_id = safe_component(args.step_id, "step ID")
+        case = case_by_id(contract, case_id)
+        if step_id not in {item["id"] for item in case["actions"]}:
+            raise ValueError(f"step not in contract: {step_id}")
+        step = next(item for item in case["actions"] if item["id"] == step_id)
+        if state["cases"][case_id]["phase"] != step["phase"]:
+            raise ValueError("resource owning step is not in the current phase")
+        expected = incomplete_step(case, state["cases"][case_id])
+        if not expected or expected["id"] != step_id:
+            raise ValueError("resource must belong to the current planned step")
+        if not command_records_for_step(root, case_id, step_id):
+            raise ValueError("resource registration requires a command record")
+        item = create_resource(
+            root,
+            case_id,
+            {
+                "id": args.id,
+                "type": args.type,
+                "name": args.name,
+                "owning_step": step_id,
+                "dependencies": args.dependency,
+                "cleanup_policy": args.cleanup_policy,
+            },
+            local_timestamp(contract["timezone"]),
+        )
+        event_type = "RESOURCE_CREATED"
+    else:
+        phase = state["cases"][case_id]["phase"]
+        if args.cleanup_result and phase != "APPLY_CLEANUP_POLICY":
+            raise ValueError("cleanup_result requires APPLY_CLEANUP_POLICY")
+        allowed = {"COLLECT_RESOURCES", "APPLY_CLEANUP_POLICY"}
+        if args.final_state and phase not in allowed:
+            raise ValueError("final_state requires resource collection or cleanup")
+        changes = {
+            key: value for key, value in {
+                "cleanup_result": args.cleanup_result,
+                "final_state": args.final_state,
+            }.items() if value
+        }
+        if not changes:
+            raise ValueError("update requires --cleanup-result or --final-state")
+        item = update_resource(root, case_id, args.id, changes)
+        event_type = "RESOURCE_UPDATED"
+    append_event(root, contract["timezone"], event_type, case_id, payload=item)
+    write_projection(root, contract)
 
 
 def main() -> int:
-    args = build_parser().parse_args()
+    args = parser().parse_args()
     try:
-        if args.action == "init":
-            init_run(args)
-        elif args.action == "update":
-            update_case(args)
+        root = args.result_root.resolve()
+        if args.action == "step":
+            record_step(args)
+        elif args.action == "skip":
+            skip_action(args)
+        elif args.action == "abort":
+            abort_run(args)
+        elif args.action == "advance":
+            advance(args)
         elif args.action == "resource":
-            record_resource(args)
+            resource(args)
         else:
-            state = read_json(args.result_root.resolve() / "run-state.json")
-            if not state:
-                raise ValueError("run-state.json not found")
-            print(json.dumps(state, ensure_ascii=False, indent=2))
-    except (OSError, ValueError) as error:
+            contract, _, state = load_run(root)
+            if args.action == "next":
+                if not state["current_case"]:
+                    print(json.dumps({"allowed_action": "run_complete"}, indent=2))
+                    return 0
+                instruction = next_instruction(contract, state, root)
+                print(json.dumps(instruction, ensure_ascii=False, indent=2))
+            else:
+                print(json.dumps(state, ensure_ascii=False, indent=2))
+    except (OSError, ValueError, json.JSONDecodeError) as error:
         print(f"checkpoint error: {error}", file=sys.stderr)
         return 2
     return 0

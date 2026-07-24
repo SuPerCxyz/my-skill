@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EasyStack Case Observations",
+  "type": "object",
+  "required": ["checks"],
+  "properties": {
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "status", "actual", "evidence"],
+        "properties": {
+          "check_id": {"type": "string"},
+          "status": {
+            "enum": ["PASS", "FAIL", "UNKNOWN", "NOT_APPLICABLE"]
+          },
+          "actual": {"type": "string"},
+          "evidence": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

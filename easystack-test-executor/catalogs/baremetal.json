@@ -1,0 +1,23 @@
+{
+  "domain": "baremetal",
+  "operations": {
+    "boot_from_volume": {
+      "command": ["openstack", "server", "create", "--flavor", "<BAREMETAL_FLAVOR>", "--volume", "<VOLUME_ID>", "--network", "<NETWORK_ID>", "<NAME>", "-f", "json"],
+      "checks": ["flavor resource class", "Ironic connector", "Cinder attachment", "deploy成功", "清理顺序"],
+      "services": ["nova-api", "nova-scheduler", "nova-compute", "ironic-api", "ironic-conductor", "cinder-volume"]
+    },
+    "encrypted_volume_negative": {
+      "expected": "能力矩阵声明不支持时拒绝加密卷挂载或启动",
+      "checks": ["错误码和消息稳定", "node provisioning state不漂移", "volume available", "无connector和attachment残留", "Barbican无异常访问"],
+      "services": ["nova", "cinder", "ironic", "barbican"]
+    },
+    "rebuild": {
+      "command": ["openstack", "server", "rebuild", "--image", "<IMAGE_ID>", "<SERVER_ID>"],
+      "checks": ["provision state", "清盘语义", "network重新配置", "失败维护状态"]
+    },
+    "cleaning": {
+      "command": ["openstack", "baremetal", "node", "clean", "--clean-steps", "<JSON>", "<NODE_ID>"],
+      "checks": ["授权为破坏性操作", "clean step进度", "失败恢复", "磁盘数据影响"]
+    }
+  }
+}

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import fcntl
 import json
 import os
 import re
@@ -15,8 +16,13 @@ from zoneinfo import ZoneInfo
 
 
 REDACTIONS = (
-    re.compile(r"(?i)(OS_PASSWORD|password|token|secret)=([^\s]+)"),
+    re.compile(r"(?i)(OS_PASSWORD|password|token|secret)=('[^']*'|\"[^\"]*\"|[^\s]+)"),
     re.compile(r"(?i)(--password|--token|--secret)\s+([^\s]+)"),
+    re.compile(
+        r'(?i)("(?:password|token|secret)"\s*:\s*)("[^"]*"|[^,\s}]+)'
+    ),
+    re.compile(r"(?i)(X-Auth-Token\s*:\s*)([^\s,]+)"),
+    re.compile(r"(?i)(Authorization\s*:\s*Bearer\s+)([^\s,]+)"),
 )
 SAFE_COMPONENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 
@@ -68,9 +74,12 @@ def atomic_text(path: Path, content: str) -> None:
 def append_jsonl(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as stream:
+        os.chmod(path, 0o600)
+        fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
         stream.write(json.dumps(data, ensure_ascii=False) + "\n")
         stream.flush()
         os.fsync(stream.fileno())
+        fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -116,6 +125,18 @@ def markdown_cell(value: Any) -> str:
     return str(value if value is not None else "").replace("|", r"\|").replace(
         "\n", "<br>"
     )
+
+
+def markdown_table(headers: list[str], rows: list[list[Any]]) -> list[str]:
+    output = [
+        "| " + " | ".join(headers) + " |",
+        "|" + "|".join("-" * (len(header) + 2) for header in headers) + "|",
+    ]
+    output.extend(
+        "| " + " | ".join(markdown_cell(value) for value in row) + " |"
+        for row in rows
+    )
+    return output
 
 
 def safe_component(value: str, label: str) -> str:

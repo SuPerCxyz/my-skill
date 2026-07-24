@@ -1,0 +1,63 @@
+[
+  {
+    "id": "impact-encrypted-volume",
+    "prompt": "测试云硬盘加密改动的影响",
+    "must_include": [
+      "Cinder",
+      "Barbican",
+      "Nova",
+      "Ironic",
+      "encrypted attach negative path",
+      "attachment residue"
+    ]
+  },
+  {
+    "id": "internal-clone-evidence",
+    "prompt": "验证从镜像创建云硬盘走 clone 流程",
+    "must_include": [
+      "cinder-volume",
+      "Request ID",
+      "resource ID",
+      "worker log",
+      "diagnostic check"
+    ]
+  },
+  {
+    "id": "server-defaults",
+    "prompt": "创建并删除一台云主机",
+    "must_include": [
+      "Boot Volume",
+      "Floating IP",
+      "force delete",
+      "Port cleanup"
+    ]
+  },
+  {
+    "id": "optional-log",
+    "prompt": "功能检查足够, 可选日志没有采集",
+    "must_include": [
+      "OPTIONAL_NOT_COLLECTED",
+      "functional result unchanged"
+    ]
+  },
+  {
+    "id": "compaction-recovery",
+    "prompt": "长任务压缩后继续执行",
+    "must_include": [
+      "checkpoint.py next",
+      "execution-contract.json",
+      "events.jsonl",
+      "no phase skipping"
+    ]
+  },
+  {
+    "id": "portable-profile",
+    "prompt": "复用另一套 EasyStack 环境的信息",
+    "must_include": [
+      "/tmp/easystack-test-executor-profiles",
+      "fingerprint",
+      "no profile in skill",
+      "targeted freshness check"
+    ]
+  }
+]

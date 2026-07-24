@@ -1,29 +1,53 @@
 {
+  "schema_version": 3,
+  "derived_by_harness": true,
+  "derivation_version": "3.0",
+  "contract_sha256": "<CONTRACT_SHA256>",
   "case_id": "EXAMPLE-001",
-  "title": "Example OpenStack test",
-  "objective": "验证目标功能和关联资源状态符合预期。",
+  "scenario_key": "encrypted-image+specified-size+hdd",
+  "title": "加密镜像指定容量创建 HDD 云硬盘",
+  "requirement_summary": "验证使用加密镜像和指定容量能够成功创建 HDD 云硬盘",
+  "objective": "验证云硬盘终态、容量和内部 clone 路径符合预期",
   "functional_status": "PASS",
   "timing_status": "VALID",
   "evidence_status": "COMPLETE",
   "cleanup_status": "COMPLETE",
   "diagnostic_status": "CONCLUSIVE",
+  "execution_quality": "COMPLETE",
   "log_requirement": "required",
   "started_local": "2026-07-24T14:08:08.447+08:00",
   "ended_local": "2026-07-24T14:10:10.120+08:00",
+  "timezone": "Asia/Shanghai",
   "checks": [
     {
+      "check_id": "CHECK-01",
+      "check_type": "functional",
+      "required": true,
       "check": "资源终态",
       "expected": "available",
       "actual": "available",
+      "status": "PASS",
       "result": "成功",
-      "evidence": "openstack/STEP-02.stdout.log"
+      "evidence": "cases/EXAMPLE-001/attempt-01/openstack/STEP-03.<COMMAND_ID>.stdout.log",
+      "evaluator": {
+        "type": "json_path",
+        "action_id": "STEP-03",
+        "source": "stdout",
+        "path": "status",
+        "value": "available"
+      }
     },
     {
+      "check_id": "CHECK-02",
+      "check_type": "diagnostic",
+      "required": true,
       "check": "内部执行路径",
       "expected": "clone",
       "actual": "clone",
+      "status": "PASS",
       "result": "成功",
-      "evidence": "logs/related.log"
+      "evidence": "logs/raw/cinder-volume.example.log",
+      "evaluator": {"type": "manual"}
     }
   ],
   "logs": [
@@ -33,10 +57,19 @@
       "source_timezone": "UTC",
       "service": "cinder-volume",
       "pod": "cinder-volume-example",
+      "pod_uid": "<POD_UID>",
       "container": "cinder-volume",
+      "container_id": "<CONTAINER_ID>",
+      "selector": "application=cinder,component=volume",
       "request_or_resource_id": "req-example",
-      "source_path": "logs/related.log",
+      "source_path": "logs/raw/cinder-volume.example.log",
       "excerpt": "INFO ... clone path selected ... req-example"
     }
-  ]
+  ],
+  "run_fingerprint": {
+    "contract_sha256": "<CONTRACT_SHA256>",
+    "profile_sha256": "<PROFILE_SHA256>",
+    "skill_sha256": "<SKILL_SHA256>"
+  },
+  "remaining_resources": []
 }

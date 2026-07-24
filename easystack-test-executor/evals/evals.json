@@ -1,0 +1,41 @@
+{
+  "skill_name": "easystack-test-executor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "为 EasyStack 环境设计云硬盘加密回归测试, 包含 VM 和 Bare Metal 消费者, 输出可执行 V3 plan。",
+      "expected_output": "包含 VM 正向路径、Ironic 能力核对和不支持时的负向路径; plan 绑定 impact、authorization、profile、argv、expected return codes、capture 和 evaluator。",
+      "expectations": ["包含 VM 正向和 Ironic 负向路径", "输出 V3 contract 必需字段", "不声称 Ironic 支持加密卷"]
+    },
+    {
+      "id": 2,
+      "prompt": "一个 30 用例测试执行到第 17 个用例后发生 context compaction。继续执行并保证不遗漏步骤时间和日志。",
+      "expected_output": "只读取 resume.md 并运行 checkpoint.py next; 只执行 launcher_argv, 不从聊天推断进度或手工补 PASS。",
+      "expectations": ["先运行 checkpoint.py next", "只执行 launcher_argv", "不手工填写 PASS"]
+    },
+    {
+      "id": 3,
+      "prompt": "验证一个预期被 OpenStack 拒绝的加密卷挂载操作。CLI 返回 1 是否代表用例失败?",
+      "expected_output": "Action expected.return_codes 可包含 1; Action PASS 仍需 declarative checks 验证拒绝层级、状态一致性和无残留 attachment。",
+      "expectations": ["说明 expected non-zero 语义", "检查状态一致性", "检查无残留 attachment"]
+    },
+    {
+      "id": 4,
+      "prompt": "把 20 个测试结果生成中文 Markdown。部分用例没有日志, 两个步骤缺失时间。",
+      "expected_output": "每个用例为 H2; 固定六个 H3; 索引含中文名称和简短需求并可跳转; 缺失时间或 required logs 只在执行结果下说明, 不覆盖 Functional status。",
+      "expectations": ["每个用例使用 H2", "索引可跳转且含中文名称和测试需求", "时间和日志异常不覆盖 Functional status"]
+    },
+    {
+      "id": 5,
+      "prompt": "只分析一个历史 eslog 中的 Cinder 故障, 不访问环境也不重新创建资源。",
+      "expected_output": "不触发测试执行流程, 路由到 easystack-log-analysis。",
+      "expectations": ["路由到 easystack-log-analysis", "不创建 OpenStack 资源"]
+    },
+    {
+      "id": 6,
+      "prompt": "Action 已成功创建 Volume, 但模型在资源登记前退出。恢复运行。",
+      "expected_output": "Command 和 resource capture 在同一 ACTION_COMPLETED event; checkpoint 从 event 重建 commands/resources/artifact projections, 不要求模型手工补 UUID。",
+      "expectations": ["从 event 重建 projection", "不手工补 UUID", "不重复创建 Volume"]
+    }
+  ]
+}

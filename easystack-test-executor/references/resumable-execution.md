@@ -2,157 +2,88 @@
 
 ## Purpose 目标
 
-长时间测试不得依赖对话上下文保存步骤时间、资源和日志状态。使用本目录的脚本将
-执行契约、当前状态和原始记录持续写入 `<RESULT_ROOT>`, 再从结构化记录生成报告。
+V3 harness 将 profile、impact、authorization、Action 和 checks 编译为 immutable
+contract。状态、commands、resources 和 artifacts 从 hash-chained events 投影。
 
-模型负责分析和操作选择; 脚本负责不可遗漏的记录、恢复和格式校验。
+## Step 1: Compile Plan 编译计划
 
-## Start A Run 初始化运行
-
-从 skill 根目录执行:
+先按 [case-normalization.md](case-normalization.md) 生成完整 YAML/JSON, 再运行:
 
 ```bash
-python3 scripts/checkpoint.py init \
-  --result-root /tmp/easystack-test-<RUN_ID> \
+python3 scripts/compile-plan.py \
+  --plan <NORMALIZED_PLAN> \
+  --profile /tmp/easystack-test-executor-profiles/<ENVIRONMENT_KEY>.yaml \
+  --result-root <RESULT_ROOT> \
   --run-id <RUN_ID> \
   --timezone <IANA_TIMEZONE> \
-  --cleanup-policy preserve_on_failure \
-  --case <CASE_ID>
+  --cleanup-policy preserve_on_failure
 ```
 
-使用环境 profile 中的 IANA timezone, 不使用无 offset 的缩写。初始化会生成:
+编译器冻结 profile digest、impact、authorization、用例顺序、argv、expected
+outcome、capture、checks、logs 和 cleanup。非空目录会被拒绝。
 
-```text
-execution-contract.json
-run-state.json
-resume.md
-resources-all.json
-```
+## Step 2: Follow One Allowed Action 执行唯一动作
 
-`execution-contract.json` 是本次运行的固定规则快照。已有非空目录时初始化会失败,
-避免覆盖证据。测试中 skill 内容变化时, 最终校验会失败, 应先核对变更再决定恢复方式。
-
-## Record Every Action 记录每个操作
-
-每个改变资源或验证状态的 action 必须通过 wrapper 执行:
+每次操作前运行:
 
 ```bash
-python3 scripts/record-command.py \
-  --result-root <RESULT_ROOT> \
-  --case-id <CASE_ID> \
-  --step-id <STEP_ID> \
-  --attempt attempt-01 \
-  --description "<STEP_DESCRIPTION>" \
-  --execute-location "<NODE_OR_CONTAINER>" \
-  -- openstack volume create ...
+python3 scripts/checkpoint.py next --result-root <RESULT_ROOT>
 ```
 
-wrapper 不使用 shell, 需要 pipeline 时显式执行 `bash -lc '<COMMAND>'`。它自动保存:
+只执行输出的 `launcher_argv`。常见 `allowed_action` 为 `run_action`、
+`advance_phase`、`derive_verdict`、`skip_action`、`finalize_result` 和
+`run_complete`。`blocked_contract` 必须先修复 contract 输入, 不得自行替代命令。
 
-- 带 offset 的本地开始和结束时间。
-- monotonic `duration_ms`、return code 和结果。
-- 脱敏后的命令、stdout、stderr 和 Request ID。
-- `commands.jsonl`、`commands.log` 及每一步独立输出文件。
+## Step 3: Run Bound Action 执行绑定动作
 
-重试时递增 `--attempt`, 不覆盖前一次输出; 所有 attempt 仍追加到用例级
-`commands.jsonl`, renderer 会按实际执行顺序展示。
+`launcher_argv` 调用 `run-action.py`, runner 只执行 contract 中的 argv。它自动记录
+local time、duration、return code、timeout、Request ID、stdout/stderr hash 和 status。
+V3 禁止 `record-command.py`、`checkpoint.py step` 和手填 PASS/FAIL。
 
-不得绕过 wrapper 后再人工估算步骤时间。wrapper 返回原命令的 return code, 所以失败
-不会被记录工具隐藏。
+Expected non-zero 通过 `expected.return_codes` 表达。实际返回码属于允许集合且未超时才
+为 PASS。Command exit 0 不能替代 declarative check。
 
-资源创建成功后立即登记:
+## Step 4: Capture Resources 捕获资源
 
-```bash
-python3 scripts/checkpoint.py resource \
-  --result-root <RESULT_ROOT> \
-  --case-id <CASE_ID> \
-  --step-id <STEP_ID> \
-  --type Volume \
-  --name <RESOURCE_NAME> \
-  --uuid <RESOURCE_UUID> \
-  --project <PROJECT_ID> \
-  --status creating \
-  --host-backend <HOST_OR_BACKEND>
-```
+Create Action 必须使用 `-f json` 或 `-f value`, 并在 `capture.resources` 声明 key、
+type、ID 和 name selector。Command、resource capture 和 status 写入同一 Action event,
+随后重建 case/global ledger。模型不得另行补记 UUID。
 
-Floating IP 使用 address 作为 `name`。不得把凭据放入命令参数或结果文件。
+## Step 5: Collect Logs 收集日志
 
-## Checkpoint Protocol 断点协议
+required/optional 日志先后执行 `collect-logs.py snapshot --stage before/after`, 再执行
+`collect-logs.py collect`。工具按 Pod UID 合并滚动期间的实例, 保存 raw log、
+correlation ID、UTC 原始时间和本地时间。required 目标未覆盖时不能标记 COMPLETE。
 
-每次状态机 phase 变化、资源创建以及日志窗口关闭后更新 checkpoint:
+optional 日志未采集派生为 `OPTIONAL_NOT_COLLECTED`, 不产生功能失败或虚假的 PARTIAL。
+required 日志缺失派生为 MISSING; 内部分支检查缺少证据时 observation 必须为 UNKNOWN。
 
-```bash
-python3 scripts/checkpoint.py update \
-  --result-root <RESULT_ROOT> \
-  --case-id <CASE_ID> \
-  --phase <PHASE> \
-  --next-action "<ONLY_NEXT_ACTION>" \
-  --functional-status <PASS_OR_FAIL> \
-  --timing-status <VALID_OR_INVALID> \
-  --evidence-status <TERMINAL_STATUS> \
-  --cleanup-status <TERMINAL_STATUS> \
-  --diagnostic-status <TERMINAL_STATUS>
-```
+## Step 6: Derive Verdict And Result 派生结果
 
-未到终态的状态参数可以省略。进入下一用例前, 当前用例依次完成日志收集、
-`RECORD_RESULT`、`CASE_GATE`、清理判断和游标推进, 最后写入 `phase=COMPLETE`。
+在 `DERIVE_VERDICT` 执行返回的 launcher, 由 `action_status`、`json_path`、`regex`
+或显式 manual evaluator 生成 immutable `case-verdict.json`。所有 required
+Functional checks 为 PASS 时 Functional status 才为 PASS。
 
-## Recovery After Compaction 压缩后恢复
+Cleanup 完成后在 `FINALIZE_RESULT` 生成 `result.json`, 添加 cleanup、remaining
+resources 和 run fingerprint。模型不得创建或编辑这两个文件。
 
-发生 autocompact、中断或模型切换时, 停止新的环境操作, 依次读取:
+## Step 7: Render And Validate 生成和校验
 
-1. `<RESULT_ROOT>/execution-contract.json`
-2. `<RESULT_ROOT>/run-state.json`
-3. `<RESULT_ROOT>/resume.md`
-4. [execution-lifecycle.md](execution-lifecycle.md) 的 `Invariants 必守不变量`
-
-只执行 `resume.md` 的 Next action。不得通过聊天历史猜测当前 phase, 不得重做已记录为
-完成的资源操作。若磁盘记录和聊天描述冲突, 以结构化记录为准并报告冲突。
-
-`resume.md` 只保存恢复所需的最小状态, 每次 checkpoint 都会重写。需要检查完整状态时:
-
-```bash
-python3 scripts/checkpoint.py show --result-root <RESULT_ROOT>
-```
-
-## Structured Case Result 结构化用例结果
-
-完成验证后写入 `cases/<CASE_ID>/result.json`, 字段结构参考
-[../examples/result-record.example.json](../examples/result-record.example.json)。
-
-- `functional_status` 只能按功能断言设置为 `PASS` 或 `FAIL`。
-- 步骤记录不完整时设置 `timing_status=INVALID`, 不修改已经确定的 Functional status。
-- `required` 日志缺失时设置 `evidence_status=MISSING` 或 `INVALID`。
-- `optional` 日志未采集时设置 `evidence_status=PARTIAL`。
-- `none` 日志设置 `evidence_status=NOT_APPLICABLE`。
-- `logs` 只引用最小充分、已脱敏的 worker 日志和证据文件。
-
-用例结果中的 `checks`、`logs` 和状态由模型根据证据填写; 步骤和资源表由 renderer
-优先从 `commands.jsonl` 和 `resources.json` 读取, 避免重复手工录入。
-
-## Render And Validate 生成和校验
-
-每个用例完成后执行一次, 运行结束前再执行一次:
+所有用例 COMPLETE 后运行:
 
 ```bash
 python3 scripts/render-report.py --result-root <RESULT_ROOT>
 python3 scripts/validate-run.py --result-root <RESULT_ROOT>
 ```
 
-renderer 确定性生成 `result.md`、`summary.md`、`results.csv` 和 `run.json`。不要手工
-改生成文件; 修改 `result.json` 或其它结构化记录后重新生成。
+Validator 校验 contract/profile digest、event chain、Action projection、artifact hash、
+checks、严格日志关联、resources、verdict、cleanup 和 Markdown。exit code 0 才能完成。
 
-validator 的 exit code 语义:
+## Recovery Rules 恢复规则
 
-- `0`: 结构和状态闭合; 可能仍输出 evidence 或 timing warning。
-- `1`: 存在阻止声明完成的结构错误。
-- `2`: 输入目录或执行契约缺失。
-
-明确写入 `INVALID`、`MISSING` 或 `PARTIAL` 后, 诊断缺口以 warning 保留, 不把
-`functional_status=PASS` 改成失败。未显式记录缺口、报告格式不一致、用例缺失或 phase
-未到 `COMPLETE` 时返回非零。
-
-## Completion Rule 完成规则
-
-只有 `validate-run.py` 返回 0 才能声明本次运行已完成。若有 warning, 在交付说明中
-列出受影响用例; 最终 Markdown 的 `执行结果` 仍只按 Functional status 显示成功或失败。
+1. Context compaction 后只读 `resume.md`, 再运行 `checkpoint.py next`。
+2. 不重做有 terminal event 的 Action。
+3. 不修改 event、contract、projection、verdict 或 report。
+4. 超时后先核对后台 task 和资源, 只有 contract 允许才重试。
+5. 需要中止时使用 `checkpoint.py abort`, 再生成 partial report。
+6. V2 结果只读校验和渲染, 不继续执行任意命令。

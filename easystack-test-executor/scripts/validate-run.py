@@ -1,288 +1,354 @@
 #!/usr/bin/env python3
-"""Validate durable state and deterministic report structure."""
+"""Validate contract, events, evidence, derived results, and report files."""
 
 from __future__ import annotations
 
 import argparse
-import csv
-import re
+import hashlib
+import json
 import sys
 from pathlib import Path
 from typing import Any
 
-from _harness import (
-    case_anchor,
-    load_jsonl,
-    object_digest,
-    read_json,
-    safe_component,
-    skill_digest,
+from _actions import bind_action
+from _artifacts import validate_artifacts
+from _case_gate import derived_diagnostic, derived_quality
+from _contract import case_by_id, contract_digest
+from _evidence_validation import validate_logs
+from _events import EventError, load_events, project_state, verify_phase_events
+from _harness import case_anchor, load_jsonl, object_digest, read_json, skill_digest
+from _projections import projection_errors
+from _resources import cleanup_quality, reconcile_resources
+from _validation import (
+    REQUIRED_RESULT_FIELDS,
+    Findings,
+    case_text_errors,
+    valid_local_time,
+    validate_case_markdown,
+    validate_run_files,
 )
-from _validation import H3, REQUIRED_RESULT_FIELDS, Findings, valid_local_time
 
 
-def validate_command_records(
-    root: Path, case: dict[str, Any], findings: Findings
-) -> None:
-    case_id = case["case_id"]
-    records = load_jsonl(root / "cases" / case_id / "commands.jsonl")
+EVIDENCE_STATUSES = {
+    "COMPLETE",
+    "PARTIAL",
+    "MISSING",
+    "INVALID",
+    "NOT_APPLICABLE",
+    "OPTIONAL_NOT_COLLECTED",
+}
+
+
+def command_valid(root: Path, record: dict[str, Any], timezone: str) -> bool:
     required = (
+        "command_id",
         "step_id",
         "start_local",
         "end_local",
         "timezone",
         "duration_ms",
+        "timeout_seconds",
+        "timed_out",
         "return_code",
-        "result",
+        "stdout_path",
+        "stderr_path",
     )
-    invalid = not records
-    timezone = read_json(root / "execution-contract.json", {}).get("timezone")
-    for index, record in enumerate(records, 1):
-        missing = [field for field in required if field not in record]
-        if missing:
+    if any(field not in record for field in required):
+        return False
+    if record["timezone"] != timezone:
+        return False
+    if not isinstance(record["duration_ms"], int) or record["duration_ms"] < 0:
+        return False
+    if not valid_local_time(record["start_local"]) or not valid_local_time(record["end_local"]):
+        return False
+    return all((root / record[field]).is_file() for field in ("stdout_path", "stderr_path"))
+
+
+def validate_steps(
+    root: Path,
+    case: dict[str, Any],
+    result: dict[str, Any],
+    state: dict[str, Any],
+    contract: dict[str, Any],
+    findings: Findings,
+) -> None:
+    case_id = case["id"]
+    records = load_jsonl(root / "cases" / case_id / "commands.jsonl")
+    command_ids = [item.get("command_id") for item in records]
+    if len(command_ids) != len(set(command_ids)):
+        findings.error(f"{case_id}: duplicate command_id")
+    output_paths = [
+        item.get(field)
+        for item in records
+        for field in ("stdout_path", "stderr_path")
+    ]
+    if len(output_paths) != len(set(output_paths)):
+        findings.error(f"{case_id}: command evidence path was reused")
+    by_step: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        by_step.setdefault(str(record.get("step_id", "")), []).append(record)
+    statuses = state["cases"][case_id]["step_statuses"]
+    invalid = False
+    for step in case["actions"]:
+        step_id = step["id"]
+        if step_id not in statuses:
+            findings.error(f"{case_id}: planned step not terminal: {step_id}")
             invalid = True
-            findings.warning(
-                f"{case_id}: command record {index} missing {','.join(missing)}"
-            )
-        duration = record.get("duration_ms")
-        if not isinstance(duration, int) or duration < 0:
-            invalid = True
-            findings.warning(f"{case_id}: command record {index} has invalid duration")
-        if not valid_local_time(record.get("start_local")) or not valid_local_time(
-            record.get("end_local")
+            continue
+        commands = by_step.get(step_id, [])
+        status = statuses.get(step_id, {}).get("status")
+        skipped = status in {"SKIPPED_BY_PLAN", "NOT_APPLICABLE"}
+        if (not skipped and not commands) or not all(
+            command_valid(root, item, result["timezone"]) for item in commands
         ):
             invalid = True
-            findings.warning(
-                f"{case_id}: command record {index} has invalid local timestamp"
-            )
-        if record.get("timezone") != timezone:
-            invalid = True
-            findings.warning(
-                f"{case_id}: command record {index} timezone differs from contract"
-            )
-    if invalid and case.get("timing_status") != "INVALID":
-        findings.error(f"{case_id}: incomplete timing must set timing_status=INVALID")
-    if case.get("timing_status") == "INVALID":
-        findings.warning(f"{case_id}: 步骤时间记录异常")
+            findings.warning(f"{case_id}: step timing incomplete: {step_id}")
+        for command in commands if contract.get("schema_version") == 3 else []:
+            try:
+                argv = bind_action(
+                    contract, step, read_json(root / "resources-all.json", [])
+                )
+                digest = hashlib.sha256(
+                    json.dumps(argv, ensure_ascii=False).encode()
+                ).hexdigest()
+                if command.get("bound_argv_sha256") != digest:
+                    findings.error(f"{case_id}: bound argv differs for {step_id}")
+            except ValueError as error:
+                findings.error(f"{case_id}: cannot bind {step_id}: {error}")
+    unknown = set(by_step) - {item["id"] for item in case["actions"]}
+    if unknown:
+        findings.error(f"{case_id}: commands reference unknown steps: {','.join(sorted(unknown))}")
+    expected = "INVALID" if invalid else "VALID"
+    if result["timing_status"] != expected:
+        findings.error(f"{case_id}: timing_status must be derived as {expected}")
 
 
-def validate_evidence(
-    root: Path, case: dict[str, Any], findings: Findings
+def validate_checks(
+    root: Path, case: dict[str, Any], result: dict[str, Any], findings: Findings
 ) -> None:
-    case_id = case["case_id"]
-    requirement = case.get("log_requirement")
-    status = case.get("evidence_status")
-    has_logs = bool(case.get("logs"))
-    invalid_logs = False
-    required_fields = (
-        "timestamp_local",
-        "raw_timestamp",
-        "service",
-        "pod",
-        "container",
-        "request_or_resource_id",
-        "source_path",
-        "excerpt",
-    )
-    case_root = (root / "cases" / case_id).resolve()
-    for index, log in enumerate(case.get("logs", []), 1):
-        missing = [field for field in required_fields if not log.get(field)]
-        evidence_path = case_root / str(log.get("source_path", ""))
-        try:
-            evidence_path.resolve().relative_to(case_root)
-        except ValueError:
-            missing.append("safe_source_path")
-        if not evidence_path.is_file():
-            missing.append("existing_source_path")
-        if missing:
-            invalid_logs = True
-            findings.warning(
-                f"{case_id}: log evidence {index} invalid: {','.join(missing)}"
-            )
-    if requirement == "required" and not has_logs:
-        if status not in {"MISSING", "INVALID"}:
-            findings.error(
-                f"{case_id}: required logs absent; evidence_status must be MISSING or INVALID"
-            )
-        else:
-            findings.warning(f"{case_id}: 关键日志未保存")
-    elif requirement == "optional" and not has_logs:
-        if status != "PARTIAL":
-            findings.error(
-                f"{case_id}: optional logs absent; evidence_status must be PARTIAL"
-            )
-        else:
-            findings.warning(f"{case_id}: optional logs not collected")
-    elif requirement == "none" and status != "NOT_APPLICABLE":
-        findings.error(
-            f"{case_id}: log_requirement=none requires evidence_status=NOT_APPLICABLE"
-        )
-    if invalid_logs and status not in {"PARTIAL", "MISSING", "INVALID"}:
-        findings.error(
-            f"{case_id}: incomplete log traceability requires a diagnostic evidence status"
-        )
+    case_id = case["id"]
+    definitions = {item["id"]: item for item in case["verification"]}
+    checks = {item.get("check_id"): item for item in result.get("checks", [])}
+    if checks.keys() != definitions.keys():
+        findings.error(f"{case_id}: result checks differ from contract")
+    for check_id, definition in definitions.items():
+        item = checks.get(check_id, {})
+        for field in ("check_type", "required", "expected"):
+            if item.get(field) != definition.get(field):
+                findings.error(f"{case_id}/{check_id}: check {field} differs from contract")
+        if item.get("status") in {"PASS", "FAIL"}:
+            if item.get("actual") in {"", "未记录"} or item.get("evidence") in {"", "无"}:
+                findings.error(f"{case_id}/{check_id}: terminal check lacks evidence")
+            evidence = str(item.get("evidence", ""))
+            if "/" in evidence or evidence.endswith((".log", ".json")):
+                case_root = (root / "cases" / case_id).resolve()
+                path = root / evidence
+                if not path.is_file():
+                    path = case_root / evidence
+                try:
+                    path.resolve().relative_to(case_root)
+                except ValueError:
+                    findings.error(f"{case_id}/{check_id}: evidence path escapes case")
+                else:
+                    if not path.is_file():
+                        findings.error(f"{case_id}/{check_id}: evidence file missing")
+    required = [
+        checks.get(item["id"], {})
+        for item in case["verification"]
+        if item["check_type"] == "functional" and item["required"]
+    ]
+    expected = "PASS" if required and all(item.get("status") == "PASS" for item in required) else "FAIL"
+    if result["functional_status"] != expected:
+        findings.error(f"{case_id}: functional_status must be derived as {expected}")
 
 
-def validate_case(root: Path, path: Path, findings: Findings) -> dict[str, Any] | None:
-    case = read_json(path)
-    if not case:
-        findings.error(f"{path}: empty or invalid JSON")
+def validate_result(
+    root: Path,
+    case: dict[str, Any],
+    state: dict[str, Any],
+    contract: dict[str, Any],
+    findings: Findings,
+) -> dict[str, Any] | None:
+    case_id = case["id"]
+    path = root / "cases" / case_id / "result.json"
+    result = read_json(path)
+    if not result:
+        findings.error(f"{case_id}: result.json missing")
         return None
-    case_id = case.get("case_id", path.parent.name)
-    try:
-        safe_component(case_id, "case ID")
-    except ValueError as error:
-        findings.error(str(error))
-        return None
-    if case_id != path.parent.name:
-        findings.error(f"{case_id}: case ID does not match result directory")
-        return None
-    missing = [field for field in REQUIRED_RESULT_FIELDS if field not in case]
+    missing = [field for field in REQUIRED_RESULT_FIELDS if field not in result]
     if missing:
-        findings.error(f"{case_id}: result.json missing {','.join(missing)}")
+        findings.error(f"{case_id}: result fields missing: {','.join(missing)}")
         return None
-    if case["functional_status"] not in {"PASS", "FAIL"}:
-        findings.error(f"{case_id}: functional_status must be PASS or FAIL")
-    if case["timing_status"] not in {"VALID", "INVALID"}:
-        findings.error(f"{case_id}: timing_status has no terminal value")
-    if case["evidence_status"] not in {
-        "COMPLETE",
-        "PARTIAL",
-        "MISSING",
-        "INVALID",
-        "NOT_APPLICABLE",
-    }:
-        findings.error(f"{case_id}: evidence_status has no terminal value")
-    if case["cleanup_status"] not in {"COMPLETE", "PARTIAL", "PRESERVED"}:
-        findings.error(f"{case_id}: cleanup_status has no terminal value")
-    if case["diagnostic_status"] not in {
-        "CONCLUSIVE",
-        "INCONCLUSIVE",
-        "BLOCKED",
-    }:
-        findings.error(f"{case_id}: diagnostic_status has no terminal value")
-    if case["log_requirement"] not in {"required", "optional", "none"}:
-        findings.error(f"{case_id}: invalid log_requirement")
-
-    validate_command_records(root, case, findings)
-    validate_evidence(root, case, findings)
+    if not result.get("derived_by_harness"):
+        findings.error(f"{case_id}: result was not derived by harness")
+    if result.get("contract_sha256") != contract["contract_sha256"]:
+        findings.error(f"{case_id}: result contract digest mismatch")
+    if contract.get("schema_version") == 3:
+        verdict = read_json(root / "cases" / case_id / "case-verdict.json", {})
+        for field in (
+            "functional_status", "timing_status", "evidence_status",
+            "diagnostic_status", "checks", "logs",
+        ):
+            if result.get(field) != verdict.get(field):
+                findings.error(
+                    f"{case_id}: result changed immutable verdict field {field}"
+                )
+        events = load_events(root / "events.jsonl")
+        verdict_event = next(
+            (
+                item for item in events
+                if item["event_type"] == "CASE_VERDICT_DERIVED"
+                and item.get("case_id") == case_id
+            ),
+            {},
+        )
+        result_event = next(
+            (
+                item for item in events
+                if item["event_type"] == "CASE_RESULT_DERIVED"
+                and item.get("case_id") == case_id
+            ),
+            {},
+        )
+        if verdict_event.get("payload", {}).get("verdict_sha256") != object_digest(
+            verdict
+        ):
+            findings.error(f"{case_id}: verdict digest differs from events")
+        if result_event.get("payload", {}).get("result_sha256") != object_digest(
+            result
+        ):
+            findings.error(f"{case_id}: result digest differs from events")
+    for field in ("scenario_key", "title", "requirement_summary", "objective"):
+        if result.get(field) != case.get(field):
+            findings.error(f"{case_id}: result {field} differs from contract")
+    for error in case_text_errors(result):
+        findings.error(f"{case_id}: {error}")
+    if result.get("evidence_status") not in EVIDENCE_STATUSES:
+        findings.error(f"{case_id}: invalid evidence_status")
+    if result.get("timezone") != contract["timezone"]:
+        findings.error(f"{case_id}: result timezone differs from contract")
+    if not valid_local_time(result.get("started_local")) or not valid_local_time(
+        result.get("ended_local")
+    ):
+        findings.error(f"{case_id}: result timestamps are invalid")
+    validate_steps(root, case, result, state, contract, findings)
+    validate_checks(root, case, result, findings)
+    validate_logs(root, case, result, findings)
     resources = read_json(root / "cases" / case_id / "resources.json", [])
-    for index, resource in enumerate(resources, 1):
-        required = ("type", "name", "uuid", "owning_case", "owning_step")
-        absent = [field for field in required if not resource.get(field)]
-        if absent:
-            findings.error(
-                f"{case_id}: resource {index} missing {','.join(absent)}"
-            )
-    return case
+    step_ids = {item["id"] for item in case["actions"]}
+    for resource in resources:
+        if resource.get("owning_step") not in step_ids:
+            findings.error(f"{case_id}: resource has invalid owning_step")
+        for field in ("type", "name", "id", "created_local", "cleanup_result"):
+            if not resource.get(field):
+                findings.error(f"{case_id}: resource missing {field}")
+        if resource.get("cleanup_result") not in {
+            "DELETED",
+            "PRESERVED",
+            "NOT_APPLICABLE",
+            "FAILED",
+        }:
+            findings.error(f"{case_id}: resource cleanup_result is not terminal")
+        if not valid_local_time(resource.get("created_local")):
+            findings.error(f"{case_id}: resource created_local is invalid")
+    cleanup_policy = (
+        contract["cleanup_policy"]
+        if case["cleanup_policy"] == "inherit"
+        else case["cleanup_policy"]
+    )
+    cleanup = cleanup_quality(resources, cleanup_policy)
+    if result.get("cleanup_status") != cleanup:
+        findings.error(f"{case_id}: cleanup_status must be derived as {cleanup}")
+    diagnostic = derived_diagnostic(
+        result.get("checks", []),
+        list(state["cases"][case_id]["step_statuses"].values()),
+    )
+    if result.get("diagnostic_status") != diagnostic:
+        findings.error(f"{case_id}: diagnostic_status must be derived as {diagnostic}")
+    quality = derived_quality(
+        result.get("timing_status"), result.get("evidence_status"), cleanup
+    )
+    if result.get("execution_quality") != quality:
+        findings.error(f"{case_id}: execution_quality must be derived as {quality}")
+    return result
 
 
-def validate_case_markdown(
-    root: Path, case: dict[str, Any], findings: Findings
-) -> None:
-    case_id = case["case_id"]
-    path = root / "cases" / case_id / "result.md"
-    if not path.exists():
-        findings.error(f"{case_id}: result.md missing")
-        return
-    text = path.read_text(encoding="utf-8")
-    headings = re.findall(r"^### (.+)$", text, flags=re.MULTILINE)
-    if tuple(headings) != H3:
-        findings.error(f"{case_id}: H3 fields or order do not match contract")
-    expected = "成功" if case["functional_status"] == "PASS" else "失败"
-    section = text.split("### 执行结果", 1)[-1].split("### 测试目标", 1)[0]
-    if expected not in section:
-        findings.error(f"{case_id}: execution result disagrees with functional_status")
-    note_required = case["timing_status"] == "INVALID" or case[
-        "evidence_status"
-    ] in {"PARTIAL", "MISSING", "INVALID"}
-    if note_required and "说明:" not in section:
-        findings.error(f"{case_id}: execution result warning note missing")
-
-
-def validate_run_files(
-    root: Path, cases: list[dict[str, Any]], findings: Findings
-) -> None:
-    summary_path = root / "summary.md"
-    csv_path = root / "results.csv"
-    run_path = root / "run.json"
-    for path in (summary_path, csv_path, run_path):
-        if not path.exists():
-            findings.error(f"{path.name} missing")
-    if not summary_path.exists() or not csv_path.exists() or not run_path.exists():
-        return
-    summary = summary_path.read_text(encoding="utf-8")
-    if len(re.findall(r"^# ", summary, flags=re.MULTILINE)) != 1:
-        findings.error("summary.md must contain exactly one H1")
-    for case in cases:
-        link = f"[查看](#case-{case_anchor(case['case_id'])})"
-        if link not in summary:
-            findings.error(f"{case['case_id']}: summary index link missing")
-        result_path = root / "cases" / case["case_id"] / "result.md"
-        if result_path.exists():
-            section = result_path.read_text(encoding="utf-8")
-            if section.rstrip() not in summary:
-                findings.error(f"{case['case_id']}: result.md differs from summary.md")
-
-    with csv_path.open(encoding="utf-8", newline="") as stream:
-        rows = {row["case_id"]: row for row in csv.DictReader(stream)}
-    for case in cases:
-        expected = "成功" if case["functional_status"] == "PASS" else "失败"
-        if rows.get(case["case_id"], {}).get("execution_result") != expected:
-            findings.error(f"{case['case_id']}: results.csv result mismatch")
-
-    run = read_json(run_path, {})
-    expected_counts = {
-        "success": sum(case["functional_status"] == "PASS" for case in cases),
-        "failure": sum(case["functional_status"] != "PASS" for case in cases),
-    }
-    if run.get("total_cases") != len(cases):
-        findings.error("run.json total_cases mismatch")
-    if run.get("result_counts") != expected_counts:
-        findings.error("run.json result_counts mismatch")
+def validate_contract(
+    root: Path, contract: dict[str, Any], state: dict[str, Any], findings: Findings
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if contract.get("contract_sha256") != contract_digest(contract):
+        findings.error("execution contract content or digest changed")
+    if contract.get("schema_version") == 3:
+        if contract.get("environment_profile_sha256") != object_digest(
+            contract.get("environment_profile")
+        ):
+            findings.error("environment profile digest differs from contract")
+    if state.get("contract_sha256") != contract.get("contract_sha256"):
+        findings.error("run state points to a different contract")
+    current_skill = skill_digest(Path(__file__).resolve().parents[1])
+    if contract.get("skill_sha256") != current_skill:
+        findings.warning("skill changed after initialization; frozen contract remains authoritative")
+    try:
+        events = load_events(root / "events.jsonl")
+    except (EventError, json.JSONDecodeError) as error:
+        findings.error(f"event ledger invalid: {error}")
+        events = []
+    for error in verify_phase_events(contract, events):
+        findings.error(error)
+    projected = project_state(contract, events)
+    if state != projected and {**projected, "next_instruction": state.get("next_instruction")} != state:
+        findings.error("run-state.json differs from event projection")
+    return events, projected
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--result-root", required=True, type=Path)
-    args = parser.parse_args()
-    root = args.result_root.resolve()
+    args = argparse.ArgumentParser()
+    args.add_argument("--result-root", required=True, type=Path)
+    args.add_argument("--allow-partial", action="store_true")
+    parsed = args.parse_args()
+    root = parsed.result_root.resolve()
     findings = Findings()
     contract = read_json(root / "execution-contract.json")
     state = read_json(root / "run-state.json")
     if not contract or not state:
         print("validation error: contract or run state missing", file=sys.stderr)
         return 2
-
-    current_digest = skill_digest(Path(__file__).resolve().parents[1])
-    if contract.get("skill_sha256") != current_digest:
-        findings.error("skill content changed after run initialization")
-    if state.get("contract_sha256") != object_digest(contract):
-        findings.error("execution contract changed after run initialization")
-    paths = sorted((root / "cases").glob("*/result.json"))
-    cases = [
-        case
-        for path in paths
-        if (case := validate_case(root, path, findings)) is not None
-    ]
-    expected_ids = set(contract.get("case_ids", []))
-    started_ids = set(state.get("cases", {}))
-    result_ids = {case.get("case_id") for case in cases}
-    missing_results = (expected_ids | started_ids) - result_ids
-    if missing_results:
-        findings.error(f"case results missing: {','.join(sorted(missing_results))}")
-    for case_id, case_state in state.get("cases", {}).items():
-        if case_state.get("phase") != "COMPLETE":
-            findings.error(f"{case_id}: checkpoint phase is not COMPLETE")
-    for case in cases:
-        validate_case_markdown(root, case, findings)
-    validate_run_files(root, cases, findings)
+    _, projected = validate_contract(root, contract, state, findings)
+    results = []
+    anchors = [case_anchor(case_id) for case_id in contract["case_order"]]
+    if len(anchors) != len(set(anchors)):
+        findings.error("case IDs produce duplicate Markdown anchors")
+    actual_results = {
+        path.parent.name for path in (root / "cases").glob("*/result.json")
+    }
+    extra_results = actual_results - set(contract["case_order"])
+    if extra_results:
+        findings.error(f"results outside contract: {','.join(sorted(extra_results))}")
+    for case_id in contract["case_order"]:
+        case = case_by_id(contract, case_id)
+        if projected["cases"][case_id]["phase"] != "COMPLETE":
+            if parsed.allow_partial:
+                findings.warning(f"{case_id}: phase is not COMPLETE")
+                continue
+            findings.error(f"{case_id}: phase is not COMPLETE")
+        result = validate_result(root, case, projected, contract, findings)
+        if result:
+            results.append(result)
+            validate_case_markdown(root, result, findings)
+    for error in reconcile_resources(root):
+        findings.error(error)
+    if contract.get("schema_version") == 3:
+        for error in projection_errors(root):
+            findings.error(error)
+        for error in validate_artifacts(root):
+            findings.error(error)
+    validate_run_files(root, results, findings)
     for warning in findings.warnings:
         print(f"WARNING: {warning}")
     for error in findings.errors:
         print(f"ERROR: {error}", file=sys.stderr)
     print(
-        f"validated cases={len(cases)} errors={len(findings.errors)} "
+        f"validated cases={len(results)} errors={len(findings.errors)} "
         f"warnings={len(findings.warnings)}"
     )
     return 1 if findings.errors else 0

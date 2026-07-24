@@ -1,8 +1,23 @@
+impact_analysis:
+  id: IMPACT-VOLUME-CREATE
+  feature: 从加密镜像创建云硬盘
+  obligations:
+    - id: IMPACT-001
+      services: [cinder, glance, barbican]
+      requirement: 验证正常创建和内部 clone 路径
+
+authorization:
+  scope: 仅允许在当前 project 创建和清理测试资源
+  destructive_operations:
+    - volume.force_delete
+
 cases:
   - id: EXAMPLE-001
-    title: Example OpenStack test
+    scenario_key: encrypted-image+specified-size+hdd
+    title: 加密镜像指定容量创建 HDD 云硬盘
+    requirement_summary: 验证使用加密镜像和指定容量能够成功创建 HDD 云硬盘
     domain: cross-service
-    objective: ""
+    objective: 验证云硬盘终态、容量和内部 clone 路径符合预期
     enabled: true
 
     impact_refs:
@@ -25,27 +40,94 @@ cases:
       consumer_type: vm
 
     actions:
-      - step: 1
-        id: STEP-01
-        phase: execute
-        description: ""
-        command_intent: ""
-        expected_created_resources: []
-
-    expected:
-      resource_states: []
-      data_integrity: ""
-      host_or_backend: ""
-      negative_behavior: ""
-      residue_absent: []
-      internal_paths:
-        - name: ""
-          expected_log_signals: []
+      - id: STEP-01
+        phase: EXECUTE
+        kind: openstack
+        description: 使用加密镜像创建指定容量的 HDD 云硬盘
+        command:
+          - openstack
+          - volume
+          - create
+          - --image
+          - "${profile.nova.images.0.id}"
+          - --type
+          - "${profile.cinder.volume_types.0.name}"
+          - --size
+          - "10"
+          - test-example-volume
+          - -f
+          - json
+        expected:
+          return_codes: [0]
+        timeout_seconds: 1800
+        capture:
+          resources:
+            - key: test_volume
+              type: Volume
+              id: {source: stdout, format: json, path: id}
+              name: {source: stdout, format: json, path: name}
+      - id: STEP-02
+        phase: WAIT
+        kind: openstack
+        description: 等待云硬盘进入 available 状态
+        command:
+          - openstack
+          - volume
+          - show
+          - "${resource.test_volume.id}"
+          - -f
+          - json
+        expected:
+          return_codes: [0]
+        timeout_seconds: 1800
+      - id: STEP-03
+        phase: VERIFY
+        kind: openstack
+        description: 查询云硬盘终态和容量
+        command:
+          - openstack
+          - volume
+          - show
+          - "${resource.test_volume.id}"
+          - -f
+          - json
+        expected:
+          return_codes: [0]
+        timeout_seconds: 300
+      - id: STEP-04
+        phase: APPLY_CLEANUP_POLICY
+        kind: cleanup
+        description: 强制删除本用例创建的测试云硬盘
+        command:
+          - openstack
+          - volume
+          - delete
+          - --force
+          - "${resource.test_volume.id}"
+        expected:
+          return_codes: [0]
+        cleanup_resources: [test_volume]
+        destructive_operation: volume.force_delete
 
     verification:
-      - check: ""
-        expected: ""
-        evidence: ""
+      - id: CHECK-01
+        check_type: functional
+        required: true
+        check: 云硬盘终态
+        expected: 云硬盘进入 available 状态
+        evaluator:
+          type: json_path
+          action_id: STEP-03
+          source: stdout
+          path: status
+          value: available
+      - id: CHECK-02
+        check_type: diagnostic
+        required: true
+        check: 内部创建路径
+        expected: cinder-volume 日志证明执行 clone 路径
+        evaluator:
+          type: manual
 
     # required, optional, or none. Missing logs do not override functional_status.
     log_requirement: optional
@@ -70,4 +152,5 @@ cases:
       idempotent: false
 
     cleanup_policy: inherit
-    destructive_operations: []
+    destructive_operations:
+      - volume.force_delete

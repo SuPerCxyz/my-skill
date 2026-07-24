@@ -9,7 +9,8 @@
 - `optional`: 日志有助于补充证据, 但不是当前功能验证所需。
 - `none`: 资源状态、数据面或 guest 验证已足够, 且没有失败需要诊断。
 
-`optional` 或 `none` 用例允许不采集日志, 分别记录 `PARTIAL` 或 `NOT_APPLICABLE`。
+`optional` 或 `none` 用例允许不采集日志, 分别记录 `OPTIONAL_NOT_COLLECTED` 或
+`NOT_APPLICABLE`。
 日志采集状态不覆盖 `functional_status`; 只有日志或 observability 本身作为 functional
 check 时, 该检查的实际结果才能影响功能结果。
 
@@ -77,6 +78,9 @@ Kubernetes 实例按 Pod UID 识别, 不只按 pod name。记录 pod、UID、nod
 count 和 readiness。
 涉及 compute 或 storage 节点时不得只收 controller Pod 日志。
 
+使用 `collect-logs.py snapshot` 在操作前后固化实例。target 参数格式为
+`SERVICE|LABEL_SELECTOR|CONTAINER`; collection 必须以两个快照的 Pod UID 并集为准。
+
 ## Target Priority 目标优先级
 
 日志按实际执行路径选择, 不默认收集全部 control-plane 服务:
@@ -130,8 +134,9 @@ destination_hosts
 backends
 ```
 
-使用这些关联键生成 `related.log`, 使用 `ERROR`、`WARNING`、`Traceback` 和用例特定
-失败词生成 `errors.log`。不得把空日志解释为没有错误。
+使用这些关联键从 raw log 生成 `collection-status.json` 中的最小 evidence entries。
+同时检查 `ERROR`、`WARNING`、`Traceback` 和用例特定失败词。不得把空日志解释为
+没有错误。
 
 对于 API/UI 不可见的执行分支, 先按 Request ID 和资源 ID 定位, 再匹配操作词,
 例如 `create_cloned_volume`、`create_volume_from_snapshot`、`copy_image_to_volume`
@@ -149,6 +154,7 @@ resource ID、函数或操作名等关联信息。
 - `COMPLETE`: 全部预期实例和必需日志流已收集。
 - `PARTIAL`: 至少一个预期实例或 previous stream 缺失。
 - `MISSING`: 没有可用日志。
+- `OPTIONAL_NOT_COLLECTED`: optional 日志未采集, 不属于缺陷。
 - `NOT_APPLICABLE`: 用例不需要该目标。
 
 证据为 `PARTIAL` 或 `MISSING` 时记录告警和缺失范围, 不自动改变 `执行结果`。
@@ -156,5 +162,6 @@ resource ID、函数或操作名等关联信息。
 
 ## Output 输出
 
-每个用例保存窗口、前后清单、采集状态、raw log、merged log、related log 和
-errors log。运行级 `log-coverage.csv` 汇总每个服务的预期和实际覆盖率。
+每个用例保存窗口、前后实例清单、`collection-status.json` 和按 Pod UID 分隔的 raw
+current/previous log。collection status 汇总每个服务的预期实例、实际 stream、
+correlation IDs 和最小 evidence entries。

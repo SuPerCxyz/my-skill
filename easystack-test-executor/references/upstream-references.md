@@ -18,6 +18,11 @@
 | Barbican | [Barbican](https://docs.openstack.org/barbican/latest/) | [Key Manager API](https://docs.openstack.org/api-ref/key-manager/), [Castellan](https://docs.openstack.org/castellan/latest/) |
 | Ironic | [Ironic](https://docs.openstack.org/ironic/latest/) | [Bare Metal API](https://docs.openstack.org/api-ref/baremetal/), [Boot From Volume](https://docs.openstack.org/ironic/latest/admin/boot-from-volume.html) |
 | Connector | [os-brick](https://docs.openstack.org/os-brick/latest/) | Volume connector、attach、detach 和 host residue |
+| Workflow | [Taskflow](https://docs.openstack.org/taskflow/latest/) | Retry、revert、persistence 和 flow state |
+| Messaging | [oslo.messaging](https://docs.openstack.org/oslo.messaging/latest/) | RPC timeout、retry、notification 和 transport |
+| Policy | [oslo.policy](https://docs.openstack.org/oslo.policy/latest/) | Scope、role、policy enforcement 和 upgrade |
+| OVN | [OVN](https://www.ovn.org/support/dist-docs/) | Logical flow、binding、NAT 和 controller |
+| Ceph | [Ceph](https://docs.ceph.com/en/latest/) | RBD clone、flatten、feature、pool 和 client |
 
 ## Clients And Extended Consumers Client 和扩展消费者
 

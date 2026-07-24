@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EasyStack Environment Profile",
+  "type": "object",
+  "required": [
+    "profile_version",
+    "captured_at_local",
+    "last_verified_at_local",
+    "environment",
+    "authentication",
+    "kubernetes",
+    "fingerprint",
+    "nova",
+    "cinder"
+  ],
+  "properties": {
+    "profile_version": {"const": 2},
+    "captured_at_local": {"type": "string", "format": "date-time"},
+    "last_verified_at_local": {"type": "string", "format": "date-time"},
+    "environment": {
+      "type": "object",
+      "required": ["target", "region", "timezone"],
+      "properties": {
+        "target": {"type": "string", "minLength": 1},
+        "region": {"type": "string", "minLength": 1},
+        "timezone": {"type": "string", "minLength": 1}
+      }
+    },
+    "authentication": {
+      "type": "object",
+      "required": ["project_id", "execution_location"],
+      "properties": {
+        "project_id": {"type": "string", "minLength": 1},
+        "execution_location": {"type": "string", "minLength": 1}
+      }
+    },
+    "kubernetes": {
+      "type": "object",
+      "required": ["namespace"],
+      "properties": {
+        "namespace": {"type": "string", "minLength": 1}
+      }
+    },
+    "fingerprint": {
+      "type": "object",
+      "required": [
+        "cluster_uid",
+        "openstack_release",
+        "openstackclient_version",
+        "backend_fingerprint"
+      ],
+      "properties": {
+        "cluster_uid": {"type": "string", "minLength": 1},
+        "openstack_release": {"type": "string", "minLength": 1},
+        "openstackclient_version": {"type": "string", "minLength": 1},
+        "backend_fingerprint": {"type": "string", "minLength": 1}
+      }
+    },
+    "nova": {
+      "type": "object",
+      "required": ["images", "flavors", "networks"]
+    },
+    "cinder": {
+      "type": "object",
+      "required": ["volume_types", "backends"]
+    }
+  }
+}

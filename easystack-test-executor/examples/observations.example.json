@@ -1,0 +1,16 @@
+{
+  "checks": [
+    {
+      "check_id": "CHECK-01",
+      "status": "PASS",
+      "actual": "云硬盘状态为 available",
+      "evidence": "attempt-01/openstack/STEP-03.<COMMAND_ID>.stdout.log"
+    },
+    {
+      "check_id": "CHECK-02",
+      "status": "PASS",
+      "actual": "cinder-volume 日志包含 clone 路径标识",
+      "evidence": "logs/raw/cinder-volume.example.log"
+    }
+  ]
+}

@@ -16,63 +16,58 @@ from _harness import (
     case_anchor,
     load_jsonl,
     local_now,
-    markdown_cell,
+    markdown_table as table,
     read_json,
     redact,
     safe_component,
 )
-
-
-H3 = ("执行结果", "测试目标", "测试步骤", "结果检查", "创建的资源", "关键日志输出")
-
-
+from _validation import case_text_errors
 def execution_result(case: dict[str, Any]) -> str:
     return "成功" if case.get("functional_status") == "PASS" else "失败"
 
 
 def result_note(case: dict[str, Any]) -> str:
-    notes = []
-    if case.get("timing_status") == "INVALID":
-        notes.append("步骤时间记录异常")
-    if case.get("evidence_status") in {"PARTIAL", "MISSING", "INVALID"}:
-        notes.append("关键日志未完整保存")
+    notes = ["步骤时间记录异常"] if case.get("timing_status") == "INVALID" else []
+    evidence = case.get("evidence_status")
+    notes += ["关键日志未完整保存"] if evidence in {"PARTIAL", "MISSING", "INVALID"} else []
+    if case.get("partial_status"):
+        notes.append(f"任务状态为 {case['partial_status']}")
     return f"\n\n说明: {'; '.join(notes)}。" if notes else ""
-
-
-def table(headers: list[str], rows: list[list[Any]]) -> list[str]:
-    output = [
-        "| " + " | ".join(headers) + " |",
-        "|" + "|".join("-" * (len(header) + 2) for header in headers) + "|",
-    ]
-    output.extend(
-        "| " + " | ".join(markdown_cell(value) for value in row) + " |"
-        for row in rows
-    )
-    return output
 
 
 def render_steps(root: Path, case_id: str, case: dict[str, Any]) -> list[str]:
     records = load_jsonl(root / "cases" / case_id / "commands.jsonl")
-    if not records:
-        records = case.get("steps", [])
+    by_action: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        by_action.setdefault(record.get("action_id") or record.get("step_id", ""), []).append(record)
+    statuses = case.get("action_statuses", {})
     rows = []
-    for step in records:
-        operation = step.get("description") or step.get("command", "")
-        rows.append(
-            [
-                step.get("step_id", ""),
-                redact(operation),
-                step.get("start_local", ""),
-                step.get("end_local", ""),
-                step.get("duration_ms", ""),
-                step.get("return_code", ""),
-                step.get("result", ""),
-            ]
-        )
+    for action in case.get("contract_actions", []):
+        attempts = by_action.get(action["id"], [])
+        if not attempts:
+            status = statuses.get(action["id"], {})
+            rows.append([
+                action["id"], "-", "-", redact(action["description"]),
+                status.get("start_local", "-"), status.get("end_local", "-"),
+                status.get("duration_ms", "-"), "-",
+                status.get("status", "NOT_RUN"),
+            ])
+        for record in attempts:
+            rows.append([
+                action["id"], record.get("attempt", ""),
+                record.get("command_id", ""),
+                redact(record.get("description") or record.get("command", "")),
+                record.get("start_local", ""), record.get("end_local", ""),
+                record.get("duration_ms", ""), record.get("return_code", ""),
+                record.get("result", ""),
+            ])
     if not rows:
-        rows = [["-", "未记录", "-", "-", "-", "-", "失败"]]
+        rows = [["-", "-", "-", "未记录", "-", "-", "-", "-", "失败"]]
     return table(
-        ["Step", "详细操作或命令", "Start local", "End local", "Duration ms", "Return code", "结果"],
+        [
+            "Step", "Attempt", "Command ID", "详细操作或命令", "Start local",
+            "End local", "Duration ms", "Return code", "结果",
+        ],
         rows,
     )
 
@@ -101,7 +96,7 @@ def render_resources(root: Path, case_id: str, case: dict[str, Any]) -> list[str
         [
             item.get("type", ""),
             item.get("name", ""),
-            item.get("uuid", ""),
+            item.get("id") or item.get("uuid", ""),
             item.get("created_local", ""),
             item.get("owning_step", ""),
             item.get("host_backend", ""),
@@ -132,6 +127,8 @@ def render_logs(case: dict[str, Any]) -> list[str]:
     if not logs:
         if case.get("log_requirement") == "none":
             return ["不适用: 本用例无需日志验证。"]
+        if case.get("evidence_status") == "OPTIONAL_NOT_COLLECTED":
+            return ["可选日志未收集, 不影响功能结果。"]
         return ["未保存可追溯的关键日志。"]
     rows = [
         [
@@ -184,7 +181,11 @@ def render_case(root: Path, case: dict[str, Any]) -> str:
         "",
         "### 测试目标",
         "",
-        case.get("objective", "未记录"),
+        f"测试需求: {case['requirement_summary']}",
+        "",
+        f"场景标识: `{case['scenario_key']}`",
+        "",
+        f"详细目标: {case.get('objective') or '同测试需求'}",
         "",
         "### 测试步骤",
         "",
@@ -205,20 +206,58 @@ def render_case(root: Path, case: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def load_cases(root: Path) -> list[dict[str, Any]]:
+def load_cases(
+    root: Path, contract: dict[str, Any], allow_partial: bool
+) -> list[dict[str, Any]]:
     cases = []
-    for path in sorted((root / "cases").glob("*/result.json")):
+    state = read_json(root / "run-state.json", {})
+    definitions = {item["id"]: item for item in contract["cases"]}
+    for case_id in contract["case_order"]:
+        path = root / "cases" / case_id / "result.json"
         case = read_json(path)
-        if case:
-            safe_component(case["case_id"], "case ID")
-            cases.append(case)
-    return sorted(cases, key=lambda item: item["case_id"])
+        if not case:
+            if not allow_partial:
+                raise ValueError(f"{case_id}: result.json missing")
+            definition = definitions[case_id]
+            case_state = state.get("cases", {}).get(case_id, {})
+            phase = case_state.get("phase", "NOT_STARTED")
+            case = {
+                "case_id": case_id,
+                "scenario_key": definition["scenario_key"],
+                "title": definition["title"],
+                "requirement_summary": definition["requirement_summary"],
+                "objective": definition["objective"],
+                "functional_status": "FAIL",
+                "timing_status": "INVALID",
+                "evidence_status": "MISSING",
+                "cleanup_status": "PENDING",
+                "diagnostic_status": "BLOCKED",
+                "log_requirement": definition["log_requirement"],
+                "checks": [],
+                "logs": [],
+                "partial_status": case_state.get(
+                    "status", "NOT_RUN" if phase == "NOT_STARTED" else "RUN_ABORTED"
+                ),
+            }
+        definition = definitions[case_id]
+        case["contract_actions"] = definition["actions"]
+        case["action_statuses"] = state.get("cases", {}).get(case_id, {}).get(
+            "step_statuses", {}
+        )
+        safe_component(case["case_id"], "case ID")
+        errors = case_text_errors(case)
+        if errors:
+            raise ValueError(f"{case['case_id']}: {'; '.join(errors)}")
+        cases.append(case)
+    return cases
 
 
 def write_results_csv(root: Path, cases: list[dict[str, Any]]) -> None:
     fields = [
         "case_id",
+        "scenario_key",
         "title",
+        "requirement_summary",
         "execution_result",
         "functional_status",
         "evidence_status",
@@ -246,10 +285,15 @@ def write_results_csv(root: Path, cases: list[dict[str, Any]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--result-root", required=True, type=Path)
+    parser.add_argument("--allow-partial", action="store_true")
     args = parser.parse_args()
     root = args.result_root.resolve()
     contract = read_json(root / "execution-contract.json")
-    cases = load_cases(root)
+    try:
+        cases = load_cases(root, contract, args.allow_partial)
+    except (KeyError, ValueError) as error:
+        print(f"render-report error: {error}", file=sys.stderr)
+        return 2
     if not contract or not cases:
         print("render-report error: contract or case results missing", file=sys.stderr)
         return 2
@@ -266,11 +310,13 @@ def main() -> int:
             [
                 case["case_id"],
                 case["title"],
+                case["requirement_summary"],
                 execution_result(case),
                 f"[查看](#case-{case_anchor(case['case_id'])})",
             ]
         )
-    summary = ["# 详细结果", "", *table(["用例 ID", "用例名称", "执行结果", "跳转"], index_rows), ""]
+    headers = ["用例 ID", "用例名称", "测试需求", "执行结果", "跳转"]
+    summary = ["# 详细结果", "", *table(headers, index_rows), ""]
     summary.extend(section.rstrip() + "\n" for section in sections)
     atomic_text(root / "summary.md", "\n".join(summary).rstrip() + "\n")
     write_results_csv(root, cases)
@@ -289,6 +335,15 @@ def main() -> int:
             "summary_path": "summary.md",
             "results_csv_path": "results.csv",
             "report_generated_local": local_now(contract["timezone"]),
+            "run_fingerprint": {
+                "contract_sha256": contract["contract_sha256"],
+                "profile_sha256": contract.get("environment_profile_sha256", ""),
+                "skill_sha256": contract["skill_sha256"],
+            },
+            "remaining_resources": [
+                item for item in read_json(root / "resources-all.json", [])
+                if item.get("final_state") != "DELETED"
+            ],
         }
     )
     atomic_json(root / "run.json", run)

@@ -1,0 +1,37 @@
+{
+  "domain": "network-image-security",
+  "operations": {
+    "floating_ip_create": {
+      "command": ["openstack", "floating", "ip", "create", "<EXTERNAL_NETWORK_ID>", "-f", "json"],
+      "checks": ["project归属", "地址池", "绑定和解绑", "连通性", "清理"]
+    },
+    "port_create": {
+      "command": ["openstack", "port", "create", "--network", "<NETWORK_ID>", "<NAME>", "-f", "json"],
+      "checks": ["binding", "fixed IP", "security group", "allowed address pairs", "删除依赖"]
+    },
+    "qos_policy": {
+      "command": ["openstack", "network", "qos", "policy", "create", "<NAME>", "-f", "json"],
+      "checks": ["rule生效", "port或network继承", "agent/backend能力", "更新和解绑"]
+    },
+    "trunk": {
+      "command": ["openstack", "network", "trunk", "create", "--parent-port", "<PORT_ID>", "<NAME>", "-f", "json"],
+      "checks": ["subport segmentation", "binding状态", "compute支持", "删除顺序"]
+    },
+    "security_group_rule_create": {
+      "command": ["openstack", "security", "group", "rule", "create", "--ingress", "--protocol", "<PROTOCOL>", "--dst-port", "<MIN>:<MAX>", "--src-ip", "<CIDR>", "<SG_ID>"],
+      "checks": ["方向和ethertype", "远端CIDR", "guest连通性", "删除后失效"]
+    },
+    "image_create": {
+      "command": ["openstack", "image", "create", "--disk-format", "<FORMAT>", "--container-format", "bare", "--public", "--file", "<FILE>", "<NAME>", "-f", "json"],
+      "checks": ["active", "visibility=public", "checksum/hash", "下载或boot-from-volume", "清理"]
+    },
+    "image_import": {
+      "command": ["openstack", "image", "import", "--method", "<METHOD>", "<IMAGE_ID>"],
+      "checks": ["import method能力", "staging状态", "active终态", "失败任务清理"]
+    },
+    "image_member": {
+      "command": ["openstack", "image", "add", "project", "<IMAGE_ID>", "<PROJECT_ID>"],
+      "checks": ["member pending/accepted", "跨project可见性", "撤销后不可见"]
+    }
+  }
+}

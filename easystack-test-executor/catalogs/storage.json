@@ -1,0 +1,45 @@
+{
+  "domain": "storage",
+  "operations": {
+    "volume_create_blank": {
+      "command": ["openstack", "volume", "create", "--size", "<SIZE>", "--type", "<TYPE>", "<NAME>", "-f", "json"],
+      "checks": ["available", "容量和type", "backend选择", "清理"]
+    },
+    "volume_create_image": {
+      "command": ["openstack", "volume", "create", "--image", "<IMAGE_ID>", "--size", "<SIZE>", "--type", "<TYPE>", "<NAME>", "-f", "json"],
+      "checks": ["available", "image metadata", "clone/cache/copy实际路径", "cinder-volume worker证据"],
+      "services": ["cinder-api", "cinder-scheduler", "cinder-volume", "glance-api"]
+    },
+    "volume_clone": {
+      "command": ["openstack", "volume", "create", "--source", "<SOURCE_VOLUME_ID>", "--size", "<SIZE>", "<NAME>", "-f", "json"],
+      "checks": ["source关系", "clone depth或flatten", "数据一致", "源卷删除约束"]
+    },
+    "snapshot_create": {
+      "command": ["openstack", "volume", "snapshot", "create", "--force", "--volume", "<VOLUME_ID>", "<NAME>", "-f", "json"],
+      "checks": ["available", "源卷关系", "in-use一致性", "从snapshot恢复"]
+    },
+    "volume_extend": {
+      "command": ["openstack", "volume", "set", "--size", "<NEW_SIZE>", "<VOLUME_ID>"],
+      "checks": ["容量只增不减", "available和in-use差异", "guest rescan和filesystem", "quota"]
+    },
+    "volume_retype": {
+      "command": ["openstack", "volume", "set", "--type", "<NEW_TYPE>", "--retype-policy", "on-demand", "<VOLUME_ID>"],
+      "checks": ["migration policy", "backend改变", "数据一致", "attachment保持或限制", "失败回滚"]
+    },
+    "volume_migrate": {
+      "command": ["openstack", "volume", "migrate", "--host", "<HOST@BACKEND#POOL>", "<VOLUME_ID>"],
+      "checks": ["host/backend改变", "数据一致", "锁定状态", "失败清理临时卷"]
+    },
+    "encrypted_attach_vm": {
+      "command": ["openstack", "server", "add", "volume", "<SERVER_ID>", "<ENCRYPTED_VOLUME_ID>"],
+      "checks": ["Barbican secret访问", "nova-compute os-brick", "guest device", "detach清理"],
+      "services": ["nova-compute", "cinder-volume", "barbican-api"]
+    },
+    "encrypted_attach_ironic_negative": {
+      "command": ["openstack", "server", "add", "volume", "<BAREMETAL_SERVER_ID>", "<ENCRYPTED_VOLUME_ID>"],
+      "expected": "目标环境声明不支持时必须明确拒绝",
+      "checks": ["非零返回码符合预期", "server和volume状态不漂移", "无残留attachment", "错误跨Nova/Cinder/Ironic可追溯"],
+      "services": ["nova-api", "nova-compute", "cinder-api", "ironic-api", "ironic-conductor", "barbican-api"]
+    }
+  }
+}
