@@ -35,7 +35,7 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 | 剪贴板 | `Clipboard` | mode=get / mode=set |
 | Toast 通知 | `Notification` | 需要 app_id, title, message |
 | 多选 UI 元素 | `MultiSelect` | 支持 press_ctrl |
-| 抓取网页 | `Scrape` | 可选 DOM 模式 |
+| 只读提取当前网页内容 | `Scrape` | 仅 Windows 会话内观察; 页面自动化使用 `agent-browser` |
 
 ## Quick Reference 快速参考 - 文件索引
 
@@ -60,13 +60,20 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 
 ## Key Reminders 关键提醒
 
-- 操作前先 `Snapshot` 确认桌面状态
+- 所有状态变更统一使用 `Observe -> Act -> Wait -> Verify`:
+  1. `Observe`: `Snapshot`、`info`、`get` 或 `list` 固化目标和修改前状态
+  2. `Act`: 只执行已授权动作
+  3. `Wait`: 用 `WaitFor`、进程查询或有限重试等待状态稳定
+  4. `Verify`: 用独立回读确认目标状态; 不以点击完成或 Status Code 0 判定成功
+- 纯观察任务只执行 `Observe`, 不制造无意义写操作
 - `Type` / `Move` / `Click` 的 `label` 必须为整数 ID,非字符串
 - `PowerShell` 返回的 Status Code 始终为 0,需检查输出内容
 - `App` launch 需要完整应用名(由 `Snapshot` UI 树获取)
 - 截图功能缺少 `mss` 时先报告安装命令和影响, 等待用户明确确认后再运行
   `uv tool install windows-mcp --with mss --force`
 - 远程桌面中窗口枚举可能不稳定,优先使用 UI 树替代
+- `Scrape` 只用于 Windows 会话中的只读 HTTP/DOM 内容提取, 不用于导航、填表、
+  点击或登录; 这些浏览器页面操作统一使用 `agent-browser`
 
 ## Execution Feedback 执行反馈
 

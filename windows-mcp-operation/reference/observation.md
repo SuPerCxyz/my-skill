@@ -51,7 +51,9 @@ Use this file before acting on the desktop, when coordinates, UI element IDs, wi
 
 ## Scrape
 
-网页抓取工具，支持 HTTP 请求和浏览器 DOM 两种模式。
+网页只读抓取工具, 支持 HTTP 请求和浏览器 DOM 两种模式。仅在任务需要观察
+Windows 会话中的页面内容时使用。导航、填表、点击、登录和页面状态变更统一使用
+`agent-browser`; 不要用 `Scrape` 建立另一套浏览器自动化流程。
 
 ### Scrape 参数
 

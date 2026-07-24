@@ -2,6 +2,9 @@
 
 Use this file for common multi-tool sequences. For parameter details, switch to the specific reference file linked by each step.
 
+所有会改变状态的工作流都必须执行 `Observe -> Act -> Wait -> Verify`。最终
+`Verify` 必须重新读取目标状态, 不能复用执行动作本身的返回值。
+
 ## 获取桌面状态
 
 1. 调用 `Snapshot` `{"use_vision": true}`
@@ -19,6 +22,8 @@ Use this file for common multi-tool sequences. For parameter details, switch to 
 4. `App` `mode=resize` 调整到合适大小
 5. `Snapshot` 确认状态
 6. `Click` / `Type` / `Shortcut` 执行操作
+7. `WaitFor` 等待预期 UI 状态
+8. 再次 `Snapshot` 回读并确认最终状态
 
 ## 填写 Windows 表单
 
@@ -26,6 +31,8 @@ Use this file for common multi-tool sequences. For parameter details, switch to 
 2. 优先 `MultiEdit` `labels` 模式
 3. 标签不可用时用 `Type` + 坐标
 4. `Shortcut` `ctrl+s` 或 `Click` 保存按钮
+5. `WaitFor` 等待成功提示、目标值或稳定页面状态
+6. 再次 `Snapshot` 回读已保存字段; 无法回读时报告未确认, 不判定成功
 
 ## 关闭应用
 
@@ -41,3 +48,4 @@ Use this file for common multi-tool sequences. For parameter details, switch to 
 2. `Shortcut` 使用快捷键(`alt+F` 打开菜单等)
 3. `Type` 输入文本 + `press_enter`
 4. `Wait` / `WaitFor` 等待响应
+5. `Snapshot` 回读结果并确认预期状态

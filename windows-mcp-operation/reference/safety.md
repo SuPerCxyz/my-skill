@@ -18,6 +18,7 @@ Use this file before actions that can close apps, kill processes, delete files, 
 
 ## 安全原则
 
+- 状态变更统一执行 `Observe -> Act -> Wait -> Verify`; 验证必须独立回读目标状态
 - 读操作(`list` / `get` / `info` / `read` / `search`)可自由执行
 - 用户明确要求启动已知普通应用时, 该请求即视为 `launch` 授权; 安装程序、未知应用
   或可能触发系统变更的启动仍需单独确认
@@ -33,6 +34,7 @@ Use this file before actions that can close apps, kill processes, delete files, 
 - `FileSystem` `write` 的 `overwrite=false` 不阻止覆盖; 写入前必须先执行 `info` 或
   `read` 检查目标, 已存在时仅在用户明确允许覆盖后写入
 - `PowerShell` 的 Status Code 始终为 0，需检查输出判断实际结果
+- `PowerShell` 写操作完成后还需用独立查询命令验证, 不能只检查命令输出
 - `App` `launch` 需要开始菜单中的完整名称
 - `WaitFor` 的 `element_exists` + `window_name` 组合可能无法匹配，优先用 `text_exists`
 - `Click` 不支持 `modifiers` 参数，需要 modifier+click 时组合 `Shortcut` + `Click`

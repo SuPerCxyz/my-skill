@@ -4,7 +4,8 @@
 
 ## 功能
 
-- 桌面观察:Snapshot(带 UI 树)/ Screenshot(快速)/ Scrape
+- 桌面观察:Snapshot(带 UI 树)/ Screenshot(快速)
+- 网页只读提取:Scrape; 页面交互统一使用 agent-browser
 - 窗口控制:App launch / switch / resize
 - 鼠标键盘:Click / Move / Scroll / MultiSelect / Type / Shortcut / Clipboard
 - 等待:Wait / WaitFor(text/element/window 条件)
@@ -13,9 +14,10 @@
 ## 快速开始
 
 ```
-1. 操作前先 Snapshot 确认桌面状态
-2. 按场景从 Quick Decision 表选工具(详见 SKILL.md)
-3. 浏览器内网页操作请改用 `agent-browser`, 本 skill 仅用于真实 Windows 桌面
+1. Observe:操作前用 Snapshot / info / get 固化状态
+2. Act:按 Quick Decision 执行已授权动作
+3. Wait:用 WaitFor 或有限重试等待状态稳定
+4. Verify:独立回读最终状态; 浏览器页面交互改用 `agent-browser`
 ```
 
 ## 文件说明
