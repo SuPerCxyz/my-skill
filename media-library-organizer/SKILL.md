@@ -36,7 +36,8 @@ description: "Use when organizing local media library folders for movies, TV, va
 ## Key Safety Rules 关键安全规则
 
 1. **默认永远 dry-run**,不允许直接修改文件。
-2. 只有用户明确回复「确认执行 / 执行 / apply / run」后,才允许执行真实重命名。
+2. Dry-run 必须生成 `plan_id`; 只有用户在看到预览后明确回复
+   `确认执行 <plan_id>` 或 `apply <plan_id>`, 才允许执行真实修改。
 3. 目标文件已存在时默认跳过,禁止覆盖。
 4. TMDB 匹配置信度不足时,必须列出候选项让用户选择。
 5. 所有真实修改前必须生成 `_rename_mapping.json` 和可执行的 `_rollback.sh`。
@@ -79,13 +80,18 @@ Skill 会自动扫描并逐个处理。
 ```
 默认永远 dry-run,不允许直接修改文件。
 
-只有用户明确回复以下任一内容,才允许执行真实文件修改:
+只有用户在当前 dry-run 预览生成后明确回复以下任一内容,才允许执行真实文件修改:
+- `确认执行 <plan_id>`
+- `apply <plan_id>`
+
+执行前重新计算 source inventory、参数和目标映射的 hash。与 `plan_id` 不一致时,
+确认立即失效, 必须重新生成预览和新的 `plan_id`。
+
+以下回复不允许执行:
 - 确认执行
 - 执行
 - apply
 - run
-
-以下回复不允许执行:
 - 看起来可以
 - 差不多
 - 继续看看

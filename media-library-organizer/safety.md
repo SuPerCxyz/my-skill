@@ -14,6 +14,7 @@ Use this file whenever a plan may move, rename, write, delete, or roll back file
 
 ## 回滚要求
 
+- `_rename_mapping.json` 必须记录用户确认的 `plan_id`
 - 所有计划修改必须先写入 `_rename_mapping.json`, 再生成 `_rollback.sh`
 - operation 支持 `rename`、`move`、`create`、`replace_backup`、`rmdir`
 - 每项记录 `status=pending|completed|failed`; 真实操作成功后原子更新状态
@@ -26,6 +27,7 @@ Use this file whenever a plan may move, rename, write, delete, or roll back file
 
 ```json
 {
+  "plan_id": "sha256:<CURRENT_PREVIEW_HASH>",
   "timestamp": "2026-06-15T18:00:00",
   "source": "/data/media/video/综艺/原始目录",
   "files": [

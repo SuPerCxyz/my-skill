@@ -130,15 +130,22 @@ Use this file as the ordered execution flow for media organization. Read the spe
    - 缺失剧照
    - 技术信息无法检测
    - 字段来自猜测(标记为 guessed)
+
+6. 执行绑定
+   - source root
+   - execution options
+   - source inventory(size + mtime)
+   - `plan_id`:上述内容和目标映射的 canonical JSON SHA-256
 ```
 
 **预览不改任何文件。**
 
 ## 步骤5: 用户确认
 
-- 用户明确回复「确认执行 / 执行 / apply / run」后才执行
+- 用户看到当前预览后明确回复 `确认执行 <plan_id>` 或 `apply <plan_id>` 后才执行
 - 如有问题可调整参数后重新预览
-- 禁止在模糊回复下执行
+- 参数、source inventory 或目标映射变化后原确认失效, 必须生成新预览
+- 禁止接受未携带当前 `plan_id` 的回复
 
 ## 步骤6: 准备回滚并执行重命名
 
@@ -161,14 +168,15 @@ Use this file as the ordered execution flow for media organization. Read the spe
 
 **执行顺序:**
 
-1. 创建包含全部计划操作的 `_rename_mapping.json`
-2. 根据 mapping 生成 `_rollback.sh`, 并先执行 rollback dry-run 校验
-3. 按映射执行移动 / 重命名, 成功后原子更新 operation 状态
-4. 生成 NFO 前记录 `create` operation, 成功后记录 hash 和 `completed`
-5. 下载图片前记录 `create` operation, 成功后记录 hash 和 `completed`
-6. 删除空目录前记录 `rmdir` operation, 并再次确认目录为空
-7. 校验结果和 mapping 状态
-8. 再次执行 rollback dry-run, 确认所有已完成操作均可回滚
+1. 重新计算预览绑定内容, 确认 hash 等于用户确认的 `plan_id`
+2. 创建包含全部计划操作和 `plan_id` 的 `_rename_mapping.json`
+3. 根据 mapping 生成 `_rollback.sh`, 并先执行 rollback dry-run 校验
+4. 按映射执行移动 / 重命名, 成功后原子更新 operation 状态
+5. 生成 NFO 前记录 `create` operation, 成功后记录 hash 和 `completed`
+6. 下载图片前记录 `create` operation, 成功后记录 hash 和 `completed`
+7. 删除空目录前记录 `rmdir` operation, 并再次确认目录为空
+8. 校验结果和 mapping 状态
+9. 再次执行 rollback dry-run, 确认所有已完成操作均可回滚
 
 **文件名安全清洗:**
 
