@@ -47,6 +47,8 @@ cases:
         expected: ""
         evidence: ""
 
+    # required, optional, or none. Missing logs do not override functional_status.
+    log_requirement: optional
     log_targets:
       - service: cinder-volume
         required: true

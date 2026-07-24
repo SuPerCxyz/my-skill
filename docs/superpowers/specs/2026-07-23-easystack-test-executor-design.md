@@ -16,19 +16,20 @@
 - Compute、Storage、Network 常用操作模板。
 - 自然语言、Markdown 或脚本测试计划标准化。
 - 默认串行的用例状态机和依赖处理。
+- 长时间运行的持久化 checkpoint、命令记录、报告生成和完成校验。
 - 跨用例时间窗与多副本日志收集规则。
 - 命令、资源、请求 ID、验证和清理证据。
 - 每个步骤的开始、结束、耗时和执行结果。
 - 创建资源的名称、UUID、所属步骤和依赖关系。
 - API/UI 不可见执行分支的日志原文和证据位置。
 - 中文 Markdown 测试报告, OpenStack 专业术语保留英文。
-- `PASS`、`FAIL`、`BLOCKED`、`INCONCLUSIVE` 四态结果。
+- 最终 Markdown 只显示 `成功` 或 `失败`, 内部保留功能、证据、清理和诊断状态。
 - Nova、Cinder、Barbican、Glance、Neutron 等关联服务。
 
 默认不覆盖 Backup 测试。只有测试计划明确要求时才纳入。
 
-首版不实现完整测试调度器、日志守护进程或环境修改脚本。Agent 根据 skill 规则和
-目标环境能力执行, 避免在缺少真实用例需求时过早固化自动化实现。
+首版不实现完整测试调度器、日志守护进程或环境修改脚本。只提供无第三方依赖的
+resumable harness, 将不可遗漏的时间、状态和报告格式从提示词约束下沉为机器校验。
 
 ## Architecture 架构
 
@@ -46,12 +47,21 @@ easystack-test-executor/
 │   ├── upstream-references.md
 │   ├── case-normalization.md
 │   ├── execution-lifecycle.md
+│   ├── resumable-execution.md
 │   ├── log-evidence.md
 │   └── reporting.md
-└── examples/
+├── examples/
     ├── environment-profile.example.yaml
     ├── test-case.example.yaml
+    ├── result-record.example.json
     └── result-template.md
+└── scripts/
+    ├── _harness.py
+    ├── _validation.py
+    ├── checkpoint.py
+    ├── record-command.py
+    ├── render-report.py
+    └── validate-run.py
 ```
 
 `SKILL.md` 只保留触发范围、工作流、硬门禁和文件索引。细节按任务阶段加载, 避免
@@ -117,9 +127,11 @@ Cinder boot-from-volume。因此测试需要分别验证普通卷能力和加密
 
 - 不记录密码、Token、Secret payload、私钥或完整密钥材料。
 - 不静默修改测试预期、后端、镜像或清理策略。
-- 证据不完整时不得判定 `PASS`。
+- 顶层 `执行结果` 只跟随 Functional status; 时间、日志归档和清理异常独立记录为告警。
+- 步骤时间或关键日志异常时, 在 `执行结果` 下增加一条简短说明。
 - 内部执行分支没有直接日志证据时不得声称已验证。
-- 日志默认优先数据路径 worker, 如 `cinder-volume`、`nova-compute`; API 日志只在
+- 用例需要内部路径证据或失败诊断时优先数据路径 worker, 如 `cinder-volume`、
+  `nova-compute`; API 日志只在
   Request ID、policy、输入校验或 HTTP 错误需要时补充。
 - 清理只能在证据收集完成后执行。
 - 不删除非本次运行创建的资源, 除非用例明确声明其为可删除 fixture。

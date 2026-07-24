@@ -1,0 +1,42 @@
+{
+  "case_id": "EXAMPLE-001",
+  "title": "Example OpenStack test",
+  "objective": "验证目标功能和关联资源状态符合预期。",
+  "functional_status": "PASS",
+  "timing_status": "VALID",
+  "evidence_status": "COMPLETE",
+  "cleanup_status": "COMPLETE",
+  "diagnostic_status": "CONCLUSIVE",
+  "log_requirement": "required",
+  "started_local": "2026-07-24T14:08:08.447+08:00",
+  "ended_local": "2026-07-24T14:10:10.120+08:00",
+  "checks": [
+    {
+      "check": "资源终态",
+      "expected": "available",
+      "actual": "available",
+      "result": "成功",
+      "evidence": "openstack/STEP-02.stdout.log"
+    },
+    {
+      "check": "内部执行路径",
+      "expected": "clone",
+      "actual": "clone",
+      "result": "成功",
+      "evidence": "logs/related.log"
+    }
+  ],
+  "logs": [
+    {
+      "timestamp_local": "2026-07-24T14:08:12.002+08:00",
+      "raw_timestamp": "2026-07-24T06:08:12.002Z",
+      "source_timezone": "UTC",
+      "service": "cinder-volume",
+      "pod": "cinder-volume-example",
+      "container": "cinder-volume",
+      "request_or_resource_id": "req-example",
+      "source_path": "logs/related.log",
+      "excerpt": "INFO ... clone path selected ... req-example"
+    }
+  ]
+}

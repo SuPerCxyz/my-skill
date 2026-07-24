@@ -15,8 +15,10 @@ description: "Use when planning or executing EasyStack OpenStack Compute, Storag
 - 分析改动影响, 固化最小环境信息, 标准化并执行跨服务测试计划。
 - 提供 Compute、Storage、Network、Image、Security 常用操作模板。
 - Server 使用 Boot Volume、Floating IP 和 force delete; 测试 Image 默认为 `public`。
-- 按本地时间记录步骤和资源, 收集实际 worker 日志并证明内部执行分支。
-- 输出中文 Markdown 报告和 `PASS`、`FAIL`、`BLOCKED`、`INCONCLUSIVE` 四态结果。
+- 按本地时间记录步骤和资源, 按用例需要收集 worker 日志并证明内部执行分支。
+- 输出中文 Markdown 详细结果, 页面只显示 `成功` 或 `失败`, 内部保留诊断状态。
+- 顶层结果只跟随 Functional status; 时间、日志归档和清理告警不得覆盖功能结果。
+- 时间或关键日志异常时, 在 `执行结果` 下增加一条简短说明, 详细信息仍放结果检查。
 
 默认不测试 OpenStack Backup。只有测试计划明确包含 Backup 时才执行。
 
@@ -72,17 +74,21 @@ description: "Use when planning or executing EasyStack OpenStack Compute, Storag
 ### Step 5: Execute Cases 执行用例
 
 按 [references/execution-lifecycle.md](references/execution-lifecycle.md) 默认串行执行,
-并使用 [references/common-operations.md](references/common-operations.md) 的模板。
+并使用 [references/common-operations.md](references/common-operations.md) 的模板。执行
+时间较长、用例多于 1 个或可能发生 context compaction 时, 必须按
+[references/resumable-execution.md](references/resumable-execution.md) 初始化 harness,
+所有 action 通过 `record-command.py` 执行并在每个 phase 后保存 checkpoint。
 
 ### Step 6: Collect Evidence 收集证据
 
-按 [references/log-evidence.md](references/log-evidence.md) 维护跨用例窗口, 动态发现
-目标 Pod/Container, 并优先收集实际 worker 日志。
+按 [references/log-evidence.md](references/log-evidence.md) 判断日志是否 required、
+optional 或 none; 需要时维护跨用例窗口, 动态发现目标 Pod/Container。
 
 ### Step 7: Verify And Report 验证和报告
 
-按 [references/reporting.md](references/reporting.md) 记录功能、证据和清理状态;
-命令返回码不能单独证明通过。
+按 [references/reporting.md](references/reporting.md) 记录功能、证据、时间和清理状态;
+命令返回码不能单独证明通过, 诊断告警也不能推翻已验证的功能成功。使用 harness 时
+从结构化记录生成报告, `validate-run.py` 返回 0 后才可声明运行完成。
 
 ### Step 8: Apply Cleanup 执行清理
 
@@ -94,7 +100,7 @@ description: "Use when planning or executing EasyStack OpenStack Compute, Storag
 [references/execution-lifecycle.md](references/execution-lifecycle.md) 为唯一来源; 时间窗、
 UTC 日志归一化和游标推进以 [references/log-evidence.md](references/log-evidence.md) 为
 唯一来源。autocompact 或中断恢复时, 先重载 execution-lifecycle.md 的 Invariants 再继续,
-不依赖主上下文回忆整个 skill。
+并按 `resume.md` 的唯一 Next action 继续, 不依赖主上下文回忆整个 skill。
 
 ## Quick Reference 快速参考
 
@@ -107,11 +113,19 @@ UTC 日志归一化和游标推进以 [references/log-evidence.md](references/lo
 | Compute、Storage、Network、Image、Security 常用操作 | [references/common-operations.md](references/common-operations.md) |
 | 用例 schema、依赖、歧义和执行清单 | [references/case-normalization.md](references/case-normalization.md) |
 | 状态机、串并行、超时、失败和重试 | [references/execution-lifecycle.md](references/execution-lifecycle.md) |
+| 长时间运行、自动记录、断点恢复和机器校验 | [references/resumable-execution.md](references/resumable-execution.md) |
 | 跨用例窗口、多副本日志和关联证据 | [references/log-evidence.md](references/log-evidence.md) |
 | 结果状态、目录布局、资源台账和清理 | [references/reporting.md](references/reporting.md) |
 | 环境 profile 示例 | [examples/environment-profile.example.yaml](examples/environment-profile.example.yaml) |
 | 标准化用例示例 | [examples/test-case.example.yaml](examples/test-case.example.yaml) |
-| 单用例结果模板 | [examples/result-template.md](examples/result-template.md) |
+| 结构化用例结果示例 | [examples/result-record.example.json](examples/result-record.example.json) |
+| 详细结果和用例索引模板 | [examples/result-template.md](examples/result-template.md) |
+| 初始化和更新持久化状态 | [scripts/checkpoint.py](scripts/checkpoint.py) |
+| 自动记录命令、时间和输出 | [scripts/record-command.py](scripts/record-command.py) |
+| 从结构化记录生成固定格式报告 | [scripts/render-report.py](scripts/render-report.py) |
+| 校验状态、证据声明和报告一致性 | [scripts/validate-run.py](scripts/validate-run.py) |
+| harness 共用的原子写入、脱敏和时间函数 | [scripts/_harness.py](scripts/_harness.py) |
+| validator 共用的字段和时间校验定义 | [scripts/_validation.py](scripts/_validation.py) |
 
 ## Completion Gate 完成门禁
 
@@ -124,7 +138,12 @@ UTC 日志归一化和游标推进以 [references/log-evidence.md](references/lo
 5. Server 使用 Boot Volume、Floating IP 和 force delete, 或记录计划允许的例外。
 6. 测试 Image visibility 为 `public`, 或记录其它 visibility 的测试目的。
 7. UTC 日志保留原始 timestamp, 报告使用带明确 offset 的本地时间。
-8. Run ID 格式为 `R<YYYYMMDDHHmmss>` (精确到秒) 用作输出目录 `<RESULT_ROOT>` 名称和内部引用，不在资源名中包含时间戳。
+8. Run ID 格式为 `R<YYYYMMDDHHmmss>` (精确到秒) 用作输出目录 `<RESULT_ROOT>` 名称和
+   内部引用, 不在资源名中包含时间戳。
+9. `执行结果` 与 `functional_status` 映射一致, 未被 timing/evidence/cleanup 告警覆盖。
+10. timing/evidence 异常已在 `执行结果` 下简要说明, 且未重复粘贴详细证据。
+11. 使用 resumable harness 的运行已通过 `validate-run.py`; warning 已说明但未覆盖
+    Functional status。
 
 ## Execution Feedback 执行反馈
 

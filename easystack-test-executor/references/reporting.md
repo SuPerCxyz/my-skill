@@ -2,22 +2,43 @@
 
 ## Result Model 结果模型
 
-最终状态使用:
+面向用户的 `执行结果` 只允许:
 
-- `PASS`: 功能符合预期, 且必需证据完整。
-- `FAIL`: 实际行为与预期不符, 或操作意外失败。
-- `BLOCKED`: 必需前置条件、依赖或授权不可用。
-- `INCONCLUSIVE`: 存在功能信号, 但证据不足以可靠判断。
+- `成功`: `functional_status=PASS`, 即功能断言和必需资源操作符合预期。
+- `失败`: `functional_status=FAIL`、功能未执行完成或无法判断功能结果。
 
-同时记录:
+内部记录保留诊断维度:
 
 ```text
 functional_status
 evidence_status
 cleanup_status
+diagnostic_status
+timing_status
 ```
 
-不得将证据缺失折叠为功能通过。
+顶层结果只从 `functional_status` 映射。`evidence_status`、`timing_status` 和
+`cleanup_status` 独立记录, 其异常不得把已通过的功能结果改为失败。日志或可观测性
+本身是测试目标时, 将对应断言定义为 functional check; 此时该断言的实际结果可以改变
+`functional_status`, 但日志文件归档不完整仍只属于 evidence 告警。
+
+使用以下固定映射, 不允许模型自行聚合诊断字段:
+
+```text
+functional_status=PASS -> execution_result=成功
+functional_status!=PASS -> execution_result=失败
+```
+
+当 `timing_status` 或 `evidence_status` 存在异常时, 在 `执行结果` 的成功/失败下一行增加
+一条 `说明:`。只概括异常类型, 使用分号分隔, 不在这里展开原因或证据。例如:
+
+```text
+成功
+
+说明: 步骤时间记录异常; 关键日志未保存。
+```
+
+没有相关异常时不输出 `说明:`。这行说明不得改变 `execution_result`。
 
 每个 action step 记录 `start_local`、`end_local`、`timezone`、`duration_ms`、
 return code 和 result。时间使用目标环境本地时区并带明确 UTC offset; 用例总耗时
@@ -34,6 +55,18 @@ resource type、status、field name、Request ID 和代码标识符保留英文�
 报告中的运行、用例、步骤和资源时间默认展示本地时间。UTC 仅用于日志查询边界或保留
 原始日志 timestamp, 不作为默认展示列。日志证据同时展示归一化本地时间和原始时间,
 避免服务日志使用 UTC 时发生错误关联。
+
+最终 Markdown 的标题层级固定为:
+
+1. 唯一 H1 为 `# 详细结果`。
+2. H1 下方直接放置用例结果索引表。
+3. 每个用例使用 `<a id="case-<CASE_ANCHOR>"></a>` 和
+   `## <CASE_ID> <CASE_NAME>`。
+4. 每个用例下只使用 `执行结果`、`测试目标`、`测试步骤`、`结果检查`、
+   `创建的资源`、`关键日志输出` 这 6 个 H3 字段。
+
+`CASE_ANCHOR` 从 Case ID 转为小写, 非 `[a-z0-9-]` 字符替换为 `-`, 连续 `-` 合并,
+并保证本次运行内唯一。索引表的 `查看` 链接必须直接指向对应 H2 前的显式锚点。
 
 ## Functional Verification 功能验证
 
@@ -97,9 +130,14 @@ source_path
 redacted_log_excerpt
 ```
 
-在 `result.md` 贴入最小充分日志原文, 同时链接完整 `related.log`。原文必须脱敏,
-并保留能识别分支的关键函数、操作名、Request ID 和资源 ID。没有直接日志证据时
-将分支验证标为 `INCONCLUSIVE`, 不根据资源终态反推内部实现路径。
+在用例需要验证内部路径时, 于 `result.md` 的 `关键日志输出` 贴入最小充分日志原文,
+同时链接完整 `related.log`。原文必须脱敏, 并保留能识别分支的关键函数、操作名、
+Request ID 和资源 ID。没有直接日志证据时将该路径检查标为 `未确认`, 并设置
+`evidence_status` 告警; 不根据资源终态反推内部实现路径, 也不覆盖已经确定的
+`functional_status`。
+
+用例不需要日志验证且执行过程没有失败时, 不强制收集服务日志。在 `关键日志输出`
+明确写 `不适用: 本用例无需日志验证`, 并设置 `evidence_status=NOT_APPLICABLE`。
 
 ## Cleanup Policies 清理策略
 
@@ -124,9 +162,14 @@ cleanup_status=PARTIAL
 
 ## Output Layout 输出目录
 
-`<RESULT_ROOT>` 格式为 `easystack-test-<RunID>`，其中 `RunID` 为 `R<YYYYMMDDHHmmss>` (精确到秒, 24 小时制本地时间)。例如 `easystack-test-R20260723150830`。
+`<RESULT_ROOT>` 格式为 `easystack-test-<RunID>`, 其中 `RunID` 为
+`R<YYYYMMDDHHmmss>` (精确到秒, 24 小时制本地时间)。例如
+`easystack-test-R20260723150830`。
 
-`summary.md` 是给人看的单文件全量报告, 包含运行汇总和全部用例的执行结果与细节, 人只读这一个文件即可, 无需逐个进入 `cases/` 目录。`results.csv` 是同内容的机器可读镜像, `run.json` 是运行级元数据。`cases/<CASE_ID>/result.md` 是同一用例结果的独立副本, 供单用例深查和证据锚点引用, 内容与 `summary.md` 中对应 section 一致。三者保持一致, 不出现只存在于一处的用例状态。
+`summary.md` 是给人看的单文件详细结果, 人只读这一个文件即可查看索引和全部用例。
+`results.csv` 是索引及诊断字段的机器可读记录, `run.json` 保存运行级元数据。
+`cases/<CASE_ID>/result.md` 保存对应 H2 用例 section 的独立副本, 供单用例深查和证据
+锚点引用。各处的 `执行结果` 必须一致。
 
 ```text
 <RESULT_ROOT>/
@@ -164,47 +207,51 @@ cleanup_status=PARTIAL
             └── errors.log
 ```
 
-## Per-Case Result 单用例结果
+## Detailed Results 详细结果
 
-严格使用 [`../examples/result-template.md`](../examples/result-template.md)。模板字段按
-本文件的结果、时间、资源、内部路径和清理规则填写; 中文解释中保留英文专业术语。
+严格使用 [`../examples/result-template.md`](../examples/result-template.md) 生成
+`summary.md`。文件从 `# 详细结果` 开始, 紧接用例结果索引表, 再依次写入所有 H2
+用例 section。不得在 H1 和索引表之间插入运行头或其它 section。
 
-## Run Summary 运行汇总
+使用 resumable harness 时, 先填写 `cases/<CASE_ID>/result.json`, 再运行
+`scripts/render-report.py`; 不手工修改生成的 `result.md`、`summary.md`、
+`results.csv` 或 `run.json`。运行结束前使用 `scripts/validate-run.py` 检查索引、
+标题层级、状态映射和结构化文件一致性。
 
-`summary.md` 是给人看的单文件全量报告, 必须按以下顺序组织, 确保单文件即可看到每个
-用例的状态、时间、完整细节和运行汇总, 无需逐个进入 `cases/` 目录:
+索引表每个用例一行, 按 `case_id` 排序, 至少包含:
 
-1. 运行头: Run ID、`<RESULT_ROOT>` 绝对路径、计划版本、IANA timezone、UTC offset、
-   运行 `started_local` 和 `ended_local`、清理策略。
-2. 用例结果索引表: 每个用例一行, 并按 `overall_status` 排序 (`FAIL`、`BLOCKED`、
-   `INCONCLUSIVE`、`PASS`)。列至少包含:
-   ```text
-   case_id
-   title
-   domain
-   attempt
-   overall_status
-   functional_status
-   evidence_status
-   cleanup_status
-   case_start_local
-   case_end_local
-   case_duration_ms
-   result_link
-   ```
-   `result_link` 为同文件内锚点 `#case-<CASE_ID>`, 跳转到该用例详情 section。展示本地
-   时间, UTC 仅用于日志窗口边界。单页列出所有用例, 不折叠也不省略。
-3. 运行汇总: 四态统计、按 domain/backend/compute host 的分组结果、服务日志覆盖率和
-   实例重启或替换、清理状态、剩余资源台账入口和最高优先级失败。
-4. 全部用例详情: 索引表之后, 依次将每个用例按
-   [`../examples/result-template.md`](../examples/result-template.md) 完整内联为一个
-   `## <CASE_ID> <title>` section, 并设锚点 `case-<CASE_ID>` 供索引表跳转。步骤时间、
-   资源、证据、内部路径和清理结果全部写入此 section, 不指向其它文件即可看完。
-5. 每项结论的证据路径 (相对 `<RESULT_ROOT>`)。
+```text
+case_id
+title
+execution_result
+result_link
+```
 
-`results.csv` 是用例结果索引表的机器可读镜像，列与上表一致，UTF-8、含表头、按
-`case_id` 排序。任何用例的 `overall_status` 改变时同步更新 `summary.md` 和
-`results.csv`。
+`execution_result` 只显示 `成功` 或 `失败`。`result_link` 使用归一化后的
+`#case-<CASE_ANCHOR>`, 必须能跳转到对应 H2 前的显式锚点。索引中不得遗漏已开始的
+用例。
+
+每个 H2 用例 section 只包含以下 6 个 H3, 顺序固定:
+
+1. `执行结果`: 第一行只按 `functional_status` 写 `成功` 或 `失败`; 步骤时间或关键
+   日志存在异常时, 下一行必须增加一条简短 `说明:`, 没有异常时不添加。
+2. `测试目标`: 写明被测功能、影响范围和关键预期。
+3. `测试步骤`: 逐步记录详细操作、开始时间、结束时间、耗时、return code 和结果。
+4. `结果检查`: 记录 Expected、Actual、检查结果和证据路径。Functional check 使用
+   `成功` 或 `失败`; 时间、证据和清理质量使用 `告警` 或 `不适用`, 不覆盖功能结果。
+5. `创建的资源`: 记录资源类型、名称、UUID、创建时间、所属步骤、host/backend、
+   final state 和 cleanup 结果。
+6. `关键日志输出`: 用例需要内部路径证据或发生失败时, 贴入最小充分 worker 日志,
+   同时记录本地时间、原始 timestamp、Pod/Container、关联 ID 和证据路径; 不需要
+   日志时明确写 `不适用`。
+
+运行元数据、影响统计和完整诊断字段写入 `run.json`、`results.csv` 及其它结构化
+文件, 不在最终 Markdown 中新增 H2/H3。`cases/<CASE_ID>/result.md` 只保存对应 H2
+section, 内容必须与 `summary.md` 一致。
+
+`results.csv` 至少包含 `case_id`、`title`、`execution_result`、`functional_status`、
+`evidence_status`、`timing_status`、`cleanup_status`、`diagnostic_status`、用例本地时间和
+`result_link`。任何结果改变时同步更新 `summary.md`、`results.csv` 和 `run.json`。
 
 `run.json` 至少包含运行级元数据:
 
@@ -217,7 +264,8 @@ utc_offset
 started_local
 ended_local
 total_cases
-status_counts[pass|fail|blocked|inconclusive]
+result_counts[success|failure]
+diagnostic_counts[blocked|inconclusive]
 cleanup_policy
 remaining_resources
 summary_path

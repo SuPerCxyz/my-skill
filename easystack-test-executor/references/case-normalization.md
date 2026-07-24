@@ -23,6 +23,7 @@ inputs
 actions
 expected
 verification
+log_requirement
 log_targets
 timeouts
 cleanup_policy
@@ -44,12 +45,14 @@ Group 用例归入 `neutron`。关联服务写入 `log_targets`, 不创建模糊
 5. 为每个异步操作定义终态、超时和轮询间隔。
 6. 明确资源由本用例创建、复用还是依赖其它用例。
 7. 明确成功路径、预期失败和允许的错误状态。
-8. 声明需要日志证明的内部执行分支及匹配信号。
-9. 根据操作路径声明日志目标, 不默认收集全部 OpenStack 服务。
-10. 将删除、故障注入、重启、主机操作和后端操作列入
+8. 设置 `log_requirement=required|optional|none`; 默认按功能目标判断, 不因为存在
+   OpenStack 操作就强制收集日志。
+9. 声明确实需要日志证明的内部执行分支及匹配信号。
+10. 根据操作路径声明日志目标, 不默认收集全部 OpenStack 服务。
+11. 将删除、故障注入、重启、主机操作和后端操作列入
    `destructive_operations`。
-11. 未声明清理策略时继承运行级 `preserve_on_failure`。
-12. 按 [common-operations.md](common-operations.md) 应用 Boot Volume、Floating IP、
+12. 未声明清理策略时继承运行级 `preserve_on_failure`。
+13. 按 [common-operations.md](common-operations.md) 应用 Boot Volume、Floating IP、
     force delete 和 Image `public` 等全局资源默认值。
 
 不得静默删除、合并或改写用例, 也不得替换 Image、Flavor、Volume Type、Backend、
@@ -61,7 +64,7 @@ Compute Host、Secret 或预期结果。
 
 1. 在标准化清单记录原文和歧义。
 2. 优先选择不创建、不修改、不删除资源的解释。
-3. 歧义影响正确性或安全时将用例标记为 `BLOCKED`。
+3. 歧义影响正确性或安全时将内部执行状态标记为 `BLOCKED`, 最终 `执行结果` 为失败。
 4. 继续处理不依赖该歧义的用例。
 
 以下信息缺失通常属于阻塞:

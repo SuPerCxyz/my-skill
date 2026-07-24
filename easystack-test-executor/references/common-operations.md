@@ -160,8 +160,9 @@ openstack server add floating ip <SERVER_ID> <FLOATING_IP>
 5. 使用 `openstack floating ip show` 和 `openstack server show` 验证关联关系。
 6. 用例要求 connectivity 时, 从授权探测点验证 Floating IP 数据面。
 
-External Network、Floating IP quota 或绑定能力缺失时, 默认 Server create 用例标记为
-`BLOCKED`。只有原始计划明确不需要公网访问时, 才允许设置
+External Network、Floating IP quota 或绑定能力缺失时, 默认 Server create 用例的
+`diagnostic_status` 标记为 `BLOCKED`, 最终 `执行结果` 为失败。只有原始计划明确不
+需要公网访问时, 才允许设置
 `floating_ip: disabled` 并在报告说明原因。
 
 ### Cleanup Server And Floating IP 清理云主机和公网 IP

@@ -1,98 +1,53 @@
-# <CASE_ID> 用例结果
+# 详细结果
 
-## 结果摘要
+| 用例 ID | 用例名称 | 执行结果 | 跳转 |
+|---------|----------|----------|------|
+| <CASE_ID> | <CASE_NAME> | <成功或失败> | [查看](#case-<CASE_ANCHOR>) |
 
-- 用例 ID:
-- 用例名称:
-- Domain:
-- Attempt:
-- Capability status:
-- Functional status:
-- Evidence status:
-- Cleanup status:
-- Overall status:
+<a id="case-<CASE_ANCHOR>"></a>
+## <CASE_ID> <CASE_NAME>
 
-## 影响覆盖
+### 执行结果
 
-- Change point:
-- 影响项:
-- Consumer:
-- 能力路径:
-- Coverage gap:
+<成功或失败>
 
-## 时间窗口
+说明: <仅在步骤时间或关键日志存在异常时简要填写; 无异常时删除本行>
 
-- Timezone:
-- UTC offset:
-- 上一个用例:
-- Case start local:
-- Case end local:
-- Log window start local:
-- Log window end local:
+### 测试目标
 
-## 测试目标
+<说明需要测试的功能、影响范围和关键预期>
 
-## 前置条件
+### 测试步骤
 
-## 输入参数
+| Step | 详细操作或命令 | Start local | End local | Duration ms | Return code | 结果 |
+|------|----------------|-------------|-----------|-------------|-------------|------|
+| <STEP_ID> | <脱敏后的操作或命令> | <RFC3339+offset> | <RFC3339+offset> | <N> | <RC> | <成功或失败> |
 
-## 步骤执行时间
+### 结果检查
 
-| Step | 操作 | Start local | End local | Duration ms | Return code | Result |
-|------|------|-------------|-----------|-------------|-------------|--------|
+| 检查项 | Expected | Actual | 结果 | Evidence |
+|--------|----------|--------|------|----------|
+| <CHECK> | <EXPECTED> | <ACTUAL> | <成功、失败、告警或不适用> | <相对证据路径或关联 ID> |
 
-## 预期结果
+功能断言决定 `执行结果`; 时间、日志和清理质量异常使用 `告警`, 不覆盖已确定的
+功能结果。
 
-## 实际结果
+### 创建的资源
 
-## 验证结果
+| Type | Name | UUID | Created local | 所属 Step | Host 或 Backend | Final state | Cleanup |
+|------|------|------|---------------|-----------|-----------------|-------------|---------|
+| <RESOURCE_TYPE> | <RESOURCE_NAME> | <UUID> | <RFC3339+offset> | <STEP_ID> | <HOST_OR_BACKEND> | <STATE> | <RESULT> |
 
-| 检查项 | Expected | Actual | Status | Evidence |
-|--------|----------|--------|--------|----------|
+### 关键日志输出
 
-## 创建资源
-
-| Type | Name | UUID | Created local | 所属 Step | Host 或 Backend | State |
-|------|------|------|---------------|-----------|-----------------|-------|
-
-## Request ID 和关联 ID
-
-## 内部执行路径证据
-
-| Step | Expected path | Observed path | Worker instance | Request 或 Resource ID | Source |
-|------|---------------|---------------|-----------------|------------------------|--------|
-
-### 脱敏日志原文
+| Local time | Raw timestamp | Service/Pod/Container | Request 或 Resource ID | 证据路径 |
+|------------|---------------|-----------------------|------------------------|----------|
+| <RFC3339+offset> | <RAW_TIMESTAMP> | <SERVICE/POD/CONTAINER> | <REQUEST_OR_RESOURCE_ID> | <RELATIVE_PATH> |
 
 ```text
-<local-timestamp> [raw=<raw-timestamp>] <service/pod/container> <request-id> <resource-id> <operation>
+<证明关键执行路径或失败原因的最小充分脱敏日志原文>
 ```
 
-## 日志覆盖
-
-| Service | Expected | Collected | Restart 或 Replacement | Evidence status |
-|---------|----------|-----------|-------------------------|-----------------|
-
-## 失败详情
-
-- 失败阶段:
-- 失败命令:
-- Return code:
-- 错误摘要:
-- Resource state:
-- Primary worker log:
-- 建议排查:
-
-## 不支持路径检查
-
-- 拒绝层级:
-- Error code 和 message:
-- Server 或 Node state:
-- Volume state:
-- Attachment residue:
-- Backend mapping residue:
-- Secret 或 Key ownership:
-
-## 清理结果
-
-## 剩余资源
+内部执行分支无法由 API 或 UI 直接确认时, 必须在本节写明 Expected path、Observed
+path、worker instance 和日志结论。不需要日志时写 `不适用: 本用例无需日志验证`。
+按上述结构重复添加其余用例的索引行和 H2 section。

@@ -1,5 +1,18 @@
 # Log Evidence
 
+## Collection Decision 采集判断
+
+标准化用例先设置 `log_requirement`:
+
+- `required`: 测试目标包含内部路径、日志、错误处理或 observability 断言, 或功能失败
+  需要 worker 日志诊断。
+- `optional`: 日志有助于补充证据, 但不是当前功能验证所需。
+- `none`: 资源状态、数据面或 guest 验证已足够, 且没有失败需要诊断。
+
+`optional` 或 `none` 用例允许不采集日志, 分别记录 `PARTIAL` 或 `NOT_APPLICABLE`。
+日志采集状态不覆盖 `functional_status`; 只有日志或 observability 本身作为 functional
+check 时, 该检查的实际结果才能影响功能结果。
+
 ## Window Rules 窗口规则
 
 维护:
@@ -138,7 +151,8 @@ resource ID、函数或操作名等关联信息。
 - `MISSING`: 没有可用日志。
 - `NOT_APPLICABLE`: 用例不需要该目标。
 
-证据为 `PARTIAL` 或 `MISSING` 时不得无条件判定 `PASS`。
+证据为 `PARTIAL` 或 `MISSING` 时记录告警和缺失范围, 不自动改变 `执行结果`。
+`NOT_APPLICABLE` 不是异常。
 
 ## Output 输出
 
