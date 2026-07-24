@@ -4,41 +4,43 @@ Use this file after the issue domain and time window are known. For cross-servic
 
 ## Common Patterns
 
-> **重要**: 默认搜索所有节点目录(ecs.node-*)，除非用户指定特定节点。日志文件可能为 `.log` 或 `.log.gz`，需使用 `zgrep` 处理压缩文件。
+> **重要**: 默认搜索所有节点目录(`ecs.node-*`), 除非用户指定特定节点。
+> 必须先运行 `scripts/decompress-eslog.sh`; 后续只搜索脚本生成的 `.log`。
 
 ```bash
 # 列出所有可用节点
 ls -d ecs.*/
 
-# Find instance UUID across ALL nodes (handle both .log and .log.gz)
-find . -path "*/ecs.*/openstack/nova/*.log*" \( -name "*.log" -o -name "*.log.gz" \) \
-  -exec sh -c 'case "$1" in *.gz) zgrep -l "$0" "$1";; *) grep -l "$0" "$1";; esac' "<INSTANCE_UUID>" {} \; 2>/dev/null
+# Find instance UUID across ALL nodes
+find . -path "*/ecs.*/openstack/nova/*.log" -type f \
+  -exec grep -l -F "<INSTANCE_UUID>" {} \; 2>/dev/null
 
-# Simplified: search ALL logs for a UUID (handles .gz too)
+# Simplified: search ALL readable logs for a UUID
 for d in ecs.*/; do
   node=$(basename "$d")
-  count=$(find "$d" \( -name "*.log" -o -name "*.log.gz" \) -exec sh -c \
-    'case "$1" in *.gz) zgrep -l "$0" "$1";; *) grep -l "$0" "$1";; esac' "<UUID>" {} \; 2>/dev/null | wc -l)
+  count=$(find "$d" -type f -name "*.log" \
+    -exec grep -l -F "<UUID>" {} \; 2>/dev/null | wc -l)
   echo "$node: $count files"
 done
 
 # Find volume ID across all nodes
-find . -path "*/ecs.*/openstack/nova/*.log*" -o -path "*/ecs.*/openstack/cinder/*.log*" \
+find . -type f \( -path "*/ecs.*/openstack/nova/*.log" \
+  -o -path "*/ecs.*/openstack/cinder/*.log" \) \
   -exec grep -l "<VOLUME_ID>" {} \; 2>/dev/null
 
 # Find error events in a time window across nodes
 for d in ecs.*/; do
   echo "=== $(basename $d) ==="
-  find "$d/openstack/nova" -name "nova-compute*" \( -name "*.log" -o -name "*.log.gz" \) \
-    -exec sh -c 'case "$1" in *.gz) zgrep "$0" "$1";; *) grep "$0" "$1";; esac' \
-    "2026-06-18 10:2[5-9]" {} \; 2>/dev/null | grep -i "error\|fail\|traceback"
+  find "$d/openstack/nova" -type f -name "nova-compute*.log" \
+    -exec grep "2026-06-18 10:2[5-9]" {} \; 2>/dev/null |
+    grep -i "error\|fail\|traceback"
 done
 
 # Search a specific file type across all nodes
 for d in ecs.*/; do
   echo "=== $(basename $d) ==="
-  find "$d" -name "nova-compute*" \( -name "*.log" -o -name "*.log.gz" \) \
-    -exec sh -c 'case "$1" in *.gz) zgrep "$0" "$1";; *) grep "$0" "$1";; esac' "<PATTERN>" {} \; 2>/dev/null
+  find "$d" -type f -name "nova-compute*.log" \
+    -exec grep "<PATTERN>" {} \; 2>/dev/null
 done
 ```
 

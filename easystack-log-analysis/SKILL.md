@@ -28,6 +28,7 @@ E2E 使用 `easystack-cloud-web-e2e`。
 | **跨域关联分析矩阵(云主机/云盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
 | 解压 eslog 文件 | [decompress.md](decompress.md) |
 | 安全解压脚本 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) |
+| 验证 `.log` 生成和 merge 行为 | [tests/test-decompress-eslog.sh](tests/test-decompress-eslog.sh) |
 | 日志行格式(wrapper / 字段 / awk 配方) | [log-format.md](log-format.md) |
 | 日志目录结构映射 | [directory-map.md](directory-map.md) |
 | 按问题类型检索的模式 | [search-patterns.md](search-patterns.md) |
@@ -46,8 +47,8 @@ bash scripts/decompress-eslog.sh --input <FILE_OR_DIR> --output <OUTPUT_DIR>
 
 输出: `ecs.<host>.<date>.<N>/` 目录(每个 host 一个)。再次解压时直接合并同名目录:
 同路径文件使用新内容覆盖, 新文件追加, 本次 bundle 未包含的旧文件保留。不要因已有
-结果而跳过解压。默认保留 `.log.gz` 以避免大 bundle 耗尽磁盘; 只有确认空间充足
-时才传 `--decompress-logs`。
+结果而跳过解压。脚本保留原始 `.log.gz`, 并统一生成可直接查看和搜索的 `.log`;
+后续分析只使用 `.log`, 不直接读取压缩日志。
 
 > **时间窗提示**: eslog 文件名本身编码了采集时间范围:
 > `ecs.20260618-20260623183823.eslog` = 2026-06-18 00:00 -> 2026-06-23 18:38:23。
@@ -77,7 +78,8 @@ bash scripts/decompress-eslog.sh --input <FILE_OR_DIR> --output <OUTPUT_DIR>
 | `ems/` | 仪表盘 API: ecp-dashboard, ems-dashboard |
 | `others/` | GPU, topology, event-monitor |
 
-> **重要**: 默认搜索所有节点目录(`ecs.node-*`), 除非用户指定只分析某个节点。日志文件可能是 `.log` 或 `.log.gz`, 搜索时需同时处理两种格式。
+> **重要**: 默认搜索所有节点目录(`ecs.node-*`), 除非用户指定只分析某个节点。
+> 先用解压脚本确保压缩日志已生成对应 `.log`, 后续只搜索 `.log`。
 
 ### Step 3: 定位目标 VM 所在计算节点
 
@@ -86,9 +88,8 @@ bash scripts/decompress-eslog.sh --input <FILE_OR_DIR> --output <OUTPUT_DIR>
 ```bash
 # Find which nodes have logs mentioning a VM UUID
 for d in ecs.*/; do
-  count=$(find "$d" -name "nova-compute*" \( -name "*.log" -o -name "*.log.gz" \) \
-    -exec sh -c 'case "$1" in *.gz) zgrep -l "$0" "$1";; *) grep -l "$0" "$1";; esac' \
-    "<VM_UUID>" {} \; 2>/dev/null | wc -l)
+  count=$(find "$d" -name "nova-compute*.log" \
+    -exec grep -l -F "<VM_UUID>" {} \; 2>/dev/null | wc -l)
   [ "$count" -gt 0 ] && echo "$(basename $d): $count files match"
 done
 ```

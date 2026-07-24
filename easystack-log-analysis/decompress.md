@@ -27,8 +27,8 @@ bash scripts/decompress-eslog.sh \
 # All top-level .eslog files in the current directory
 bash scripts/decompress-eslog.sh
 
-# Expand .log.gz only after confirming sufficient disk space
-bash scripts/decompress-eslog.sh --decompress-logs
+# The script always creates readable .log files and keeps original .log.gz files
+bash scripts/decompress-eslog.sh --input /path/to/ecs.example.eslog
 ```
 
 脚本行为:
@@ -41,8 +41,9 @@ bash scripts/decompress-eslog.sh --decompress-logs
 - 直接向同名 `ecs.*` 目录增量覆盖, 避免为旧结果创建完整副本而耗尽磁盘配额。
 - 解包失败时停止并报告已处理范围; 已覆盖文件不自动回滚。修复空间或归档问题后可
   使用同一命令再次解压, 让完整 bundle 补齐结果。
-- 默认保留原始 `.eslog` 和 `.log.gz`, 不批量展开日志, 避免大 bundle 耗尽磁盘配额。
-- 只有显式传入 `--decompress-logs` 时才用 `gzip -dkf` 生成或更新 `.log`。
+- 保留原始 `.eslog` 和 `.log.gz`, 并统一使用 `gzip -dkf` 生成或更新对应 `.log`。
+- 后续分析和人工查看统一使用 `.log`, 不直接对 `.log.gz` 执行搜索。
+- 展开前应确认输出目录空间; 空间不足时脚本失败并报告, 不回退到压缩日志分析。
 - 默认密码来自 `ESLOG_PASSWORD`, 未设置时使用 EasyStack 默认值。
 
 如果缺少 `unzip`、`tar`、`gzip` 等依赖, 先报告缺失命令和建议安装命令, 获得用户

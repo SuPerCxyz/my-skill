@@ -370,7 +370,7 @@ grep -E "systemctl|reboot|shutdown|drain|reset|kubectl delete" \
 
 ```bash
 # 节点真实启动时间(kernel 起来)
-zgrep -h "Linux version\|Command line: BOOT_IMAGE" ecs.<node>/os/messages.*.log* | head -3 \
+grep -h "Linux version\|Command line: BOOT_IMAGE" ecs.<node>/os/messages.*.log | head -3 \
   | awk -F' ¦ ' '{print $1, "|", substr($5,1,150)}'
 
 # systemd boot complete(更准确)

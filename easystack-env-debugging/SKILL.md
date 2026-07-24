@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use when accessing a live EasyStack Kubernetes/OpenStack environment through env-access for logs-first incident investigation or authorized code debugging, overlay changes, and new feature validation. For older incidents with local `.eslog` or extracted `ecs.*`, combine with `easystack-log-analysis`. Do not use for repo CI or Web UI E2E."
+description: "Use when investigating live EasyStack Kubernetes/OpenStack incidents or performing explicitly authorized runtime code, overlay, or patch-path validation through env-access. Use `easystack-test-executor` for planned resource tests; combine for backend root cause or runtime changes. Combine offline historical logs with `easystack-log-analysis`."
 ---
 
 # EasyStack Environment Debugging
@@ -9,12 +9,15 @@ description: "Use when accessing a live EasyStack Kubernetes/OpenStack environme
 
 OpenStack 服务运行在 Kubernetes 中, 通常通过 Helm 部署在 `openstack` namespace。
 本 skill 通过固化的 [env-access.sh](scripts/env-access.sh) 进入目标环境, 支持两个
-同等有效的入口: 在线问题调查, 以及用户明确授权后的环境代码调试与新功能验证。
+同等有效的入口: 在线问题调查, 以及用户明确授权后的 runtime code、overlay 或
+patch 路径验证。完整资源功能和回归用例由 `easystack-test-executor` 执行。
 
 当目标是可访问的运行中环境时使用本 skill。仅分析离线 `.eslog` 或已解压的
 `ecs.*` 目录时使用 `easystack-log-analysis`; 历史故障同时涉及当前环境和本地离线
 日志时联合使用两个 skill。仓库 CI 失败使用 `easystack-ci-test`;
 EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
+Web UI 用例需要 backend 根因分析时, 以 `easystack-cloud-web-e2e` 执行 UI 流程,
+联合本 skill 收集和分析后台证据。
 
 ## Task Mode Selection 任务模式选择
 
@@ -22,9 +25,9 @@ EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
 
 1. 问题调查模式: 用户询问故障原因、异常状态或提供错误、UUID、故障时间时, 使用
    日志优先的只读根因排查流程。
-2. 代码调试模式: 用户要求修改运行时代码、部署临时 overlay、调试代码路径、验证
-   patch 或新功能时, 在完成授权门禁后直接使用 [code-debug.md](code-debug.md)。该模式
-   不要求先构造故障根因或执行完整日志调查。
+2. 代码调试模式: 用户要求修改 runtime code、部署临时 overlay、调试代码路径或
+   验证 patch 路径时, 在完成授权门禁后直接使用 [code-debug.md](code-debug.md)。
+   该模式不负责完整资源功能用例, 也不要求先构造故障根因。
 3. 混合模式: 用户需要通过代码改动验证故障假设时, 先记录只读基线, 再执行授权修改,
    最后同时报告根因证据、代码变更、验证结果和回滚状态。
 
@@ -69,8 +72,8 @@ mysql/update/delete/insert/alter/drop
 ## Authorized Change Scope 授权变更范围
 
 代码调试是本 skill 的一等入口, 不是根因调查失败后的 fallback。用户明确要求在环境中
-修改代码、验证新功能、临时 overlay 运行时代码或调整启动脚本做调试时, 仍属于本
-skill 范围。执行前必须获得用户对目标环境、目标服务、目标节点、待修改文件、回滚
+修改 runtime code、验证 patch 路径、临时 overlay 代码或调整启动脚本做调试时,
+仍属于本 skill 范围。执行前必须获得用户对目标环境、目标服务、目标节点、待修改文件、回滚
 方式和验证命令的明确授权。
 
 经授权的代码调试流程见 [code-debug.md](code-debug.md)。未经授权时, 不要执行
@@ -149,6 +152,7 @@ server/volume, 或用户明确要求查看状态时使用。
 | 环境后台访问入口、172.18 跳板、BJ-xx SSH config 跳板直达、JumpServer 菜单 fallback | [access.md](access.md) |
 | 统一环境访问脚本, 登录链路封装后追加业务命令 | [scripts/env-access.sh](scripts/env-access.sh) |
 | JumpServer 菜单内部 fallback 脚本, 由统一访问脚本调用 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
+| 验证访问参数、安全重试和 JumpServer 传参 | [tests/test-access-scripts.sh](tests/test-access-scripts.sh) |
 | 根因排查顺序、当前 pod 日志、fluentd 历史日志回退 | [logs.md](logs.md) |
 | 无表格、行首安全且含一句话总结的问题分析结论格式 | [report-format.md](report-format.md) |
 | 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |

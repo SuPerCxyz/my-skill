@@ -4,19 +4,17 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: decompress-eslog.sh [--input PATH] [--output DIR] [--decompress-logs]
+Usage: decompress-eslog.sh [--input PATH] [--output DIR]
 
 PATH may be one .eslog file or a directory containing top-level .eslog files.
 Both paths default to the current working directory.
-Compressed .log.gz files are preserved by default to avoid excessive disk use.
+Every .log.gz file is expanded to a readable .log file. The original .log.gz is kept.
 EOF
 }
 
 input_path=$PWD
 output_dir=$PWD
 password=${ESLOG_PASSWORD:-easycloud}
-decompress_logs=false
-
 while (($#)); do
     case "$1" in
         --input)
@@ -26,10 +24,6 @@ while (($#)); do
         --output)
             output_dir=${2:?missing value for --output}
             shift 2
-            ;;
-        --decompress-logs)
-            decompress_logs=true
-            shift
             ;;
         -h|--help)
             usage
@@ -43,19 +37,12 @@ while (($#)); do
     esac
 done
 
-for command in find mktemp realpath sort tar unzip; do
+for command in find gzip mktemp realpath sort tar unzip; do
     command -v "$command" >/dev/null 2>&1 || {
         echo "Required command not found: $command" >&2
         exit 1
     }
 done
-
-if [[ $decompress_logs == true ]]; then
-    command -v gzip >/dev/null 2>&1 || {
-        echo "Required command not found: gzip" >&2
-        exit 1
-    }
-fi
 
 mkdir -p -- "$output_dir"
 output_dir=$(realpath -- "$output_dir")
@@ -193,14 +180,12 @@ process_bundle() (
         exit 1
     }
 
-    if [[ $decompress_logs == true ]]; then
-        for output_name in "${output_order[@]}"; do
-            destination=$output_dir/$output_name
-            while IFS= read -r -d '' log_gz; do
-                gzip -dkf -- "$log_gz"
-            done < <(find "$destination" -type f -name '*.log.gz' -print0)
-        done
-    fi
+    for output_name in "${output_order[@]}"; do
+        destination=$output_dir/$output_name
+        while IFS= read -r -d '' log_gz; do
+            gzip -dkf -- "$log_gz"
+        done < <(find "$destination" -type f -name '*.log.gz' -print0)
+    done
 
     for output_name in "${output_order[@]}"; do
         echo "${output_actions[$output_name]}: $output_dir/$output_name"

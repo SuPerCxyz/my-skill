@@ -110,6 +110,14 @@ if [[ -z "$asset_query" ]]; then
   asset_query="$asset_name"
 fi
 
+if [[ -n "$jumpserver_host$jumpserver_user$jumpserver_port$jumpserver_identity_file" ]]; then
+  if [[ -z "$jumpserver_host" || -z "$jumpserver_user" ||
+        -z "$jumpserver_port" || -z "$jumpserver_identity_file" ]]; then
+    echo "jumpserver overrides require --jumpserver-host, --jumpserver-user, --jumpserver-port, and --jumpserver-identity-file" >&2
+    exit 2
+  fi
+fi
+
 expand_tilde_path() {
   local value="$1"
   if [[ "$value" == "~/"* ]]; then

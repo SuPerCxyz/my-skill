@@ -22,7 +22,7 @@ bash scripts/decompress-eslog.sh --input /path/to/bundle.eslog --output /path/to
 bash scripts/decompress-eslog.sh
 ```
 
-默认保留 `.log.gz` 以控制磁盘占用; 只有确认空间充足时才使用 `--decompress-logs`。
+脚本保留原始 `.log.gz`, 并统一生成可直接查看的 `.log`; 后续分析只使用 `.log`。
 
 ## 文件说明
 
@@ -34,6 +34,7 @@ bash scripts/decompress-eslog.sh
 | [cross-domain-analysis.md](cross-domain-analysis.md) | 跨域关联分析矩阵(各场景必看哪些日志) |
 | [decompress.md](decompress.md) | eslog 解压方法 |
 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) | 安全解压脚本 |
+| [tests/test-decompress-eslog.sh](tests/test-decompress-eslog.sh) | 自动生成 `.log` 和 merge 行为回归测试 |
 | [log-format.md](log-format.md) | 日志行格式、字段、awk 配方 |
 | [directory-map.md](directory-map.md) | 日志目录结构映射 |
 | [search-patterns.md](search-patterns.md) | 按问题类型的搜索模式 |
