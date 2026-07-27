@@ -15,10 +15,10 @@ Use this file only as observed console context for the recorded environment and 
   - `Service Catalog`
   - `English`
   - `Help`
-  - 当前用户 `admin`
+  - 当前用户入口 `<CURRENT_USER>`
 - 当前账号登录后首页会展示 Overview 卡片区、Quick Access、User Guides、
   Recent Operations、Platform Information 等模块。
-- 首页右上方用户菜单在探索时没有稳定展开，但页面明确存在 `admin` 入口。
+- 首页右上方用户菜单在探索时没有稳定展开，但页面明确存在当前用户入口。
 
 ## 服务目录
 
@@ -169,7 +169,7 @@ Use this file only as observed console context for the recorded environment and 
   - 已绑定行:`Release Floating IPs`、`Disassociate`、`Update Bandwidth`、`More`
   - 未绑定行:`Release Floating IPs`、`Bind to resource`、`Update Bandwidth`、`More`
 - 权限限制:
-  - 以当前 `admin` 账号点击未绑定浮动 IP 的 `Bind to resource` 时，
+  - 以当前观察账号点击未绑定浮动 IP 的 `Bind to resource` 时，
     页面直接提示:
     `Please do this by re-logging into the console as the project administrator/user to which the resource belongs`
   - 这是产品权限限制，不是自动化点击失败

@@ -1,6 +1,6 @@
 ---
 name: easystack-test-executor
-description: "Use when planning EasyStack OpenStack Compute, Storage, Network, Image, Security, Bare Metal, or cross-service tests, or executing them in a live environment with OpenStack CLI actions, worker logs, cleanup, and Chinese Markdown evidence. Combine `easystack-env-debugging` for backend root cause or runtime changes. Exclude Backup unless explicit."
+description: "Use when planning or executing EasyStack OpenStack resource tests across Compute, Storage, Network, Image, Security, Bare Metal, or services, with CLI, worker logs, cleanup, and Chinese Markdown. Combine env-debugging for backend root cause or runtime changes. Exclude Backup unless explicit; not for offline logs, repo CI, or Web UI E2E."
 ---
 
 # EasyStack Test Executor
@@ -59,7 +59,8 @@ Autocompact、模型切换或中断后, 只读取 `<RESULT_ROOT>/resume.md`, 再
 | V3 状态机和恢复 | [execution-lifecycle.md](references/execution-lifecycle.md), [resumable-execution.md](references/resumable-execution.md) |
 | Worker logs 和证据 | [log-evidence.md](references/log-evidence.md) |
 | 结果语义和严格 Markdown | [reporting.md](references/reporting.md), [report-format.md](references/report-format.md) |
-| V3 plan 和 profile 示例 | [test-case.example.yaml](examples/test-case.example.yaml), [environment-profile.example.yaml](examples/environment-profile.example.yaml) |
+| V3 plan、profile 和报告示例 | [test-case.example.yaml](examples/test-case.example.yaml), [environment-profile.example.yaml](examples/environment-profile.example.yaml), [result-template.md](examples/result-template.md) |
+| Model eval 定义和重复运行校验 | [evals/README.md](evals/README.md), [validate-evals.py](scripts/validate-evals.py) |
 
 ## Completion Gate 完成门禁
 

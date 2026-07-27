@@ -5,6 +5,10 @@
       "command": ["openstack", "floating", "ip", "create", "<EXTERNAL_NETWORK_ID>", "-f", "json"],
       "checks": ["project归属", "地址池", "绑定和解绑", "连通性", "清理"]
     },
+    "floating_ip_delete": {
+      "command": ["openstack", "floating", "ip", "delete", "<FLOATING_IP_ID>"],
+      "checks": ["地址释放", "Port解除绑定", "精确show返回not found"]
+    },
     "port_create": {
       "command": ["openstack", "port", "create", "--network", "<NETWORK_ID>", "<NAME>", "-f", "json"],
       "checks": ["binding", "fixed IP", "security group", "allowed address pairs", "删除依赖"]
@@ -20,6 +24,14 @@
     "security_group_rule_create": {
       "command": ["openstack", "security", "group", "rule", "create", "--ingress", "--protocol", "<PROTOCOL>", "--dst-port", "<MIN>:<MAX>", "--src-ip", "<CIDR>", "<SG_ID>"],
       "checks": ["方向和ethertype", "远端CIDR", "guest连通性", "删除后失效"]
+    },
+    "security_group_rule_delete": {
+      "command": ["openstack", "security", "group", "rule", "delete", "<RULE_ID>"],
+      "checks": ["规则删除", "guest连通性失效", "无重复规则"]
+    },
+    "security_group_delete": {
+      "command": ["openstack", "security", "group", "delete", "<SG_ID>"],
+      "checks": ["端口依赖已解除", "Security Group删除", "精确show返回not found"]
     },
     "image_create": {
       "command": ["openstack", "image", "create", "--disk-format", "<FORMAT>", "--container-format", "bare", "--public", "--file", "<FILE>", "<NAME>", "-f", "json"],

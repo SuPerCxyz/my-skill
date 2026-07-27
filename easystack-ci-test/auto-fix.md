@@ -49,19 +49,24 @@ below is reached:
   shared contract, schema, CI, or environment changes without approval.
 - DONE only when all three conditions are met:
   1. `tox -e cover` passes (all tests pass)
-  2. cover HTML shows zero `mis` and zero `par` lines for all modified files
+  2. 本次 diff 新增或修改的 executable lines 没有 `mis` 或 `par`; touched file 中
+     与本次 diff 无关的历史缺口记录为 baseline, 不自动扩大修改范围
   3. `tox -e pep8` passes
 - Direct `flake8` runs are diagnostic only and never replace `tox -e pep8`.
 - If completion requires changing `tox.ini`, show the proposed diff and wait for explicit
   user approval. Without approval, report the environment blocker and stop.
-- To identify which files were modified (latest commit + uncommitted changes):
+- To identify scope, use the confirmed Gerrit parent or user-provided local base, then add
+  staged and unstaged changes:
   ```bash
-  # All three combined: committed + staged + unstaged
+  # Gerrit HEAD
   git diff HEAD^ --name-only
+  # Local branch with explicit base
+  git diff <BASE>...HEAD --name-only
+  # Uncommitted
   git diff --name-only
   git diff --cached --name-only
   ```
-  Use this combined list only after confirming `HEAD` is the target Gerrit change.
+  Do not infer an unknown committed base from the nearest commit message.
 - After all checks pass, use [gerrit-delivery.md](gerrit-delivery.md) only when the user explicitly
   asks to amend and upload the current change.
 

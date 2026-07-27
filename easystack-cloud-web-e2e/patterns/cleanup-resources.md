@@ -33,7 +33,9 @@
 
 ```json
 {
-  "ok": true,
+  "ok": null,
+  "terminal": false,
+  "submitted": false,
   "action": "cleanup_plan",
   "status": "confirmation_required",
   "resources": [
@@ -48,6 +50,8 @@
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": true,
   "resource": "floating_ip",
   "action": "release",
   "name": "<floating-ip>",

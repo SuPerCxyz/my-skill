@@ -41,8 +41,19 @@ TERMINAL_STEP_STATUSES = {
     "NOT_APPLICABLE",
 }
 ACTION_KINDS = {"openstack", "kubectl", "env_access", "assertion", "cleanup"}
+ALLOWED_EXECUTABLES = {
+    "openstack": {"openstack"},
+    "kubectl": {"kubectl"},
+    "env_access": {"bash", "env-access.sh"},
+    "assertion": {"false", "grep", "jq", "test", "true"},
+    "cleanup": {"bash", "env-access.sh", "kubectl", "openstack"},
+}
 DESTRUCTIVE_TOKENS = {
-    "delete", "force-delete", "remove", "unset", "rebuild", "evacuate", "clean",
+    "apply", "clean", "cordon", "delete", "drain", "edit", "evacuate",
+    "force-delete", "lock", "migrate", "patch", "pause", "reboot", "rebuild",
+    "remove", "rescue", "resize", "resume", "rollout", "scale", "shelve",
+    "start", "stop", "suspend", "taint", "uncordon", "unlock", "unpause",
+    "unrescue", "unshelve",
 }
 
 
@@ -71,6 +82,43 @@ def require_fields(item: dict[str, Any], fields: tuple[str, ...], label: str) ->
     missing = [field for field in fields if field not in item]
     if missing:
         raise ContractError(f"{label} missing fields: {','.join(missing)}")
+
+
+def executable_name(command: list[str]) -> str:
+    return Path(command[0]).name
+
+
+def validate_executable(case_id: str, step_id: str, step: dict[str, Any]) -> None:
+    executable = executable_name(step["command"])
+    allowed = ALLOWED_EXECUTABLES[step["kind"]]
+    if executable not in allowed:
+        raise ContractError(
+            f"{case_id}/{step_id}: {step['kind']} action cannot execute {executable}"
+        )
+    if executable == "bash":
+        command = step["command"]
+        if len(command) < 2 or Path(command[1]).name != "env-access.sh":
+            raise ContractError(
+                f"{case_id}/{step_id}: bash may only launch env-access.sh"
+            )
+
+
+def env_access_read_only(command: list[str]) -> bool:
+    if "--cmd" in command or "--" not in command:
+        return False
+    remote = command[command.index("--") + 1 :]
+    if not remote:
+        return False
+    if remote[0] in {"hostname", "id", "pwd", "whoami"}:
+        return len(remote) == 1 or remote[0] == "id"
+    if remote[0] == "kubectl":
+        return any(
+            item in {"api-resources", "api-versions", "describe", "get", "logs", "version"}
+            for item in remote[1:]
+        )
+    if remote[0] == "openstack":
+        return any(item in {"list", "show"} for item in remote[1:])
+    return False
 
 
 def validate_step(case_id: str, step: dict[str, Any], seen: set[str]) -> None:
@@ -102,6 +150,16 @@ def validate_step(case_id: str, step: dict[str, Any], seen: set[str]) -> None:
         or not all(isinstance(item, str) and item for item in command)
     ):
         raise ContractError(f"{case_id}/{step_id}: command must be a non-empty argv list")
+    validate_executable(case_id, step_id, step)
+    if (
+        step["kind"] == "env_access"
+        and not step.get("destructive_operation")
+        and not env_access_read_only(command)
+    ):
+        raise ContractError(
+            f"{case_id}/{step_id}: env_access must be compiler-verifiable read-only "
+            "or declare destructive_operation"
+        )
     if DESTRUCTIVE_TOKENS.intersection(item.lower() for item in command) and not step.get(
         "destructive_operation"
     ):

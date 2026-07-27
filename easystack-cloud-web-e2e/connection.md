@@ -149,14 +149,18 @@ agent-browser eval --stdin <<'JS'
 (() => {
   const targetProject = 'pgc';
   const current = document.querySelector('.projects-switch-wrapper')?.innerText.trim();
-  if (current === targetProject) return { ok: true, project: current, switched: false };
+  if (current === targetProject) {
+    return { ok: true, terminal: true, submitted: false, project: current, switched: false };
+  }
 
   document.querySelector('.projects-switch-wrapper')?.click();
   const option = [...document.querySelectorAll('.es-dropdown-projects li, .es-header__projects-list li')]
     .find((item) => item.innerText.trim() === targetProject);
-  if (!option) return { ok: false, project: current, message: 'target project not found' };
+  if (!option) {
+    return { ok: false, terminal: true, submitted: false, project: current, message: 'target project not found' };
+  }
   option.click();
-  return { ok: true, project: targetProject, switched: true };
+  return { ok: true, terminal: true, submitted: true, project: targetProject, switched: true };
 })()
 JS
 ```

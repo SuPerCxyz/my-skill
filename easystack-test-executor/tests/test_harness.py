@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -43,10 +44,9 @@ def plan() -> dict:
                         "kind": "openstack",
                         "description": "模拟创建云硬盘",
                         "command": [
-                            sys.executable,
-                            "-c",
-                            "import json; print(json.dumps("
-                            "{'id':'volume-001','name':'ete-volume'}))",
+                            "openstack",
+                            "volume",
+                            "create",
                         ],
                         "expected": {"return_codes": [0]},
                         "capture": {
@@ -75,9 +75,10 @@ def plan() -> dict:
                         "kind": "openstack",
                         "description": "模拟查询云硬盘",
                         "command": [
-                            sys.executable,
-                            "-c",
-                            "import json; print(json.dumps({'status':'available'}))",
+                            "openstack",
+                            "volume",
+                            "show",
+                            "available",
                         ],
                         "expected": {"return_codes": [0]},
                         "timeout_seconds": 5,
@@ -87,7 +88,7 @@ def plan() -> dict:
                         "phase": "APPLY_CLEANUP_POLICY",
                         "kind": "cleanup",
                         "description": "模拟删除云硬盘",
-                        "command": [sys.executable, "-c", "raise SystemExit(0)"],
+                        "command": ["openstack", "volume", "delete", "volume-001"],
                         "expected": {"return_codes": [0]},
                         "cleanup_resources": ["volume"],
                         "destructive_operation": "volume.force_delete",
@@ -121,20 +122,39 @@ class HarnessTest(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="ete-test.")
         self.base = Path(self.temporary.name)
+        self.fake_bin = self.base / "bin"
+        self.fake_bin.mkdir()
+        fake_openstack = self.fake_bin / "openstack"
+        fake_openstack.write_text(
+            "#!/usr/bin/env bash\n"
+            "case \"$1 $2\" in\n"
+            "  'volume create') printf '%s\\n' "
+            "'{\"id\":\"volume-001\",\"name\":\"ete-volume\"}' ;;\n"
+            "  'volume show') printf '{\"status\":\"%s\"}\\n' \"${3:-available}\" ;;\n"
+            "  'test sleep') sleep 5 ;;\n"
+            "  'test exit') exit \"${3:-1}\" ;;\n"
+            "  'volume delete') exit 0 ;;\n"
+            "  *) exit 2 ;;\n"
+            "esac\n",
+            encoding="utf-8",
+        )
+        fake_openstack.chmod(0o700)
+        self.command_env = {
+            **os.environ,
+            "PATH": f"{self.fake_bin}:{os.environ.get('PATH', '')}",
+        }
         self.plan_path = self.base / "plan.json"
         plan_data = plan()
         if self._testMethodName == "test_failed_check_derives_functional_failure":
-            plan_data["cases"][0]["actions"][1]["command"][-1] = (
-                "import json; print(json.dumps({'status':'error'}))"
-            )
+            plan_data["cases"][0]["actions"][1]["command"][-1] = "error"
         if self._testMethodName == "test_timeout_is_recorded_without_overwriting_output":
             plan_data["cases"][0]["actions"][0]["command"] = [
-                sys.executable, "-c", "import time; time.sleep(5)"
+                "openstack", "test", "sleep"
             ]
             plan_data["cases"][0]["actions"][0]["timeout_seconds"] = 1
         if self._testMethodName == "test_expected_nonzero_is_action_pass":
             plan_data["cases"][0]["actions"][1]["command"] = [
-                sys.executable, "-c", "raise SystemExit(4)"
+                "openstack", "test", "exit", "4"
             ]
             plan_data["cases"][0]["actions"][1]["expected"] = {
                 "return_codes": [4]
@@ -205,6 +225,7 @@ class HarnessTest(unittest.TestCase):
             text=True,
             capture_output=True,
             check=False,
+            env=self.command_env,
         )
         self.assertEqual(
             expected,
@@ -270,7 +291,8 @@ class HarnessTest(unittest.TestCase):
             self.run_current_action()
         elif instruction["allowed_action"] == "skip_action":
             completed = subprocess.run(
-                instruction["launcher_argv"], text=True, capture_output=True
+                instruction["launcher_argv"], text=True, capture_output=True,
+                env=self.command_env,
             )
             self.assertEqual(0, completed.returncode, completed.stderr)
         self.advance()

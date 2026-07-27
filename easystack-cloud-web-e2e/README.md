@@ -23,6 +23,7 @@ eslog 分析和代码仓库 CI 使用各自专用 skill。
 | [connection.md](connection.md), [navigation.md](navigation.md), [interactions.md](interactions.md), [execution.md](execution.md) | 连接登录、页面导航、组件交互、执行规范 |
 | [patterns.md](patterns.md), `patterns/` | 测试编排规范与原子操作库 |
 | [relationships.md](relationships.md) | 资源关联关系与跨资源测试关注点 |
+| [scripts/validate-patterns.py](scripts/validate-patterns.py) | 校验 operation 的 terminal 和 submitted 语义 |
 | `instance/`, `volume/`, `network/`, `image/` | 页面知识库, 各目录内的 `*-details/` 存放详情页字段、弹窗和测试场景 |
 
 完整文件入口以 [SKILL.md](SKILL.md) 的 Quick Reference 为准, README 不维护逐文件目录树,
@@ -119,6 +120,8 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": true,
   "resource": "volume",
   "action": "create",
   "name": "tc-vol001-volume1-abc123",

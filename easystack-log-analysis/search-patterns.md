@@ -2,6 +2,17 @@
 
 Use this file after the issue domain and time window are known. For cross-service evidence selection, read [cross-domain-analysis.md](cross-domain-analysis.md) first.
 
+## Table of Contents 目录
+
+[Common](#common-patterns) | [Nova](#compute-nova-compute) |
+[Cinder](#cinder-volume) | [iSCSI](#alcubierre-iscsi) | [Libvirt](#libvirt) |
+[OS](#os-messages) | [Boot](#boot-log-osbootlog) | [Ceph](#ceph) |
+[Kubernetes](#kubernetes) | [MariaDB](#galera--mariadb-control-plane-db) |
+[RabbitMQ](#rabbitmq--amqp) | [Time](#time-sync-chrony) |
+[Audit](#operator-audit-trail-bash-history) | [CSI](#k8s-csi--rbd-volume-mount) |
+[OVN](#ovn--open-vswitch) | [Time Window](#time-windowed-analysis) |
+[Correlation](#cross-service-correlation) | [实战模式](#高价值模式实战沉淀)
+
 ## Common Patterns
 
 > **重要**: 默认搜索所有节点目录(`ecs.node-*`), 除非用户指定特定节点。

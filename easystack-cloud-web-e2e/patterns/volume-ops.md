@@ -4,6 +4,15 @@
 `ready-template` 操作遵循 `patterns/operation-template.md`，并面向
 `agent-browser` 的批量执行示例。
 
+## Table of Contents 目录
+
+[使用约定](#使用约定) | [迁移状态](#迁移状态) | [`create_volume`](#create_volume) |
+[`delete_volume`](#delete_volume) | [`detach_volume`](#detach_volume) |
+[`create_volume_snapshot`](#create_volume_snapshot) |
+[`rollback_volume_snapshot`](#rollback_volume_snapshot) |
+[`delete_volume_snapshot`](#delete_volume_snapshot) | [`upload_image`](#upload_image) |
+[`create_volume_from_snapshot`](#create_volume_from_snapshot) | [待迁移操作](#待迁移操作)
+
 ## 使用约定
 
 - 配置默认值统一来自 `/tmp/easystack-env.json`
@@ -36,7 +45,7 @@
 返回值约定:
 
 ```json
-{"ok":true,"resource":"volume","action":"create","name":"<volume-name>","status":"Available","message":"volume created","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"volume","action":"create","name":"<volume-name>","status":"Available","message":"volume created","url":"<current-url>"}
 ```
 
 卷类型规则:
@@ -61,10 +70,10 @@ const setInputValue = (node, value) => {
 const createButton = [...document.querySelectorAll('button')]
   .find((btn) => /create volume/i.test(text(btn)) && !btn.disabled);
 if (!createButton) {
-  ({ ok: false, resource: 'volume', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create Volume button unavailable', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create Volume button unavailable', url: location.href });
 } else {
   createButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'volume', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill Volume Name, Type, Size in dialog, submit, then poll /ebs/volumes until Available', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'volume', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill Volume Name, Type, Size in dialog, submit, then poll /ebs/volumes until Available', url: location.href });
 }
 ```
 
@@ -78,7 +87,7 @@ if (!createButton) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"volume","action":"delete","name":"<volume-name>","status":"deleted","message":"volume deleted","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"volume","action":"delete","name":"<volume-name>","status":"deleted","message":"volume deleted","url":"<current-url>"}
 ```
 
 操作规则:
@@ -100,13 +109,13 @@ const input = { name: '<volume-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.name));
 if (!row) {
-  ({ ok: false, resource: 'volume', action: 'delete', name: input.name, status: 'missing', message: 'volume not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume', action: 'delete', name: input.name, status: 'missing', message: 'volume not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'volume', action: 'delete', name: input.name, status: 'menu_opened', message: 'click More -> Delete, then click Delete and second-step Confirm, then poll /ebs/volumes until row disappears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'volume', action: 'delete', name: input.name, status: 'menu_opened', message: 'click More -> Delete, then click Delete and second-step Confirm, then poll /ebs/volumes until row disappears', url: location.href });
 }
 ```
 
@@ -124,7 +133,7 @@ if (!row) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"volume","action":"detach","name":"<volume-name>","status":"Available","message":"volume detached","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"volume","action":"detach","name":"<volume-name>","status":"Available","message":"volume detached","url":"<current-url>"}
 ```
 
 操作规则:
@@ -142,14 +151,14 @@ const input = { volume: '<volume-name>', instance: '<instance-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.volume));
 if (!row) {
-  ({ ok: false, resource: 'volume', action: 'detach', name: input.volume, status: 'missing', message: 'volume not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume', action: 'detach', name: input.volume, status: 'missing', message: 'volume not found', url: location.href });
 } else if (!text(row).includes('In use')) {
-  ({ ok: false, resource: 'volume', action: 'detach', name: input.volume, status: 'not_attached', message: 'volume is not In use', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume', action: 'detach', name: input.volume, status: 'not_attached', message: 'volume is not In use', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   const device = text(row).match(/\/dev\/vd[b-z]/)?.[0] || null;
-  ({ ok: true, resource: 'volume', action: 'detach', name: input.volume, status: 'selected', message: 'click Detach, verify instance in dialog, submit, then poll Available / No Attached', device, url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'volume', action: 'detach', name: input.volume, status: 'selected', message: 'click Detach, verify instance in dialog, submit, then poll Available / No Attached', device, url: location.href });
 }
 ```
 
@@ -165,7 +174,7 @@ if (!row) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"volume_snapshot","action":"create","name":"<snapshot-name>","status":"Available","message":"volume snapshot created","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"volume_snapshot","action":"create","name":"<snapshot-name>","status":"Available","message":"volume snapshot created","url":"<current-url>"}
 ```
 
 操作规则:
@@ -187,13 +196,13 @@ const input = { volume: '<volume-name>', snapshotName: '<snapshot-name>', forced
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.volume));
 if (!row) {
-  ({ ok: false, resource: 'volume_snapshot', action: 'create', name: input.snapshotName, status: 'missing_volume', message: 'volume not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume_snapshot', action: 'create', name: input.snapshotName, status: 'missing_volume', message: 'volume not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'volume_snapshot', action: 'create', name: input.snapshotName, status: 'menu_opened', message: 'click Create Snapshot, set Forced=Yes before filling name for in-use volumes, submit dialog, then poll /ebs/volume-snapshots until Available', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'volume_snapshot', action: 'create', name: input.snapshotName, status: 'menu_opened', message: 'click Create Snapshot, set Forced=Yes before filling name for in-use volumes, submit dialog, then poll /ebs/volume-snapshots until Available', url: location.href });
 }
 ```
 
@@ -211,7 +220,7 @@ if (!row) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"volume_snapshot","action":"rollback","name":"<snapshot-name>","status":"submitted","message":"volume rollback submitted","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"volume_snapshot","action":"rollback","name":"<snapshot-name>","status":"submitted","message":"volume rollback submitted","url":"<current-url>"}
 ```
 
 操作规则:
@@ -236,9 +245,9 @@ const input = { snapshotName: '<snapshot-name>', volume: '<volume-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.snapshotName));
 if (!row) {
-  ({ ok: false, resource: 'volume_snapshot', action: 'rollback', name: input.snapshotName, status: 'missing', message: 'snapshot not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume_snapshot', action: 'rollback', name: input.snapshotName, status: 'missing', message: 'snapshot not found', url: location.href });
 } else if (!text(row).includes('Available')) {
-  ({ ok: false, resource: 'volume_snapshot', action: 'rollback', name: input.snapshotName, status: 'not_ready', message: 'snapshot is not Available', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume_snapshot', action: 'rollback', name: input.snapshotName, status: 'not_ready', message: 'snapshot is not Available', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
@@ -260,7 +269,7 @@ if (!row) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"volume_snapshot","action":"delete","name":"<snapshot-name>","status":"deleted","message":"volume snapshot deleted","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"volume_snapshot","action":"delete","name":"<snapshot-name>","status":"deleted","message":"volume snapshot deleted","url":"<current-url>"}
 ```
 
 操作规则:
@@ -279,7 +288,7 @@ const input = { snapshotName: '<snapshot-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.snapshotName));
 if (!row) {
-  ({ ok: false, resource: 'volume_snapshot', action: 'delete', name: input.snapshotName, status: 'missing', message: 'snapshot not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume_snapshot', action: 'delete', name: input.snapshotName, status: 'missing', message: 'snapshot not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
@@ -300,7 +309,7 @@ if (!row) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"image","action":"upload","name":"<image-name>","status":"uploaded","message":"image uploaded","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"image","action":"upload","name":"<image-name>","status":"uploaded","message":"image uploaded","url":"<current-url>"}
 ```
 
 `agent-browser eval --stdin` 示例:
@@ -311,10 +320,10 @@ const text = (e) => (e.innerText || e.textContent || e.value || '').trim().repla
 const uploadButton = [...document.querySelectorAll('button')]
   .find((btn) => /upload image/i.test(text(btn)) && !btn.disabled);
 if (!uploadButton) {
-  ({ ok: false, resource: 'image', action: 'upload', name: input.name, status: 'button_unavailable', message: 'Upload Image button unavailable', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'image', action: 'upload', name: input.name, status: 'button_unavailable', message: 'Upload Image button unavailable', url: location.href });
 } else {
   uploadButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'image', action: 'upload', name: input.name, status: 'dialog_opened', message: 'fill image fields, submit, then poll image list until row appears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'image', action: 'upload', name: input.name, status: 'dialog_opened', message: 'fill image fields, submit, then poll image list until row appears', url: location.href });
 }
 ```
 
@@ -331,7 +340,7 @@ if (!uploadButton) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"volume","action":"create_from_snapshot","name":"<volume-name>","status":"Available","message":"volume created from snapshot","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"volume","action":"create_from_snapshot","name":"<volume-name>","status":"Available","message":"volume created from snapshot","url":"<current-url>"}
 ```
 
 操作规则:
@@ -351,15 +360,15 @@ const input = { snapshotName: '<snapshot-name>', volumeName: '<volume-name>', co
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.snapshotName));
 if (!row) {
-  ({ ok: false, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'missing_snapshot', message: 'snapshot not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'missing_snapshot', message: 'snapshot not found', url: location.href });
 } else if (!text(row).includes('Available')) {
-  ({ ok: false, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'snapshot_not_ready', message: 'snapshot is not Available', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'snapshot_not_ready', message: 'snapshot is not Available', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('a,button')].find((item) => text(item) === 'Create Volume' && !item.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'dialog_opened', message: 'fill volume name, keep Copy Full Data No unless explicitly required, then submit dialog', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'volume', action: 'create_from_snapshot', name: input.volumeName, status: 'dialog_opened', message: 'fill volume name, keep Copy Full Data No unless explicitly required, then submit dialog', url: location.href });
 }
 ```
 

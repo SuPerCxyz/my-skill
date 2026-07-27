@@ -19,8 +19,9 @@ Runtime profile 的字段、缓存和刷新规则以
   `services.md`。Standalone 安装缺少该 skill 时, 使用用户提供且已授权的等价入口,
   不猜测 SSH 或跳板参数。
 
-必须使用 `easystack-env-debugging/scripts/env-access.sh`, 不手写 SSH 或跳板链路。
-`172.18.*` 目标按该 skill 的 jump host 模式进入控制节点。
+已安装 `easystack-env-debugging` 时必须使用其 `scripts/env-access.sh`, 不手写 SSH
+或跳板链路。Standalone 模式使用用户提供的授权入口; 仅在配套 skill 可用时,
+`172.18.*` 目标才按其 jump host 模式进入控制节点。
 
 先做最小只读验证:
 

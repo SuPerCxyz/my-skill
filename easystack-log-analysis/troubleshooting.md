@@ -2,6 +2,16 @@
 
 Use this file for known failure signatures and example evidence chains. Treat it as a scenario reference after the standard workflow in [analysis-playbook.md](analysis-playbook.md), not as a replacement for fresh log evidence.
 
+## Table of Contents 目录
+
+[Scenario 1](#scenario-1-vm-hard-reboot-fails--volume-device-not-found) |
+[Scenario 2](#scenario-2-node-reboot--crash) |
+[Scenario 3](#scenario-3-iscsi-connection-failure) |
+[Scenario 4](#scenario-4-database-connectivity-issues) |
+[Scenario 5](#scenario-5-volume-attachmentdetachment-failure) |
+[Scenario 6](#scenario-6-vm-reboot-after-host-reboot) |
+[Scenario 7](#scenario-7-实战-case--vm-启动失败排查的高确定性路径)
+
 ## Scenario 1: VM Hard Reboot Fails — Volume Device Not Found
 
 ### Scenario 1 Symptom

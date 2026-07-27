@@ -77,18 +77,18 @@ vNIC(弹性网络接口)绑定实例到私有网络，可在多个实例间自�
 ### 示例数据行
 
 ```
-Name: testvm-autotest-001_test6-private_aa17b893
+Name: <INSTANCE_VNIC_NAME>
 Tags: -
 Status: Down
 Bandwidth: No limit
-MAC Address: fa:16:3e:14:79:ce
-IP Address: (IPv4) 10.0.0.253, (IPv6) -
-Attach Resource: Instance testvm-autotest-001
+MAC Address: <MAC_ADDRESS>
+IP Address: (IPv4) <PRIVATE_IP>, (IPv6) -
+Attach Resource: Instance <INSTANCE_NAME>
 Floating IPs: -
 Virtual IP: -
 Supplementary private network IP: -
-Domain / Project: Default / admin
-Creation Time: 2026-06-16 22:24:08
+Domain / Project: <DOMAIN> / <PROJECT>
+Creation Time: <LOCAL_TIME>
 ```
 
 ## Setup 列配置
@@ -105,4 +105,3 @@ Creation Time: 2026-06-16 22:24:08
 | 每页定位方式 | 下拉，"10 / page" |
 | 总数显示 | "Total N items, last updated [timestamp]" |
 | 翻页 | 上一页/下一页、页码按钮 |
-

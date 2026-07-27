@@ -56,7 +56,7 @@
 ### 返回值约定
 
 ```json
-{"ok":true,"resource":"instance","action":"reboot","name":"<instance-name>","status":"Active","message":"instance action completed","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"instance","action":"reboot","name":"<instance-name>","status":"Active","message":"instance action completed","url":"<current-url>"}
 ```
 
 ### `agent-browser eval --stdin` 示例
@@ -66,13 +66,13 @@ const input = { name: '<instance-name>', action: 'reboot' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.name));
 if (!row) {
-  ({ ok: false, resource: 'instance', action: input.action, name: input.name, status: 'missing', message: 'instance not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'instance', action: input.action, name: input.name, status: 'missing', message: 'instance not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')?.dispatchEvent(
     new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
   );
   const direct = [...document.querySelectorAll('button')].find((btn) => new RegExp(input.action, 'i').test(text(btn)) && !btn.disabled);
   direct?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'instance', action: input.action, name: input.name, status: direct ? 'submitted_or_confirm_needed' : 'selected', message: 'use direct button or More menu, confirm dialog, then poll instance status', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'instance', action: input.action, name: input.name, status: direct ? 'submitted_or_confirm_needed' : 'selected', message: 'use direct button or More menu, confirm dialog, then poll instance status', url: location.href });
 }
 ```

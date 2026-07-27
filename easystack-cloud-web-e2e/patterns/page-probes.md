@@ -48,6 +48,8 @@ URL，不提交表单、不创建资源、不修改环境。
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": false,
   "resource": "page",
   "action": "probe_resource_list_pages",
   "pages": []
@@ -63,6 +65,8 @@ const pickText = (nodes) => [...nodes].map((n) => n.innerText || n.textContent |
 
 ({
   ok: true,
+  terminal: true,
+  submitted: false,
   resource: 'page',
   action: 'probe_current_page',
   url: location.href,
@@ -98,6 +102,8 @@ const exists = (sel) => Boolean(document.querySelector(sel));
 
 ({
   ok: true,
+  terminal: true,
+  submitted: false,
   resource: 'instance',
   action: 'probe_create_instance_page',
   url: location.href,
@@ -147,6 +153,8 @@ const fieldValue = (label, selector) =>
 
 ({
   ok: true,
+  terminal: true,
+  submitted: false,
   resource: 'volume',
   action: 'probe_create_volume_modal',
   url: location.href,

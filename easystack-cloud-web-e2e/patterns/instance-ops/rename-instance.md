@@ -48,7 +48,7 @@
 ### 返回值约定
 
 ```json
-{"ok":true,"resource":"instance","action":"rename","name":"<new-name>","status":"renamed","message":"instance renamed","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"instance","action":"rename","name":"<new-name>","status":"renamed","message":"instance renamed","url":"<current-url>"}
 ```
 
 ### `agent-browser eval --stdin` 示例
@@ -58,12 +58,12 @@ const input = { instance: '<old-name>', newName: '<new-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.instance));
 if (!row) {
-  ({ ok: false, resource: 'instance', action: 'rename', name: input.newName, status: 'missing', message: 'instance not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'instance', action: 'rename', name: input.newName, status: 'missing', message: 'instance not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'instance', action: 'rename', name: input.newName, status: 'menu_opened', message: 'click Edit, fill new name, submit, then poll /eec/instances until new name appears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'instance', action: 'rename', name: input.newName, status: 'menu_opened', message: 'click Edit, fill new name, submit, then poll /eec/instances until new name appears', url: location.href });
 }
 ```

@@ -93,6 +93,7 @@ class ProfileTest(unittest.TestCase):
         data["authentication"]["password"] = "do-not-store"
         completed = self.validate(data, 1)
         self.assertIn("plaintext secrets", completed.stderr)
+        self.assertNotIn("profile_key=", completed.stdout)
 
     def test_compile_profile_uses_stable_tmp_path(self) -> None:
         source = self.directory / "capture.json"

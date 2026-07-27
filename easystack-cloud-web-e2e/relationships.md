@@ -66,9 +66,9 @@ Use this file when a UI test spans multiple resource types, such as instance plu
 
 ### 可用网络示例
 
-- test6-private (Project Exclusive, AZ: default-az)
-- public_net_2 (Project Exclusive, AZ: default-az)
-- vpc-b-1 (Project Exclusive, AZ: default-az)
+- `<PRIVATE_NETWORK>` (Project Exclusive, AZ: `<AZ>`)
+- `<EXTERNAL_NETWORK>` (Project Exclusive, AZ: `<AZ>`)
+- `<VPC_NETWORK>` (Project Exclusive, AZ: `<AZ>`)
 
 ---
 

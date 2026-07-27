@@ -33,41 +33,10 @@ Web UI 用例需要 backend 根因分析时, 以 `easystack-cloud-web-e2e` 执�
 
 ## Read-Only Safety Gate 只读安全门禁
 
-默认只能执行查看类操作。进入环境后, 除非用户明确授权某个具体变更动作, 否则不要执行会影响环境状态的命令。
-
-允许的默认命令:
-
-```bash
-whoami
-id -u
-hostname
-pwd
-kubectl get ...
-kubectl describe ...
-kubectl logs ... --tail=<N>
-helm list -n openstack
-helm history -n openstack <release-name>
-```
-
-`helm get values` 是只读命令, 但部分环境会返回 `Unauthorized operation`。
-不要把它作为默认验证命令; 失败时记录权限限制并继续其它只读检查。
-
-禁止作为默认动作执行:
-
-```bash
-kubectl edit ...
-kubectl delete ...
-kubectl apply ...
-kubectl patch ...
-kubectl rollout restart ...
-kubectl scale ...
-helm rollback ...
-systemctl restart ...
-service ... restart
-mysql/update/delete/insert/alter/drop
-```
-
-如果排障确实需要变更环境, 先说明影响范围、回滚方式和验证方式, 并等待用户确认。
+默认只执行身份确认、`kubectl get/describe/logs`、Helm 查询和其它无状态变更的
+读取操作。完整允许/禁止清单以 [access.md](access.md) 为准。任何 edit/delete/
+apply/patch/restart/scale/rollback 或数据库写入都必须先说明影响、回滚和验证方式,
+并获得用户对具体动作的授权。
 
 ## Authorized Change Scope 授权变更范围
 
@@ -167,55 +136,6 @@ server/volume, 或用户明确要求查看状态时使用。
 | 组件级特殊操作、maintenance pod、授权门禁 | [special-operations.md](special-operations.md) |
 | 节点间网络排查(L1/L2/L3诊断)、ARP状态解读、VLAN子接口排查 | [network.md](network.md) |
 | 常用命令、环境常量、namespace | [reference.md](reference.md) |
-
-### Component Detail Index 组件详情索引
-
-| 组件详情 | 阅读 |
-|----------|------|
-| OpenStack 组件总览 | [openstack/index.md](openstack/index.md) |
-| OpenStack 服务映射 | [openstack/service-map.md](openstack/service-map.md) |
-| OpenStack 代码仓库布局 | [openstack/project-code-layout.md](openstack/project-code-layout.md) |
-| Nova | [openstack/nova.md](openstack/nova.md) |
-| Cinder | [openstack/cinder.md](openstack/cinder.md) |
-| Glance | [openstack/glance.md](openstack/glance.md) |
-| Keystone | [openstack/keystone.md](openstack/keystone.md) |
-| Barbican | [openstack/barbican.md](openstack/barbican.md) |
-| Baremetal / Ironic | [openstack/baremetal-ironic.md](openstack/baremetal-ironic.md) |
-| Networking / OVN / Proton | [openstack/networking.md](openstack/networking.md) |
-| Aodh | [openstack/aodh.md](openstack/aodh.md) |
-| Ceilometer | [openstack/ceilometer.md](openstack/ceilometer.md) |
-| Gnocchi | [openstack/gnocchi.md](openstack/gnocchi.md) |
-| Horizon | [openstack/horizon.md](openstack/horizon.md) |
-| Infrastructure services | [openstack/infrastructure.md](openstack/infrastructure.md) |
-| Monitoring services | [openstack/monitoring.md](openstack/monitoring.md) |
-| Extended services | [openstack/extended-services.md](openstack/extended-services.md) |
-| Ceph 组件总览 | [ceph/index.md](ceph/index.md) |
-| Kubernetes 组件总览 | [k8s/index.md](k8s/index.md) |
-
-## Environment Access Summary 环境访问摘要
-
-确认目标环境名称或 IP 后, 只选择 [access.md](access.md) 中的统一脚本参数。
-不要在 `SKILL.md` 复制访问命令, 避免与脚本入口漂移。
-
-| 目标 | 入口 |
-|------|------|
-| 普通可直连 IP | `env-access.sh --target <TARGET_IP>` |
-| `172.18.*` IP | `env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP>` |
-| `172.<N>.0.2` 或 `BJ-xx` | `env-access.sh --env BJ-<ENV_ID>` |
-| JumpServer 资产名 | `env-access.sh --asset <ASSET_NAME> --mode jumpserver` |
-
-进入环境后先按 [access.md](access.md#进入后台后) 完成身份、kubectl 和 node
-名称验证, 再按 Quick Reference 选择对应排查文档。
-
-## Skill Maintenance Principles Skill 维护原则
-
-不是每次调查都要更新 skill。只有满足以下条件才值得加:
-
-1. **通用性** — 多个环境都会遇到的模式或问题, 而非某个特定组件的单次排查
-2. **复用性** — 下次排查同类问题时可以直接参考, 不需要重新分析
-3. **跨环境** — 不依赖特定版本或配置, 在不同部署中都有价值
-
-单个组件的细节、特定场景的一次性排查步骤, 不要写入 skill 文件。
 
 ## Execution Feedback 执行反馈
 

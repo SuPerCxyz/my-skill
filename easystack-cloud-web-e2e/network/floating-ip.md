@@ -102,7 +102,7 @@ Use this file when the UI task specifically involves floating IP list fields, al
 
 | 字段 | 必填 | 定位方式 | 说明 |
 |------|------|--------|------|
-| Project | ✅ | `nz-select` 下拉 | 选择目标项目，默认 Default:admin |
+| Project | ✅ | `nz-select` 下拉 | 选择目标 Project, 默认值以当前会话为准 |
 | Resource Pool | ✅ | `nz-select` 下拉 | 选择浮动 IP 资源池，默认 public_net_1 0/253 |
 | Floating IP | ❌ | `input` 文本输入 | 占位符:"Please enter IP address."，可选填写特定 IP |
 | Bandwidth | ✅ | 数字输入框 | 单位 Mbps，默认 1，范围 1-1000 |

@@ -37,7 +37,7 @@ while (($#)); do
     esac
 done
 
-for command in find gzip mktemp realpath sort tar unzip; do
+for command in awk df find gzip mktemp mv realpath sort tar unzip; do
     command -v "$command" >/dev/null 2>&1 || {
         echo "Required command not found: $command" >&2
         exit 1
@@ -94,17 +94,50 @@ validate_tar_listing() {
     done
 }
 
+preflight_log_space() {
+    local destination=$1 log_gz bytes required=0 available reserve=$((16 * 1024 * 1024))
+    while IFS= read -r -d '' log_gz; do
+        bytes=$(LC_ALL=C gzip -l -- "$log_gz" | awk 'NR == 2 {print $2}')
+        [[ $bytes =~ ^[0-9]+$ ]] || {
+            echo "Cannot determine expanded size: $log_gz" >&2
+            return 1
+        }
+        required=$((required + bytes))
+    done < <(find "$destination" -type f -name '*.log.gz' -print0)
+    available=$(df -Pk -- "$destination" | awk 'END {printf "%.0f", $4 * 1024}')
+    [[ $available =~ ^[0-9]+$ ]] || {
+        echo "Cannot determine available space: $destination" >&2
+        return 1
+    }
+    if ((available < required + reserve)); then
+        echo "Insufficient space for log expansion under $destination: required=$((required + reserve)) available=$available" >&2
+        return 1
+    fi
+}
+
+expand_log_atomic() {
+    local log_gz=$1 log_path part
+    log_path=${log_gz%.gz}
+    part=$log_path.part.$$
+    partial_logs+=("$part")
+    gzip -cd -- "$log_gz" >"$part"
+    mv -f -- "$part" "$log_path"
+}
+
 process_bundle() (
     local bundle=$1 archive_work archive_root nested_entry nested_archive
     local tar_entry listing entry normalized output_name destination log_gz
     local index=0 tar_index=0 status
 
-    declare -a nested_entries=() tar_entries=() output_order=()
+    declare -a nested_entries=() tar_entries=() output_order=() partial_logs=()
     declare -A output_names=() output_actions=()
 
     cleanup() {
         status=$?
         trap - EXIT
+        for log_part in "${partial_logs[@]}"; do
+            rm -f -- "$log_part"
+        done
         rm -rf -- "$archive_work"
         exit "$status"
     }
@@ -182,8 +215,9 @@ process_bundle() (
 
     for output_name in "${output_order[@]}"; do
         destination=$output_dir/$output_name
+        preflight_log_space "$destination"
         while IFS= read -r -d '' log_gz; do
-            gzip -dkf -- "$log_gz"
+            expand_log_atomic "$log_gz"
         done < <(find "$destination" -type f -name '*.log.gz' -print0)
     done
 

@@ -77,6 +77,8 @@
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": false,
   "loggedIn": true,
   "reusedSession": false,
   "envSource": "/tmp/easystack-env.json",

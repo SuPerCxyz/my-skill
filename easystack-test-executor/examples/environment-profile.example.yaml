@@ -1,11 +1,11 @@
 profile_version: 2
 profile_store: /tmp/easystack-test-executor-profiles
-captured_at_local: ""
-last_verified_at_local: ""
+captured_at_local: "2026-07-27T12:00:00+08:00"
+last_verified_at_local: "2026-07-27T12:00:00+08:00"
 
 environment:
-  name: ""
-  target: ""
+  name: example-environment
+  target: example-target.invalid
   control_node: ""
   region: RegionOne
   timezone: "<LOCAL_IANA_TIMEZONE>"
@@ -14,7 +14,7 @@ environment:
 authentication:
   method: preloaded_environment
   execution_location: busybox-openstack
-  project_id: ""
+  project_id: example-project-id
   user_id: ""
   auth_url: "<REDACTED>"
   required_microversions:

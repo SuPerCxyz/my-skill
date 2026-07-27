@@ -66,6 +66,12 @@ Group 用例归入 `neutron`。关联服务写入 `log_targets`, 不创建模糊
 15. 每个 verification 定义唯一 Check ID、`check_type=functional|diagnostic|cleanup`、
     `required` 和 `expected`; 每个用例至少一个 required functional check。
 16. dependency 必须引用更早的用例, 避免恢复状态机死锁。
+17. Action kind 与 executable 必须匹配 compiler allowlist; 禁止 `bash -c`、`sh -c`
+    或其它 shell wrapper。Server stop/reboot/migrate 等控制面状态变更也必须绑定
+    已授权的 `destructive_operation`。
+18. `env_access` 只允许 `bash <path>/env-access.sh ... -- <ARGV...>` 或直接执行该
+    script。只读 Action 禁止 `--cmd` opaque string; compiler 无法证明只读时必须绑定
+    已授权的 `destructive_operation`。
 
 不得静默删除、合并或改写用例, 也不得替换 Image、Flavor、Volume Type、Backend、
 Compute Host、Secret 或预期结果。

@@ -73,11 +73,11 @@
 | 字段 | 必填 | 定位方式 | 说明 |
 |------|------|--------|------|
 | Domain | ❌ | `input`(disabled) | 默认值 "default"，不可编辑 |
-| Project | ❌ | `input`(disabled) | 默认值 "admin"，不可编辑 |
+| Project | ❌ | `input`(disabled) | 当前 Project，不可编辑 |
 | Workspace | ✅ | `nz-select` 下拉 | 选择工作空间 |
 | Image | ✅ | 文件上传按钮 | `.tar` 或 `.tar.gz` 格式，≤ 2GB |
 
-Workspace 下拉选项(示例):admin_workspace、devops、library、normal_public、test、zxy-lib
+Workspace 下拉选项以当前环境实时结果为准, 不复用观察环境中的名称。
 
 弹窗按钮:Cancel、Upload
 
@@ -156,7 +156,7 @@ URL 格式:`https://<IP>/container-registry/image/{image_name}?workspace={worksp
 | Space Used | 4.01 MiB |
 | Create Time | 16 Jun 2026 at 11:36:18 |
 | Domain | Default |
-| Project | admin |
+| Project | <CURRENT_PROJECT> |
 
 ### 详情页标签页
 

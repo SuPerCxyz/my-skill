@@ -55,6 +55,8 @@ Bare Metal 及跨服务测试计划, 并在 live 环境中统一执行资源操�
 | [references/report-format.md](references/report-format.md) | 中文 Markdown 严格输出格式 |
 | [examples/environment-profile.example.yaml](examples/environment-profile.example.yaml) | 环境 profile 示例 |
 | [examples/test-case.example.yaml](examples/test-case.example.yaml) | 标准化用例示例 |
+| [examples/result-template.md](examples/result-template.md) | 严格中文 Markdown 报告示例 |
+| [evals/README.md](evals/README.md) | Model eval 定义、重复执行和结果校验 |
 | [catalogs/](catalogs/) | 按 domain 查询的 OpenStack operation catalog |
 | [examples/](examples/) | V3 profile、plan 和报告示例 |
 | [scripts/compile-plan.py](scripts/compile-plan.py) | 编译 immutable V3 contract |
@@ -64,6 +66,7 @@ Bare Metal 及跨服务测试计划, 并在 live 环境中统一执行资源操�
 | [scripts/finalize-case.py](scripts/finalize-case.py) | 两阶段派生 verdict 和 result |
 | [scripts/render-report.py](scripts/render-report.py) | 生成固定中文 Markdown |
 | [scripts/validate-run.py](scripts/validate-run.py) | 校验 contract、events、artifacts 和报告 |
+| [scripts/validate-evals.py](scripts/validate-evals.py) | 校验 model eval 定义和重复输出完整性 |
 | [schemas/](schemas/) | Plan、Profile 和 Observation schema |
 | [tests/](tests/) | deterministic harness tests |
 

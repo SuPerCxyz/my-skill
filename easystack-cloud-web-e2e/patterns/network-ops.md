@@ -33,7 +33,7 @@
 返回值约定:
 
 ```json
-{"ok":true,"resource":"floating_ip","action":"allocate","name":"<allocated-ip>","status":"allocated","message":"floating ip allocated","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"floating_ip","action":"allocate","name":"<allocated-ip>","status":"allocated","message":"floating ip allocated","url":"<current-url>"}
 ```
 
 `agent-browser eval --stdin` 示例:
@@ -43,10 +43,10 @@ const text = (e) => (e.innerText || e.textContent || e.value || '').trim().repla
 const allocateButton = [...document.querySelectorAll('button')]
   .find((btn) => /allocate/i.test(text(btn)) && !btn.disabled);
 if (!allocateButton) {
-  ({ ok: false, resource: 'floating_ip', action: 'allocate', name: null, status: 'button_unavailable', message: 'Allocate button unavailable', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'floating_ip', action: 'allocate', name: null, status: 'button_unavailable', message: 'Allocate button unavailable', url: location.href });
 } else {
   allocateButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'floating_ip', action: 'allocate', name: '<allocated-ip>', status: 'dialog_opened', message: 'set bandwidth, submit dialog, then poll list until a new floating IP row appears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'floating_ip', action: 'allocate', name: '<allocated-ip>', status: 'dialog_opened', message: 'set bandwidth, submit dialog, then poll list until a new floating IP row appears', url: location.href });
 }
 ```
 
@@ -60,7 +60,7 @@ if (!allocateButton) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"network","action":"create","name":"<network-name>","status":"created","message":"network created","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"network","action":"create","name":"<network-name>","status":"created","message":"network created","url":"<current-url>"}
 ```
 
 `agent-browser eval --stdin` 示例:
@@ -71,10 +71,10 @@ const text = (e) => (e.innerText || e.textContent || e.value || '').trim().repla
 const createButton = [...document.querySelectorAll('button')]
   .find((btn) => /create network|create/i.test(text(btn)) && !btn.disabled);
 if (!createButton) {
-  ({ ok: false, resource: 'network', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create button unavailable', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'network', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create button unavailable', url: location.href });
 } else {
   createButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'network', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill network form, submit, then poll /ens/networks until row appears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'network', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill network form, submit, then poll /ens/networks until row appears', url: location.href });
 }
 ```
 
@@ -91,7 +91,7 @@ Associate 按钮不可用或验证超时。
 返回值约定:
 
 ```json
-{"ok":true,"resource":"floating_ip","action":"associate","name":"<floating-ip>","status":"associated","message":"floating ip associated","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"floating_ip","action":"associate","name":"<floating-ip>","status":"associated","message":"floating ip associated","url":"<current-url>"}
 ```
 
 操作规则:
@@ -119,12 +119,12 @@ const row = rows.find((item) => {
   return (!input.floatingIp || content.includes(input.floatingIp)) && content.includes('Bind to resource');
 });
 if (!row) {
-  ({ ok: false, resource: 'floating_ip', action: 'associate', name: input.floatingIp || null, status: 'missing_free_ip', message: 'free floating ip not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'floating_ip', action: 'associate', name: input.floatingIp || null, status: 'missing_free_ip', message: 'free floating ip not found', url: location.href });
 } else {
   const ip = text(row).match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/)?.[0] || input.floatingIp;
   [...row.querySelectorAll('a,button')].find((item) => text(item) === 'Bind to resource')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'floating_ip', action: 'associate', name: ip, status: 'dialog_opened', message: 'select instance and vNIC containing private_ip, then click Associate in dialog', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'floating_ip', action: 'associate', name: ip, status: 'dialog_opened', message: 'select instance and vNIC containing private_ip, then click Associate in dialog', url: location.href });
 }
 ```
 
@@ -138,7 +138,7 @@ if (!row) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"router","action":"create","name":"<router-name>","status":"created","message":"router created","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"router","action":"create","name":"<router-name>","status":"created","message":"router created","url":"<current-url>"}
 ```
 
 `agent-browser eval --stdin` 示例:
@@ -149,10 +149,10 @@ const text = (e) => (e.innerText || e.textContent || e.value || '').trim().repla
 const createButton = [...document.querySelectorAll('button')]
   .find((btn) => /create router|create/i.test(text(btn)) && !btn.disabled);
 if (!createButton) {
-  ({ ok: false, resource: 'router', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create button unavailable', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'router', action: 'create', name: input.name, status: 'button_unavailable', message: 'Create button unavailable', url: location.href });
 } else {
   createButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'router', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill router form, submit, then poll /ens/routers until row appears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'router', action: 'create', name: input.name, status: 'dialog_opened', message: 'fill router form, submit, then poll /ens/routers until row appears', url: location.href });
 }
 ```
 
@@ -166,7 +166,7 @@ if (!createButton) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"floating_ip","action":"disassociate","name":"<floating-ip>","status":"free","message":"floating ip disassociated","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"floating_ip","action":"disassociate","name":"<floating-ip>","status":"free","message":"floating ip disassociated","url":"<current-url>"}
 ```
 
 操作规则:
@@ -183,7 +183,7 @@ const input = { floatingIp: '<floating-ip>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.floatingIp));
 if (!row) {
-  ({ ok: false, resource: 'floating_ip', action: 'disassociate', name: input.floatingIp, status: 'missing', message: 'floating ip not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'floating_ip', action: 'disassociate', name: input.floatingIp, status: 'missing', message: 'floating ip not found', url: location.href });
 } else {
   const action = [...row.querySelectorAll('a,button')].find((item) => text(item) === 'Disassociate');
   action?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
@@ -202,7 +202,7 @@ if (!row) {
 返回值约定:
 
 ```json
-{"ok":true,"resource":"floating_ip","action":"release","name":"<floating-ip>","status":"released","message":"floating ip released","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"floating_ip","action":"release","name":"<floating-ip>","status":"released","message":"floating ip released","url":"<current-url>"}
 ```
 
 操作规则:
@@ -220,15 +220,15 @@ const input = { floatingIp: '<floating-ip>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.floatingIp));
 if (!row) {
-  ({ ok: false, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'missing', message: 'floating ip not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'missing', message: 'floating ip not found', url: location.href });
 } else if (text(row).includes('Instance:')) {
-  ({ ok: false, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'still_associated', message: 'disassociate before release', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'still_associated', message: 'disassociate before release', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('button')].find((btn) => text(btn) === 'Release Floating IPs' && !btn.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'confirm_needed', message: 'confirm release dialog, then poll until row disappears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'floating_ip', action: 'release', name: input.floatingIp, status: 'confirm_needed', message: 'confirm release dialog, then poll until row disappears', url: location.href });
 }
 ```
 

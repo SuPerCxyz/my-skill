@@ -43,6 +43,33 @@ bash "$skill_dir/scripts/decompress-eslog.sh" \
 [[ -f $output/ecs.node-1.20260724.0/previous-file.txt ]] ||
   fail "merge removed a file absent from the new bundle"
 
+mkdir -p "$fixture/corrupt/ecs.node-1.20260724.0/openstack/nova"
+printf 'not-gzip\n' \
+  >"$fixture/corrupt/ecs.node-1.20260724.0/openstack/nova/nova-compute.node-1.log.gz"
+tar -cf "$fixture/corrupt.tar" -C "$fixture/corrupt" ecs.node-1.20260724.0
+mkdir "$fixture/corrupt-inner"
+cp "$fixture/corrupt.tar" "$fixture/corrupt-inner/ecs-corrupt.tar"
+(
+  cd "$fixture/corrupt-inner"
+  zip -q "$fixture/corrupt-nested.zip" ecs-corrupt.tar
+)
+cp "$fixture/corrupt-nested.zip" "$fixture/corrupt.eslog.0"
+(
+  cd "$fixture"
+  zip -q "$test_root/corrupt.eslog" corrupt.eslog.0
+)
+set +e
+bash "$skill_dir/scripts/decompress-eslog.sh" \
+  --input "$test_root/corrupt.eslog" --output "$output" \
+  >"$test_root/corrupt.out" 2>"$test_root/corrupt.err"
+rc=$?
+set -e
+[[ $rc -ne 0 ]] || fail "corrupt gzip unexpectedly succeeded"
+grep -F "req-test" "$result" >/dev/null ||
+  fail "failed expansion overwrote the previous readable log"
+[[ -z $(find "$output" -type f -name '*.part.*' -print -quit) ]] ||
+  fail "failed expansion left a partial log"
+
 set +e
 bash "$skill_dir/scripts/decompress-eslog.sh" --decompress-logs \
   >"$test_root/out" 2>"$test_root/err"

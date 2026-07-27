@@ -79,7 +79,7 @@
 
 - 提示: "需要路由器设置网关"
 - **Instance Name** (disabled, 预填)
-- **Instance Nic** (必填, 已选网卡: testvm-autotest-001_test6-private_aa17b893: 10.0.0.253)
+- **Instance Nic** (必填, 页面显示 `<INSTANCE_VNIC>: <PRIVATE_IP>`)
 - **Floating IP** (必填, 下拉选择)
 
 #### Edit Security Groups 对话框
@@ -187,4 +187,3 @@
   - **Force Delete**: 完全删除，不可恢复
 - 显示 Root Disk 和 Data Disk 数量信息
 - 注意事项关于根磁盘和数据盘的删除行为
-

@@ -51,6 +51,8 @@
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": true,
   "resource": "instance",
   "action": "delete",
   "name": "<instance-name>",
@@ -67,12 +69,12 @@ const input = { name: '<instance-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.name));
 if (!row) {
-  ({ ok: false, resource: 'instance', action: 'delete', name: input.name, status: 'missing', message: 'instance not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'instance', action: 'delete', name: input.name, status: 'missing', message: 'instance not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'instance', action: 'delete', name: input.name, status: 'menu_opened', message: 'click Delete, confirm dialog, then poll /eec/instances until row disappears', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'instance', action: 'delete', name: input.name, status: 'menu_opened', message: 'click Delete, confirm dialog, then poll /eec/instances until row disappears', url: location.href });
 }
 ```

@@ -12,22 +12,15 @@ from typing import Any
 from _actions import bind_action
 from _case_gate import (
     case_gate_errors,
-    command_records_for_step,
     failed_dependencies,
 )
 from _contract import (
     STEP_PHASES,
-    TERMINAL_STEP_STATUSES,
     case_by_id,
 )
 from _events import append_event, load_events, project_state, verify_phase_events
 from _harness import atomic_json, atomic_text, read_json, safe_component
-from _resources import (
-    create_resource,
-    local_timestamp,
-    reconcile_resources,
-    update_resource,
-)
+from _resources import reconcile_resources
 from _projections import sync_event_views
 
 
@@ -48,25 +41,6 @@ def parser() -> argparse.ArgumentParser:
     abort = commands.add_parser("abort")
     abort.add_argument("--result-root", required=True, type=Path)
     abort.add_argument("--reason", required=True)
-    step = commands.add_parser("step")
-    step.add_argument("--result-root", required=True, type=Path)
-    step.add_argument("--case-id", required=True)
-    step.add_argument("--step-id", required=True)
-    step.add_argument("--status", required=True, choices=sorted(TERMINAL_STEP_STATUSES))
-    step.add_argument("--reason", default="")
-    step.add_argument("--evidence", action="append", default=[])
-    resource = commands.add_parser("resource")
-    resource.add_argument("--result-root", required=True, type=Path)
-    resource.add_argument("--case-id", required=True)
-    resource.add_argument("--mode", choices=("create", "update"), required=True)
-    resource.add_argument("--id", required=True)
-    resource.add_argument("--step-id")
-    resource.add_argument("--type")
-    resource.add_argument("--name")
-    resource.add_argument("--dependency", action="append", default=[])
-    resource.add_argument("--cleanup-policy", default="delete")
-    resource.add_argument("--cleanup-result", choices=("DELETED", "PRESERVED", "NOT_APPLICABLE", "FAILED"))
-    resource.add_argument("--final-state")
     return root
 
 def load_run(root: Path) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
@@ -268,45 +242,6 @@ def phase_gate(root: Path, contract: dict[str, Any], state: dict[str, Any], case
             raise ValueError(f"resource cleanup still pending: {','.join(pending)}")
 
 
-def record_step(args: argparse.Namespace) -> None:
-    root = args.result_root.resolve()
-    contract, _, state = load_run(root)
-    raise ValueError("manual step status is disabled; V2 runs are read-only")
-    case = case_by_id(contract, safe_component(args.case_id, "case ID"))
-    step_id = safe_component(args.step_id, "step ID")
-    step = next((item for item in case["actions"] if item["id"] == step_id), None)
-    if not step:
-        raise ValueError(f"step not in contract: {step_id}")
-    current = state["cases"][args.case_id]
-    expected = incomplete_step(case, current)
-    if not expected or expected["id"] != step_id:
-        raise ValueError(
-            f"next planned step is {expected['id'] if expected else None}, not {step_id}"
-        )
-    if current["phase"] != step["phase"]:
-        raise ValueError(f"step phase is {step['phase']}, current phase is {current['phase']}")
-    if step_id in current["step_statuses"]:
-        raise ValueError(f"step already terminal: {step_id}")
-    blocked = failed_dependencies(root, case)
-    if blocked and args.status != "SKIPPED_BY_PLAN":
-        raise ValueError(f"failed dependencies require SKIPPED_BY_PLAN: {','.join(blocked)}")
-    if args.status in {"PASS", "FAIL"} and not command_records_for_step(
-        root, args.case_id, step_id
-    ):
-        raise ValueError("PASS/FAIL requires a record-command.py record")
-    if args.status not in {"PASS", "FAIL"} and not args.reason.strip():
-        raise ValueError(f"{args.status} requires --reason")
-    append_event(
-        root,
-        contract["timezone"],
-        "STEP_STATUS",
-        args.case_id,
-        step_id,
-        {"status": args.status, "reason": args.reason, "evidence": args.evidence},
-    )
-    write_projection(root, contract)
-
-
 def skip_action(args: argparse.Namespace) -> None:
     root = args.result_root.resolve()
     contract, _, state = load_run(root)
@@ -390,76 +325,16 @@ def advance(args: argparse.Namespace) -> None:
     write_projection(root, contract)
 
 
-def resource(args: argparse.Namespace) -> None:
-    root = args.result_root.resolve()
-    contract, _, state = load_run(root)
-    raise ValueError("manual resource mutation is disabled; V2 runs are read-only")
-    case_id = safe_component(args.case_id, "case ID")
-    case_by_id(contract, case_id)
-    if args.mode == "create":
-        if not args.type or not args.name or not args.step_id:
-            raise ValueError("create requires --type, --name and --step-id")
-        step_id = safe_component(args.step_id, "step ID")
-        case = case_by_id(contract, case_id)
-        if step_id not in {item["id"] for item in case["actions"]}:
-            raise ValueError(f"step not in contract: {step_id}")
-        step = next(item for item in case["actions"] if item["id"] == step_id)
-        if state["cases"][case_id]["phase"] != step["phase"]:
-            raise ValueError("resource owning step is not in the current phase")
-        expected = incomplete_step(case, state["cases"][case_id])
-        if not expected or expected["id"] != step_id:
-            raise ValueError("resource must belong to the current planned step")
-        if not command_records_for_step(root, case_id, step_id):
-            raise ValueError("resource registration requires a command record")
-        item = create_resource(
-            root,
-            case_id,
-            {
-                "id": args.id,
-                "type": args.type,
-                "name": args.name,
-                "owning_step": step_id,
-                "dependencies": args.dependency,
-                "cleanup_policy": args.cleanup_policy,
-            },
-            local_timestamp(contract["timezone"]),
-        )
-        event_type = "RESOURCE_CREATED"
-    else:
-        phase = state["cases"][case_id]["phase"]
-        if args.cleanup_result and phase != "APPLY_CLEANUP_POLICY":
-            raise ValueError("cleanup_result requires APPLY_CLEANUP_POLICY")
-        allowed = {"COLLECT_RESOURCES", "APPLY_CLEANUP_POLICY"}
-        if args.final_state and phase not in allowed:
-            raise ValueError("final_state requires resource collection or cleanup")
-        changes = {
-            key: value for key, value in {
-                "cleanup_result": args.cleanup_result,
-                "final_state": args.final_state,
-            }.items() if value
-        }
-        if not changes:
-            raise ValueError("update requires --cleanup-result or --final-state")
-        item = update_resource(root, case_id, args.id, changes)
-        event_type = "RESOURCE_UPDATED"
-    append_event(root, contract["timezone"], event_type, case_id, payload=item)
-    write_projection(root, contract)
-
-
 def main() -> int:
     args = parser().parse_args()
     try:
         root = args.result_root.resolve()
-        if args.action == "step":
-            record_step(args)
-        elif args.action == "skip":
+        if args.action == "skip":
             skip_action(args)
         elif args.action == "abort":
             abort_run(args)
         elif args.action == "advance":
             advance(args)
-        elif args.action == "resource":
-            resource(args)
         else:
             contract, _, state = load_run(root)
             if args.action == "next":

@@ -71,6 +71,8 @@ token 膨胀。
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": true,
   "resource": "volume",
   "action": "create",
   "name": "vol-01",
@@ -83,9 +85,13 @@ token 膨胀。
 失败时保持同一结构:
 
 - `ok: false`
+- `terminal: true`
 - `status` 写入失败类别或最终观察状态
 - `message` 写入关键失败原因
 - `url` 写入最后可见页面地址
+
+中间态使用 `ok: null`、`terminal: false`; `submitted` 只说明是否已经提交后台操作。
+菜单打开、行选中、dialog 打开和 wizard 推进均不是成功结果。
 
 ## 截图与报告
 

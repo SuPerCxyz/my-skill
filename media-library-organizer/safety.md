@@ -47,12 +47,12 @@ Use this file whenever a plan may move, rename, write, delete, or roll back file
 
 ## 冲突处理策略
 
-- 目标路径已存在时禁止覆盖
+- 目标路径已存在时默认禁止覆盖
 - 自动生成冲突报告
 - 可选策略:
   1. `skip`:跳过(默认)
   2. `suffix`:追加 `-dup1` / `-dup2`
-  3. `replace`:只有用户明确确认后才允许覆盖
+  3. `replace`:仅当 dry-run plan 已列出备份操作且用户确认对应 `plan_id` 时允许覆盖
 
 ## 附属文件备份规则
 

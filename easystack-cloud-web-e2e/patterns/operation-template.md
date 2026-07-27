@@ -67,9 +67,15 @@ Web UI 用例验证后才能标记为 `ready-validated`。
 
 ### 返回值约定
 
+`ok` 只表示 terminal 功能结果:`true` 为最终成功, `false` 为最终失败,
+`null` 为仍在执行。打开菜单、打开 dialog、选中行、推进 wizard 或等待确认时必须
+返回 `terminal: false`, 不得提前返回 `ok: true`。
+
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": true,
   "resource": "<resource>",
   "action": "<action>",
   "name": "<resource-name>",
@@ -85,6 +91,8 @@ Web UI 用例验证后才能标记为 `ready-validated`。
 agent-browser eval --stdin <<'JS'
 const result = {
   ok: true,
+  terminal: true,
+  submitted: true,
   resource: '<resource>',
   action: '<action>',
   name: '<resource-name>',

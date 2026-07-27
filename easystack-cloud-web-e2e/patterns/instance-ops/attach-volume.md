@@ -47,6 +47,8 @@
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": true,
   "resource": "volume",
   "action": "attach",
   "name": "<volume-name>",
@@ -74,12 +76,12 @@ const input = { instance: '<instance-name>', volume: '<volume-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.volume));
 if (!row) {
-  ({ ok: false, resource: 'volume', action: 'attach', name: input.volume, status: 'missing_volume', message: 'volume not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'volume', action: 'attach', name: input.volume, status: 'missing_volume', message: 'volume not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('button')].find((btn) => text(btn) === 'Attach' && !btn.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'volume', action: 'attach', name: input.volume, status: 'dialog_opened', message: 'select instance in Attach Volume dialog, then click dialog Attach', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'volume', action: 'attach', name: input.volume, status: 'dialog_opened', message: 'select instance in Attach Volume dialog, then click dialog Attach', url: location.href });
 }
 ```

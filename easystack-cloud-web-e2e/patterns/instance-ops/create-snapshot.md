@@ -49,7 +49,7 @@
 ### 返回值约定
 
 ```json
-{"ok":true,"resource":"instance_snapshot","action":"create","name":"<snapshot-name>","status":"created","message":"instance snapshot created","url":"<current-url>"}
+{"ok":true,"terminal":true,"submitted":true,"resource":"instance_snapshot","action":"create","name":"<snapshot-name>","status":"created","message":"instance snapshot created","url":"<current-url>"}
 ```
 
 ### `agent-browser eval --stdin` 示例
@@ -59,12 +59,12 @@ const input = { instance: '<instance-name>', snapshotName: '<snapshot-name>' };
 const text = (e) => (e.innerText || e.textContent || e.value || '').trim().replace(/\s+/g, ' ');
 const row = [...document.querySelectorAll('tr')].find((item) => text(item).includes(input.instance));
 if (!row) {
-  ({ ok: false, resource: 'instance_snapshot', action: 'create', name: input.snapshotName, status: 'missing_instance', message: 'instance not found', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'instance_snapshot', action: 'create', name: input.snapshotName, status: 'missing_instance', message: 'instance not found', url: location.href });
 } else {
   row.querySelector('label.ant-checkbox-wrapper, .ant-checkbox-wrapper, label, input[type="checkbox"]')
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   [...document.querySelectorAll('button')].find((btn) => text(btn) === 'More' && !btn.disabled)
     ?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'instance_snapshot', action: 'create', name: input.snapshotName, status: 'menu_opened', message: 'click Create Snapshot, fill name, submit, then poll /eec/instance-snapshots', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'instance_snapshot', action: 'create', name: input.snapshotName, status: 'menu_opened', message: 'click Create Snapshot, fill name, submit, then poll /eec/instance-snapshots', url: location.href });
 }
 ```

@@ -135,10 +135,18 @@ Use this file as the ordered execution flow for media organization. Read the spe
    - source root
    - execution options
    - source inventory(size + mtime)
-   - `plan_id`:上述内容和目标映射的 canonical JSON SHA-256
+   - `plan_id`:由 `scripts/plan-gate.py build` 对 normalized roots、options、
+     inventory 和 mappings 计算 canonical JSON SHA-256
 ```
 
 **预览不改任何文件。**
+
+Plan input 使用 JSON object, 至少包含 `source_root`、`media_root`、`target_root`、
+`options` 和 `mappings`。Plan artifact 必须保存在 `source_root` 外:
+
+```bash
+python3 scripts/plan-gate.py build --input <PLAN_INPUT_JSON> --output <PLAN_JSON>
+```
 
 ## 步骤5: 用户确认
 
@@ -146,6 +154,8 @@ Use this file as the ordered execution flow for media organization. Read the spe
 - 如有问题可调整参数后重新预览
 - 参数、source inventory 或目标映射变化后原确认失效, 必须生成新预览
 - 禁止接受未携带当前 `plan_id` 的回复
+- 真实修改前运行 `python3 scripts/plan-gate.py validate --plan <PLAN_JSON>`; 返回的
+  `plan_id` 必须与用户确认完全一致
 
 ## 步骤6: 准备回滚并执行重命名
 

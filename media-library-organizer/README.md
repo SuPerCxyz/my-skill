@@ -32,3 +32,5 @@
 | [tmdb-api.md](tmdb-api.md) | API Key、URL、append_to_response、置信度评分 | 查询 TMDB 时查阅 |
 | [technical-reference.md](technical-reference.md) | parse_filename、ffprobe 检测代码、技术信息优先级 | 写脚本时查阅 |
 | [safety.md](safety.md) | 回滚要求、mapping 格式、校验、冲突处理、路径安全 | 回滚与冲突处理时查阅 |
+| [scripts/plan-gate.py](scripts/plan-gate.py) | 生成和复核 deterministic `plan_id` | Dry-run 和执行前运行 |
+| [tests/test_plan_gate.py](tests/test_plan_gate.py) | Plan gate 回归测试 | 修改脚本后运行 |

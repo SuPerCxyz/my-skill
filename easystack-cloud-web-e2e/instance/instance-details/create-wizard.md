@@ -25,7 +25,7 @@
 
 #### 1.1 Region / Project(只读显示)
 - **Region:** `Local Cloud`(不可编辑)
-- **Project:** `admin`(不可编辑)
+- **Project:** 当前 Project(不可编辑)
 
 #### 1.2 Availability Zone(可用域)
 - **定位方式:** `#available_zone nz-select`
@@ -146,11 +146,11 @@
 **删除 vNIC:** `.network-delete`(悬停显示)
 
 **可用网络(示例):**
-- test6-private (Project Exclusive, AZ: default-az)
+- `<PRIVATE_NETWORK_A>` (Project Exclusive, AZ: `<AZ>`)
 - network_normal_user (Project Exclusive, AZ: default-az)
 - public_net_2 (Project Exclusive, AZ: default-az)
 - vpc-b-1 (Project Exclusive, AZ: default-az)
-- test7-private (Project Exclusive, AZ: default-az)
+- `<PRIVATE_NETWORK_B>` (Project Exclusive, AZ: `<AZ>`)
 
 #### 2.2 Security Group 配置
 

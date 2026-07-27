@@ -88,13 +88,13 @@
 ### 示例数据行
 
 ```
-Name: testvm-autotest-001
-Availability Zone / Node: default-az / node-3504
+Name: <INSTANCE_NAME>
+Availability Zone / Node: <AZ> / <COMPUTE_NODE>
 Status: Wait for Delete
 Flavor / Boot Source: 1C / 1.0GiB / 1GiB / TestVM
-IP Address: (Private IP) 10.0.0.253
-Domain / Project: Default / admin
-Estimated Delete Time: 2026-06-17 23:55:44
+IP Address: (Private IP) <PRIVATE_IP>
+Domain / Project: <DOMAIN> / <PROJECT>
+Estimated Delete Time: <LOCAL_TIME>
 ```
 
 ## Setup 列配置

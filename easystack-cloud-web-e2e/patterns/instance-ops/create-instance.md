@@ -100,6 +100,8 @@
 ```json
 {
   "ok": true,
+  "terminal": true,
+  "submitted": true,
   "resource": "instance",
   "action": "create",
   "name": "<instance-name>",
@@ -123,9 +125,9 @@ const setValue = (node, value) => {
 };
 const nextButton = [...document.querySelectorAll('button')].find((btn) => /next/i.test(text(btn)) && !btn.disabled);
 if (!nextButton) {
-  ({ ok: false, resource: 'instance', action: 'create', name: input.name, status: 'button_unavailable', message: 'Next button unavailable', url: location.href });
+  ({ ok: false, terminal: true, submitted: false, resource: 'instance', action: 'create', name: input.name, status: 'button_unavailable', message: 'Next button unavailable', url: location.href });
 } else {
   nextButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  ({ ok: true, resource: 'instance', action: 'create', name: input.name, status: 'wizard_progressing', message: 'fill one wizard step per eval, set Root Disk before network step, then submit and poll instance list', url: location.href });
+  ({ ok: null, terminal: false, submitted: false, resource: 'instance', action: 'create', name: input.name, status: 'wizard_progressing', message: 'fill one wizard step per eval, set Root Disk before network step, then submit and poll instance list', url: location.href });
 }
 ```

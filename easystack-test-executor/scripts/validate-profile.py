@@ -21,12 +21,14 @@ def main() -> int:
     args = parser().parse_args()
     try:
         profile, errors, warnings = validate_profile(args.profile, args.max_age_days)
-        print(f"profile_key={profile_key(profile)}")
         for warning in warnings:
             print(f"WARNING: {warning}")
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
-        return 1 if errors else 0
+        if errors:
+            return 1
+        print(f"profile_key={profile_key(profile)}")
+        return 0
     except (OSError, ValueError) as error:
         print(f"validate-profile error: {error}", file=sys.stderr)
         return 2

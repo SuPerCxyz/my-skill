@@ -13,14 +13,16 @@ EasyStack OpenStack 项目使用 tox 进行 CI 测试。本 skill 覆盖运行 `
 
 ## Code Scope 代码范围
 
-运行 `tox -e pep8` 或 `tox -e cover` 时, 当前 `HEAD` 必须是用户准备继续更新的
-Gerrit change。测试范围是以下**合并状态**:
+运行 `tox -e pep8` 或 `tox -e cover` 本身不要求当前 `HEAD` 已有 Gerrit
+`Change-Id`。先确定本次验证范围:
 
-1. 当前 `HEAD` commit 相对其父提交的修改
-2. 全部未提交改动(已 `git add` 暂存 + 工作区未暂存)
+1. Gerrit change: 当前 `HEAD` 相对其父提交的修改
+2. Local branch: 用户指定 base 时使用该 base; 未指定时至少包含当前工作区改动
+3. 全部未提交改动(已 `git add` 暂存 + 工作区未暂存)
 
-不要根据“最近一个未合并 commit”猜测范围。先确认 `HEAD` commit message 包含目标
-Gerrit `Change-Id`; 无法确认时先向用户索取目标 change, 不创建新 commit。
+只有用户要求 amend/upload Gerrit change 时, 才要求确认 `HEAD` 包含目标
+`Change-Id`。Local CI 不得因缺少 `Change-Id` 跳过 tox; committed change 的 base
+不明确且影响定向覆盖率判断时, 再向用户索取 base。
 
 `flake8` 只用于定向诊断, 不得替代最终 `tox -e pep8` 门禁。修改 `tox.ini` 属于测试
 环境变更; 必须先展示拟议 diff 和影响, 获得用户明确同意后才能修改。
