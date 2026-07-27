@@ -17,6 +17,13 @@ assert_contains() {
   grep -F -- "$expected" "$file" >/dev/null || fail "$file missing: $expected"
 }
 
+assert_contains "$skill_dir/SKILL.md" \
+  "第一项环境相关命令 MUST 直接调用"
+assert_contains "$skill_dir/SKILL.md" \
+  "不要先读取组件参考文档"
+assert_contains "$skill_dir/access.md" \
+  'env-access.sh` 会通过'
+
 "$skill_dir/scripts/env-access.sh" --help >"$test_root/env-help"
 assert_contains "$test_root/env-help" "Usage:"
 

@@ -19,6 +19,21 @@ EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
 Web UI 用例需要 backend 根因分析时, 以 `easystack-cloud-web-e2e` 执行 UI 流程,
 联合本 skill 收集和分析后台证据。
 
+## Environment-First Fast Path 环境优先快速路径
+
+用户已明确给出运行中环境名称或 IP, 且任务需要在线查询时,
+加载本文件后的第一项环境相关命令 MUST 直接调用
+[scripts/env-access.sh](scripts/env-access.sh)。
+`BJ-<N>` 直接使用 `--env BJ-<N>`; 不要先读取组件参考文档、检查
+`~/.ssh/config`、列出 SSH key 或查看访问脚本源码。脚本会完成环境地址转换、
+SSH config 解析、连接模式选择和 fallback。
+
+首次调用应携带当前任务所需的最小只读查询。查询指定服务日志时, 可以在同一次
+`--cmd` 中完成身份确认、pod 发现和有限日志读取, 避免为了验证连接额外登录一次。
+首次调用成功后, 再按结果读取 [logs.md](logs.md) 和对应组件文档。只有首次调用
+返回配置缺失、认证失败、连接失败或 timeout 时, 才读取 [access.md](access.md)
+并检查访问配置; fallback 仍必须继续使用统一脚本, 不要手写 SSH。
+
 ## Task Mode Selection 任务模式选择
 
 进入环境前先根据用户目标选择模式, 不要把所有请求都当作问题调查:
@@ -59,9 +74,10 @@ fallback。
 一次性只读命令的默认超时与超时后重试也由 `env-access.sh` 统一处理; 详细规则见
 [access.md](access.md#查询超时选择)。
 
-JumpServer 连接信息优先从用户 SSH 配置读取。读取不到 alias、host、user、
-port 或认证方式时, 按 [access.md](access.md#jumpserver-前置条件与配置缺失处理)
-说明缺失项并向用户索取, 不要猜测或硬编码。
+JumpServer 连接信息由脚本优先从用户 SSH 配置读取。调用者不要在首次连接前手工
+检查配置; 仅当脚本明确报告缺失 alias、host、user、port 或认证方式时, 按
+[access.md](access.md#jumpserver-前置条件与配置缺失处理) 说明缺失项并向用户
+索取, 不要猜测或硬编码。
 
 不要修改 [scripts/env-access.sh](scripts/env-access.sh) 或
 [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh)。如果脚本执行确实失败, 先
