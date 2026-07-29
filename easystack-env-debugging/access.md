@@ -39,6 +39,12 @@ bash easystack-env-debugging/scripts/env-access.sh --target 172.<N>.0.2 -- kubec
 # 172.18.*: 脚本封装外层跳板机和内层控制节点登录
 bash easystack-env-debugging/scripts/env-access.sh --target <JUMP_IP> --control-node <CONTROL_NODE_IP> -- hostname
 
+# 先经过一层普通 SSH 跳板机, 再直连目标环境
+bash easystack-env-debugging/scripts/env-access.sh \
+  --via <ORDINARY_JUMP> \
+  --target <TARGET_IP> \
+  -- hostname
+
 # JumpServer 菜单 fallback
 bash easystack-env-debugging/scripts/env-access.sh --asset <ASSET_NAME> --mode jumpserver -- whoami
 
@@ -58,6 +64,47 @@ bash easystack-env-debugging/scripts/env-access.sh \
 ```bash
 bash easystack-env-debugging/scripts/env-access.sh --env BJ-<ENV_ID> --cmd 'kubectl get namespaces | grep openstack'
 ```
+
+## Ordinary SSH Jump Host 普通 SSH 跳板机
+
+用户说明必须先登录 `eswork` 等普通 SSH 主机时, 使用 `--via <SSH_TARGET>`。
+`--via` 使用 OpenSSH ProxyJump, 与现有 mode 正交组合; 不把 skill 脚本复制到
+普通跳板机。
+
+普通跳板后直连目标:
+
+```bash
+bash easystack-env-debugging/scripts/env-access.sh \
+  --via eswork \
+  --target 192.168.3.3 \
+  --mode ssh \
+  --cmd 'hostname'
+```
+
+普通跳板后再经过环境跳板机:
+
+```bash
+bash easystack-env-debugging/scripts/env-access.sh \
+  --via eswork \
+  --target 172.18.0.118 \
+  --mode jump18 \
+  --control-node 10.20.0.3 \
+  --cmd 'hostname'
+```
+
+普通跳板后进入 JumpServer:
+
+```bash
+bash easystack-env-debugging/scripts/env-access.sh \
+  --via eswork \
+  --asset BJ-123 \
+  --mode jumpserver \
+  --cmd 'hostname'
+```
+
+`--via` 接受 SSH alias、IP 或 `user@host`。值不能以 `-` 开头。所有 SSH 路径
+显式读取用户 SSH config; 如果文件不存在则使用 `/dev/null`, 避免损坏的系统
+SSH config 阻断链路。`--via` 只负责追加 ProxyJump。
 
 ## BJ-xx SSH config 跳板直达模式
 
@@ -173,8 +220,9 @@ JumpServer 连接信息优先来自用户 SSH 配置。排障者只选择统一�
 不要把 HostName、Port、User、IdentityFile 等字段硬编码到文档或临时命令里。
 如果本机 SSH config 没有对应的 JumpServer 入口，统一访问脚本支持通过
 `--jumpserver-host`、`--jumpserver-user`、`--jumpserver-port`、
-`--jumpserver-identity-file` 显式传入认证信息；脚本不会回退去用当前本机用户的
-普通 SSH 认证信息。
+`--jumpserver-identity-file` 或 `--jumpserver-password-file` 显式传入认证信息;
+脚本不会回退去用当前本机用户的普通 SSH 认证信息。密码只从文件读取, 不接受明文
+密码命令行参数。
 
 读取顺序:
 
@@ -207,6 +255,48 @@ Host <SSH_ALIAS>
 用户补齐后, 仍然通过统一访问脚本进入环境; 不要在排障文档中临时拼接一次性
 JumpServer SSH 命令。
 
+### Temporary Authentication Profile 临时认证 Profile
+
+用户提供 JumpServer host、user、port、密码或私钥并希望后续复用时, 使用
+`--auth-profile <NAME> --save-auth-profile`。profile 名只允许字母、数字、
+点、下划线和连字符。建议按普通跳板机和环境命名, 例如
+`eswork-BJ-123`。
+
+首次保存:
+
+```bash
+umask 077
+AUTH_INPUT=$(mktemp /tmp/easystack-auth-input.XXXXXX)
+
+bash easystack-env-debugging/scripts/env-access.sh \
+  --via eswork \
+  --asset BJ-123 \
+  --mode jumpserver \
+  --auth-profile eswork-BJ-123 \
+  --save-auth-profile \
+  --jumpserver-host <JUMPSERVER_HOST> \
+  --jumpserver-user <JUMPSERVER_USER> \
+  --jumpserver-port <JUMPSERVER_PORT> \
+  --jumpserver-identity-file <IDENTITY_FILE> \
+  --jumpserver-password-file "$AUTH_INPUT" \
+  --cmd 'hostname'
+```
+
+后续复用:
+
+```bash
+bash easystack-env-debugging/scripts/env-access.sh \
+  --asset BJ-123 \
+  --mode jumpserver \
+  --auth-profile eswork-BJ-123 \
+  --cmd 'hostname'
+```
+
+默认保存到 `/tmp/easystack-env-access-${UID}/profiles/<NAME>/`。profile 目录权限为
+`0700`, host、user、port、via、密码和私钥文件权限为 `0600`。保存时复制密码和
+私钥内容, 后续不依赖原始输入文件。不要输出、diff 或读取缓存中的密码和私钥。
+`/tmp` 被清理或系统重启后 profile 失效, 再向用户索取认证信息。
+
 JumpServer 是交互式 TUI 菜单, 统一访问脚本内部会调用固化脚本处理菜单、
 资产选择、`sudo su -`、退出目标 shell 和超时递增。排障时不要复制 expect
 内容新建临时脚本, 也不要直接改固化脚本。脚本执行确实失败时, 先把失败目标、
@@ -226,6 +316,8 @@ JumpServer 是交互式 TUI 菜单, 统一访问脚本内部会调用固化脚�
   大目录扫描、较大的 `kubectl describe`、`helm history`。
 - 不确定是否安全重复执行的命令不要依赖自动重试; 先确认它是只读查询, 或使用
   `--timeout <SECONDS>` 指定单次执行时长。
+- `curl -X POST|PUT|PATCH|DELETE` 等写请求只执行一次; 超时后先查询实际状态,
+  不自动重复发送。
 - 超时只表示本轮查询未完成; 不要因为超时执行重启、删除、回滚等变更操作。
 
 ### 资产名使用方式

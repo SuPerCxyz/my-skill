@@ -1,6 +1,6 @@
 ---
 name: easystack-env-debugging
-description: "Use when investigating live EasyStack Kubernetes/OpenStack incidents or performing explicitly authorized runtime code, overlay, or patch-path validation through env-access. Use `easystack-test-executor` for planned resource tests; combine for backend root cause or runtime changes. Combine offline historical logs with `easystack-log-analysis`."
+description: "Use when investigating live EasyStack Kubernetes/OpenStack incidents, performing authorized runtime changes, or handling high-performance/Alcubierre volume unmap requests through env-access. Use `easystack-test-executor` for planned resource tests; combine offline logs with `easystack-log-analysis`."
 ---
 
 # EasyStack Environment Debugging
@@ -45,6 +45,10 @@ SSH config 解析、连接模式选择和 fallback。
    该模式不负责完整资源功能用例, 也不要求先构造故障根因。
 3. 混合模式: 用户需要通过代码改动验证故障假设时, 先记录只读基线, 再执行授权修改,
    最后同时报告根因证据、代码变更、验证结果和回滚状态。
+4. Alcubierre 解挂模式: 用户给出环境和一个或多个 volume UUID, 并要求解挂
+   高性能盘、Alcubierre 盘或解除 mapping 时, 使用
+   [alcubierre-unmap.md](alcubierre-unmap.md)。先完成全量只读预检并展示影响,
+   获得一次批量确认后, 使用固定 runner 在一次 SSH 会话中批量执行和验证。
 
 ## Read-Only Safety Gate 只读安全门禁
 
@@ -68,7 +72,8 @@ apply/patch/restart/scale/rollback 或数据库写入都必须先说明影响、
 进入目标环境时, MUST 使用 [scripts/env-access.sh](scripts/env-access.sh)。不要手写
 `ssh`、`ssh js`、多层跳板命令或临时 expect 脚本来登录环境。`env-access.sh`
 负责封装直连、`172.18.*` 跳板、BJ-xx SSH config 跳板直达和 JumpServer 菜单
-fallback。
+fallback。需要先经过普通 SSH 跳板机时使用 `--via <SSH_TARGET>`, 再与现有
+`ssh`、`jump18` 或 `jumpserver` mode 组合。
 调用脚本时优先使用 `bash [script] ...`, 不要依赖直接执行位; 这样即使安装副本
 丢了 `+x` 也能继续工作。
 一次性只读命令的默认超时与超时后重试也由 `env-access.sh` 统一处理; 详细规则见
@@ -77,7 +82,10 @@ fallback。
 JumpServer 连接信息由脚本优先从用户 SSH 配置读取。调用者不要在首次连接前手工
 检查配置; 仅当脚本明确报告缺失 alias、host、user、port 或认证方式时, 按
 [access.md](access.md#jumpserver-前置条件与配置缺失处理) 说明缺失项并向用户
-索取, 不要猜测或硬编码。
+索取, 不要猜测或硬编码。用户提供认证信息并要求复用时, 按
+[access.md](access.md#temporary-authentication-profile-临时认证-profile)
+使用权限受限的 `/tmp` profile, 不在
+日志或回复中输出密码和私钥。
 
 不要修改 [scripts/env-access.sh](scripts/env-access.sh) 或
 [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh)。如果脚本执行确实失败, 先
@@ -86,8 +94,9 @@ JumpServer 连接信息由脚本优先从用户 SSH 配置读取。调用者不�
 
 ## Root Cause Triage Order 根因排查顺序
 
-用户询问 “为什么失败”、“异常原因”、“创建失败”、“挂载失败”, 或提供 traceback、
+用户询问 “为什么失败”、“异常原因”、“创建失败”、“挂载失败”, 或仅提供 traceback、
 错误栈、server UUID、volume UUID 时, 将任务视为根因排查, 而不是资源清单查询。
+用户明确要求批量解挂高性能盘或 Alcubierre 盘时例外, 直接使用专项解挂流程。
 
 进入环境并完成最小连接验证后, 先读取相关业务 pod 当前日志。只允许用
 `kubectl get pods` / label 查询来发现日志目标; 不要把 `openstack server show`,
@@ -135,9 +144,14 @@ server/volume, 或用户明确要求查看状态时使用。
 | 需要做什么 | 阅读 |
 |------------------|------|
 | 环境后台访问入口、172.18 跳板、BJ-xx SSH config 跳板直达、JumpServer 菜单 fallback | [access.md](access.md) |
+| 批量预检并解除 iSCSI / NVMe-oF Alcubierre volume mapping | [alcubierre-unmap.md](alcubierre-unmap.md) |
+| 远端执行 Alcubierre preflight / execute / verify 的固定逻辑 | [scripts/alcubierre-unmap.sh](scripts/alcubierre-unmap.sh) |
+| 批量查询并解析目标 Alcubierre mapping | [scripts/alcubierre-mapping.sh](scripts/alcubierre-mapping.sh) |
+| 通过 env-access 发送 Alcubierre 固定脚本, 不在远端落盘 | [scripts/run-alcubierre-unmap.sh](scripts/run-alcubierre-unmap.sh) |
 | 统一环境访问脚本, 登录链路封装后追加业务命令 | [scripts/env-access.sh](scripts/env-access.sh) |
 | JumpServer 菜单内部 fallback 脚本, 由统一访问脚本调用 | [scripts/jumpserver-env.sh](scripts/jumpserver-env.sh) |
 | 验证访问参数、安全重试和 JumpServer 传参 | [tests/test-access-scripts.sh](tests/test-access-scripts.sh) |
+| 验证批量解挂、mapping 批处理、阶段耗时、UUID 去重和中断恢复 | [tests/test-alcubierre-unmap.sh](tests/test-alcubierre-unmap.sh) |
 | 根因排查顺序、当前 pod 日志、fluentd 历史日志回退 | [logs.md](logs.md) |
 | 无表格、行首安全且含一句话总结的问题分析结论格式 | [report-format.md](report-format.md) |
 | 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |

@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  env-access.sh --target <TARGET> [--mode auto|ssh|jump18|jumpserver] [-- CMD...]
+  env-access.sh --target <TARGET> [--via <SSH_TARGET>] [--mode auto|ssh|jump18|jumpserver] [-- CMD...]
   env-access.sh --env <BJ_ENV> [-- CMD...]
   env-access.sh --asset <ASSET_NAME> --mode jumpserver [-- CMD...]
   env-access.sh --target <TARGET> --cmd 'kubectl get nodes -o name'
@@ -13,11 +13,13 @@ Examples:
   env-access.sh --env BJ-<ENV_ID>
   env-access.sh --env BJ-<ENV_ID> -- whoami
   env-access.sh --target 172.<ENV_ID>.0.2 -- kubectl get nodes -o name
+  env-access.sh --via eswork --target 192.168.3.3 -- hostname
   env-access.sh --target 172.18.0.118 --control-node 10.20.0.3 -- hostname
-  env-access.sh --asset <ASSET_NAME> --mode jumpserver -- whoami
+  env-access.sh --via eswork --asset <ASSET_NAME> --mode jumpserver -- whoami
 
 Options:
   --target TARGET       SSH target, IP, alias, or BJ-xx name.
+  --via SSH_TARGET      Reach the selected mode through one ordinary SSH jump host.
   --env NAME            Environment name, such as BJ-<ENV_ID>. Converts to 172.<ENV_ID>.0.2.
   --asset NAME          JumpServer asset name for menu fallback.
   --mode MODE           auto, ssh, jump18, or jumpserver. Default: auto.
@@ -29,6 +31,10 @@ Options:
   --jumpserver-port PORT JumpServer SSH port when local SSH config is missing.
   --jumpserver-identity-file PATH
                         JumpServer SSH identity file when local SSH config is missing.
+  --jumpserver-password-file PATH
+                        Read the JumpServer password from a file.
+  --auth-profile NAME   Load a temporary JumpServer authentication profile.
+  --save-auth-profile   Save supplied authentication data to --auth-profile.
   --asset-id ID         Asset ID for JumpServer menu mode.
   --timeout SECONDS     Use one timeout instead of automatic command timeout ladder.
   --no-root             Do not run sudo/root shell after login.
@@ -45,6 +51,7 @@ EOF
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 mode="auto"
 target=""
+via_target=""
 env_name=""
 asset_name=""
 asset_id=""
@@ -55,6 +62,9 @@ jumpserver_host=""
 jumpserver_user=""
 jumpserver_port=""
 jumpserver_identity_file=""
+jumpserver_password_file=""
+auth_profile=""
+save_auth_profile="0"
 single_timeout=""
 become_root="1"
 
@@ -62,6 +72,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --target)
       target="${2:?missing value for --target}"
+      shift 2
+      ;;
+    --via)
+      via_target="${2:?missing value for --via}"
       shift 2
       ;;
     --env)
@@ -104,6 +118,18 @@ while [[ $# -gt 0 ]]; do
       jumpserver_identity_file="${2:?missing value for --jumpserver-identity-file}"
       shift 2
       ;;
+    --jumpserver-password-file)
+      jumpserver_password_file="${2:?missing value for --jumpserver-password-file}"
+      shift 2
+      ;;
+    --auth-profile)
+      auth_profile="${2:?missing value for --auth-profile}"
+      shift 2
+      ;;
+    --save-auth-profile)
+      save_auth_profile="1"
+      shift
+      ;;
     --asset-id)
       asset_id="${2:?missing value for --asset-id}"
       shift 2
@@ -133,6 +159,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ "$via_target" == -* ]]; then
+  echo "--via value must not start with '-': $via_target" >&2
+  exit 2
+fi
+
+user_ssh_config() {
+  if [[ -r "${HOME}/.ssh/config" ]]; then
+    printf '%s\n' "${HOME}/.ssh/config"
+  else
+    printf '/dev/null\n'
+  fi
+}
+
 target_from_env() {
   local value="$1"
   if [[ "$value" =~ ^[Bb][Jj]-?([0-9]+)$ ]]; then
@@ -146,7 +185,7 @@ ssh_config_value() {
   local host="$1"
   local key="$2"
 
-  ssh -G "$host" 2>/dev/null | awk -v want="$key" '
+  ssh -F "$(user_ssh_config)" -G "$host" 2>/dev/null | awk -v want="$key" '
     $1 == want {
       print $2
       exit
@@ -263,6 +302,12 @@ command_retry_safe() {
   if [[ "$cmd" =~ cinder[[:space:]].*[[:space:]](create|delete|set|reset-state|manage|unmanage)[[:space:]] ]]; then
     return 1
   fi
+  if [[ "$cmd" =~ curl.*-x[[:space:]]+(post|put|patch|delete) ]]; then
+    return 1
+  fi
+  if [[ "$cmd" =~ curl.*--request[[:space:]]+(post|put|patch|delete) ]]; then
+    return 1
+  fi
   return 0
 }
 
@@ -328,12 +373,16 @@ run_ssh_config_expect() {
   local timeout_value="${CURRENT_TIMEOUT:-${single_timeout:-60}}"
 
   SSH_TARGET="$target" \
+  SSH_VIA_TARGET="$via_target" \
+  SSH_CONFIG_FILE="$(user_ssh_config)" \
   SSH_REMOTE_CMD="$remote_cmd" \
   SSH_BECOME_ROOT="$become_root" \
   SSH_TIMEOUT="$timeout_value" \
   expect <<'EXPECT'
 set timeout $env(SSH_TIMEOUT)
 set target $env(SSH_TARGET)
+set via_target $env(SSH_VIA_TARGET)
+set ssh_config_file $env(SSH_CONFIG_FILE)
 set remote_cmd $env(SSH_REMOTE_CMD)
 set become_root $env(SSH_BECOME_ROOT)
 set shell_re {\[[^]]+@[^]]+[[:space:]]+[^]]+\][#$][[:space:]]*$}
@@ -344,7 +393,11 @@ proc fail {code message} {
     exit $code
 }
 
-spawn ssh -tt $target
+if {$via_target ne ""} {
+    spawn ssh -tt -F $ssh_config_file -J $via_target $target
+} else {
+    spawn ssh -tt -F $ssh_config_file $target
+}
 
 expect {
     "Are you sure you want to continue connecting" {
@@ -445,6 +498,12 @@ run_ssh_target() {
     destination_is_root="1"
   fi
   local ssh_opts=(
+    -F "$(user_ssh_config)"
+  )
+  if [[ -n "$via_target" ]]; then
+    ssh_opts+=(-J "$via_target")
+  fi
+  ssh_opts+=(
     -o StrictHostKeyChecking=no
     -o UserKnownHostsFile=/dev/null
     -o ConnectTimeout=8
@@ -468,7 +527,12 @@ run_ssh_target() {
 run_jump18() {
   local outer=(
     sshpass -p "easystack" ssh
-    -F /dev/null
+    -F "$(user_ssh_config)"
+  )
+  if [[ -n "$via_target" ]]; then
+    outer+=(-J "$via_target")
+  fi
+  outer+=(
     -o StrictHostKeyChecking=no
     -o UserKnownHostsFile=/dev/null
     -o ConnectTimeout=8
@@ -496,6 +560,9 @@ run_jump18() {
 run_jumpserver() {
   local args=(--alias "$jumpserver_alias")
 
+  if [[ -n "$via_target" ]]; then
+    args+=(--via "$via_target")
+  fi
   if [[ -n "$asset_name" ]]; then
     args+=(--asset "$asset_name")
   elif [[ -n "$target" ]]; then
@@ -531,8 +598,18 @@ run_jumpserver() {
   if [[ -n "$jumpserver_identity_file" ]]; then
     args+=(--jumpserver-identity-file "$jumpserver_identity_file")
   fi
+  if [[ -n "$jumpserver_password_file" ]]; then
+    args+=(--jumpserver-password-file "$jumpserver_password_file")
+  fi
+  if [[ -n "$auth_profile" ]]; then
+    args+=(--auth-profile "$auth_profile")
+  fi
+  if [[ "$save_auth_profile" == "1" ]]; then
+    args+=(--save-auth-profile)
+  fi
 
-  if [[ -z "$jumpserver_host" ]] && ! has_jumpserver_alias_ssh_config "$jumpserver_alias"; then
+  if [[ -z "$jumpserver_host$auth_profile" ]] &&
+      ! has_jumpserver_alias_ssh_config "$jumpserver_alias"; then
     echo "missing JumpServer SSH config for alias $jumpserver_alias" >&2
     echo "Provide --jumpserver-host/--jumpserver-user/--jumpserver-port/--jumpserver-identity-file or add a Host $jumpserver_alias block to ~/.ssh/config" >&2
     exit 2
