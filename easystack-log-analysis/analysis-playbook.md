@@ -77,7 +77,9 @@ explicitly** and list what additional data would close the gap.
 ## Output Report Template 输出报告模板
 
 使用 [report-format.md](report-format.md) 的无表格模板, 标题后先输出一句话总结。
-第 1 至第 4 节固定输出, 第 5 至第 8 节按实际需要输出。时间线按时间顺序使用数字项,
+第 1 节核心结论和第 2 节详细分析固定输出, 第 3 至第 6 节按实际需要输出。第 1 节
+放可分享的关键结论与精简日志, 第 2 节放完整证据、排查步骤和判断依据, 前后用桥接
+行衔接, 不割裂。时间线按时间顺序使用数字项,
 每个事件包含时间、节点、服务、事件和 `path/to/file:line` 证据引用。
 
 命令使用 `bash` fenced code block, 日志使用 `text`, 配置使用对应语言标识。任何
