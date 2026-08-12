@@ -30,7 +30,7 @@ bash scripts/decompress-eslog.sh
 |------|------|
 | [SKILL.md](SKILL.md) | Skill 主入口,工作流与快速参考 |
 | [analysis-playbook.md](analysis-playbook.md) | 标准端到端分析流程 + 报告模板 |
-| [report-format.md](report-format.md) | 与 env-debugging 同步的问题调查报告格式 |
+| [report-format.md](report-format.md) | 与 env-debugging 同步的完整问题调查报告格式 |
 | [cross-domain-analysis.md](cross-domain-analysis.md) | 跨域关联分析矩阵(各场景必看哪些日志) |
 | [decompress.md](decompress.md) | eslog 解压方法 |
 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) | 安全解压脚本 |
