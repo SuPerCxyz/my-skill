@@ -76,11 +76,12 @@ explicitly** and list what additional data would close the gap.
 
 ## Output Report Template 输出报告模板
 
-使用 [report-format.md](report-format.md) 的无表格模板, 标题后先输出一句话总结。
-第 1 节核心结论和第 2 节详细分析固定输出, 第 3 至第 6 节按实际需要输出。第 1 节
-放可分享的关键结论与精简日志, 第 2 节放完整证据、排查步骤和判断依据, 前后用桥接
-行衔接, 不割裂。时间线按时间顺序使用数字项,
-每个事件包含时间、节点、服务、事件和 `path/to/file:line` 证据引用。
+使用 [report-format.md](report-format.md) 的无表格问题调查报告模板。标题后直接用一个
+自然段说明故障对象、关键触发操作、问题原因和最终结果。`问题原因`按故障发生顺序
+详细展开, 每个因果阶段以具体时间点或时间范围开头。第 1 至第 3 节默认输出, 第 4 至
+第 6 节按实际需要输出, 其中详细分析仅在用户明确要求时输出。关键操作时间线使用
+数字项, 每个事件包含时间、操作、资源显示名称与 UUID、节点或组件、结果和
+`path/to/file:line` 证据引用。
 
 命令使用 `bash` fenced code block, 日志使用 `text`, 配置使用对应语言标识。任何
 一行都不得以 `-`、`#` 或 `$` 开头。与 `easystack-env-debugging` 联合分析时继续

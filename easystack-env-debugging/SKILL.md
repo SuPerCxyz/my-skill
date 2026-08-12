@@ -142,17 +142,18 @@ server/volume, 或用户明确要求查看状态时使用。
 联合分析时, 用 `easystack-log-analysis` 确认离线包时间窗、解压并构建历史证据链;
 用本 skill 补充仍有价值的当前环境状态或执行验证。当前状态与历史日志不一致时,
 按事件发生时间区分证据, 不得用当前正常状态否定历史故障。最终结论统一按
-[report-format.md](report-format.md) 输出, 先给出一句话总结且不使用表格; 离线证据
-保留本地 `file:line` 引用, 在线证据标明 pod、服务、对象和时间。
+[report-format.md](report-format.md) 输出问题调查报告, 开头用自然段说明问题原因且
+不使用表格; 离线证据保留本地 `file:line` 引用, 在线证据标明 pod、服务、对象和时间。
 
-完成问题分析后, MUST 按 [report-format.md](report-format.md) 输出结论。问题分析结论
+完成问题分析后, MUST 按 [report-format.md](report-format.md) 输出问题调查报告。报告
 禁止使用 Markdown 表格, 标题使用普通文本, 列表使用数字项。任何一行都不得以
 `-`、`#` 或 `$` 开头, fenced code block 内同样适用; 原始证据命中时增加
-`原文: ` 前缀。第 1 节核心结论和第 2 节详细分析必须输出, 第 3 至第 6 节仅在有
-实际内容或确有必要时输出。第 1 节放可分享的关键结论与精简日志, 第 2 节放完整
-证据、排查步骤和判断依据, 前后用桥接行衔接, 不割裂。
+`原文: ` 前缀。第 1 至第 3 节默认输出, 第 4 至第 6 节按需输出。`问题原因`必须
+详细写明故障发生过程, 每个因果阶段以具体时间点或时间范围开头, 并写清操作、
+资源显示名称与 UUID、处理节点或组件、状态变化或错误以及对下一阶段的影响。
+默认只保留 1 至 2 组关键日志原文; 第 6 节详细分析仅在用户明确要求时输出。
 
-上述 [report-format.md](report-format.md) 仅约束问题调查或混合模式中的问题分析结论。
+上述 [report-format.md](report-format.md) 仅约束问题调查或混合模式中的问题调查报告。
 纯代码调试任务不强制输出第 1 至第 6 节, 应按 [code-debug.md](code-debug.md) 记录
 授权范围、实际改动、验证结果、回滚状态和剩余风险。
 
@@ -170,7 +171,7 @@ server/volume, 或用户明确要求查看状态时使用。
 | 验证访问参数、安全重试和 JumpServer 传参 | [tests/test-access-scripts.sh](tests/test-access-scripts.sh) |
 | 验证批量解挂、mapping 批处理、阶段耗时、UUID 去重和中断恢复 | [tests/test-alcubierre-unmap.sh](tests/test-alcubierre-unmap.sh) |
 | 根因排查顺序、当前 pod 日志、fluentd 历史日志回退 | [logs.md](logs.md) |
-| 无表格、行首安全且含一句话总结的问题分析结论格式 | [report-format.md](report-format.md) |
+| 含问题原因、操作时间线和关键日志的问题调查报告格式 | [report-format.md](report-format.md) |
 | 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
 | OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |

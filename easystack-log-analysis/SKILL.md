@@ -24,7 +24,7 @@ E2E 使用 `easystack-cloud-web-e2e`。
 | 需要做什么 | 阅读 |
 |------------|------|
 | **标准端到端分析流程 + 报告模板** | [analysis-playbook.md](analysis-playbook.md) |
-| 无表格、行首安全且含一句话总结的问题分析结论格式 | [report-format.md](report-format.md) |
+| 含问题原因、操作时间线和关键日志的问题调查报告格式 | [report-format.md](report-format.md) |
 | **跨域关联分析矩阵(云主机/云盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
 | 解压 eslog 文件 | [decompress.md](decompress.md) |
 | 安全解压脚本 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) |
@@ -163,11 +163,13 @@ grep -r "req-<REQ_UUID>" .
 
 ### Step 7: Report 汇总报告
 
-MUST 使用 [report-format.md](report-format.md) 的无表格结构, 并先给出一句话总结。
-第 1 节核心结论和第 2 节详细分析固定输出, 第 3 至第 6 节按实际需要输出。第 1 节
-放可分享的关键结论与精简日志, 第 2 节放完整证据、排查步骤和判断依据, 结尾用桥接
-行衔接, 不割裂。关键时间线使用数字项, 任何一行都不得以 `-`、`#` 或 `$` 开头。
-每条结论用 `path/to/file:line` 引证, 便于用户审计证据链。
+MUST 使用 [report-format.md](report-format.md) 的无表格问题调查报告结构。标题后直接
+用自然段说明问题原因, 不输出一句话总结标签。第 1 至第 3 节默认输出, 第 4 至第 6 节
+按需输出。`问题原因`必须详细写明故障发生过程, 每个因果阶段以具体时间点或时间范围
+开头, 并写清操作、资源显示名称与 UUID、处理节点或组件、状态变化或错误以及对下一
+阶段的影响。默认只保留 1 至 2 组关键日志原文; 第 6 节详细分析仅在用户明确要求时
+输出。时间线使用数字项, 任何一行都不得以 `-`、`#` 或 `$` 开头。离线证据使用
+`path/to/file:line` 引证, 便于用户审计证据链。
 
 与 `easystack-env-debugging` 联合分析时, 两个 skill 使用相同模板, 不再切换为表格或
 其他报告结构。

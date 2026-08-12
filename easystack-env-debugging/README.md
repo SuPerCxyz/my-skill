@@ -18,7 +18,7 @@ overlay 和 patch 路径验证, 不要求先完成根因排查。完整资源功
 - 按当前 pod -> fluentd 历史日志顺序定位运行时故障
 - 联合本地 `.eslog` / `ecs.*` 构建历史证据链
 - 在用户明确授权后执行 runtime code、overlay 和 patch 路径验证
-- 使用无表格、行首安全且含一句话总结的问题分析结论格式
+- 使用含问题原因、关键操作时间线和关键日志的问题调查报告格式
 
 ## Quick Start 快速开始
 
@@ -42,7 +42,7 @@ overlay 和 patch 路径验证, 不要求先完成根因排查。完整资源功
 | [alcubierre-unmap.md](alcubierre-unmap.md) | 批量解除 Alcubierre iSCSI / NVMe-oF mapping |
 | [scenarios.md](scenarios.md) | 常见虚拟机、云硬盘、服务启动故障 |
 | [logs.md](logs.md) | pod 当前日志和 fluentd 历史日志 |
-| [report-format.md](report-format.md) | 无表格、行首安全且含一句话总结的结论格式 |
+| [report-format.md](report-format.md) | 含问题原因、操作时间线和关键日志的调查报告格式 |
 | [auth.md](auth.md) | OpenStack CLI 认证和 busybox |
 | [code-debug.md](code-debug.md) | 授权后的 runtime code、overlay 和 patch 路径调试 |
 | [openstack/index.md](openstack/index.md) | OpenStack 组件详情索引 |
