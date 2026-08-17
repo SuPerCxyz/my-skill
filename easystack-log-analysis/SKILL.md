@@ -26,9 +26,9 @@ E2E 使用 `easystack-cloud-web-e2e`。
 | **标准端到端分析流程 + 报告模板** | [analysis-playbook.md](analysis-playbook.md) |
 | 含问题原因、操作时间线和关键日志的问题调查报告格式 | [report-format.md](report-format.md) |
 | **跨域关联分析矩阵(云主机/云盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
-| 解压 eslog 文件 | [decompress.md](decompress.md) |
+| 解压 eslog 并生成组件视图 | [decompress.md](decompress.md) |
 | 安全解压脚本 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) |
-| 验证 `.log` 生成和 merge 行为 | [tests/test-decompress-eslog.sh](tests/test-decompress-eslog.sh) |
+| 验证 `.log`、merge 和组件视图行为 | [tests/test-decompress-eslog.sh](tests/test-decompress-eslog.sh) |
 | 日志行格式(wrapper / 字段 / awk 配方) | [log-format.md](log-format.md) |
 | 日志目录结构映射 | [directory-map.md](directory-map.md) |
 | 按问题类型检索的模式 | [search-patterns.md](search-patterns.md) |
@@ -52,10 +52,13 @@ E2E 使用 `easystack-cloud-web-e2e`。
 bash scripts/decompress-eslog.sh --input <FILE_OR_DIR> --output <OUTPUT_DIR>
 ```
 
-输出: `ecs.<host>.<date>.<N>/` 目录(每个 host 一个)。再次解压时直接合并同名目录:
+输出: `ecs.<host>.<date>.<N>/` 目录(每个 host 一个), 并在输出目录下生成
+`components/<原始组件路径>/` 普通文件视图。再次解压时直接合并同名目录:
 同路径文件使用新内容覆盖, 新文件追加, 本次 bundle 未包含的旧文件保留。不要因已有
-结果而跳过解压。脚本保留原始 `.log.gz`, 并统一生成可直接查看和搜索的 `.log`;
-后续分析只使用 `.log`, 不直接读取压缩日志。
+结果而跳过解压。脚本保留原始 `.log.gz`, 统一生成可直接查看和搜索的 `.log`, 并将
+普通 `.log` 文件复制到组件视图中。组件视图不保留 `ecs.node-*` 中间层; 同名文件按
+源文件大小保留较大者。后续分析仍以原始 `ecs.*` 下的 `.log` 作为证据来源, 不直接
+读取压缩日志。
 
 > **时间窗提示**: eslog 文件名本身编码了采集时间范围:
 > `ecs.20260618-20260623183823.eslog` = 2026-06-18 00:00 -> 2026-06-23 18:38:23。

@@ -46,6 +46,14 @@ bash scripts/decompress-eslog.sh --input /path/to/ecs.example.eslog
 - 保留原始 `.eslog` 和 `.log.gz`; 先写唯一 `.log.part.<pid>`, 成功后再原子替换
   对应 `.log`, 失败时删除 partial file 并保留旧的可读日志。
 - 后续分析和人工查看统一使用 `.log`, 不直接对 `.log.gz` 执行搜索。
+- 所有 bundle 解压并生成 `.log` 后, 创建 `components/` 普通文件视图。该目录沿用原始
+  组件路径, 例如 `components/openstack/cinder/`, 不保留 `ecs.node-*` 中间层。
+- `components/` 复制 `.log` 普通文件而不是创建符号链接, 便于跨平台读取; 原始
+  `ecs.*` 目录、`.log.gz` 和 `.log` 始终保留。
+- 组件视图出现同名文件时按源文件大小处理: 较大文件覆盖较小文件, 较小或相同大小的
+  文件不覆盖已有文件。复制先写临时文件并原子替换, 避免留下不完整日志。
+- 创建组件视图前进行容量预检。组件视图会额外占用一份 `.log` 存储空间, 应将该空间
+  计入输出目录容量规划。
 - 展开前应确认输出目录空间; 空间不足时脚本失败并报告, 不回退到压缩日志分析。
 - 默认密码来自 `ESLOG_PASSWORD`, 未设置时使用 EasyStack 默认值。
 
@@ -68,6 +76,16 @@ ecs.<hostname>.<date>.<N>/
 |-- openstack/
 |-- os/
 `-- others/
+```
+
+组件视图位于输出目录下, 不属于任何一个 `ecs.*` 目录:
+
+```text
+components/
+`-- openstack/
+    `-- cinder/
+        |-- cinder-api.node-1.20260807.log
+        `-- cinder-volume.node-1.20260807.log
 ```
 
 解压完成后先根据 bundle 文件名和日志 wrapper timestamp 确认覆盖时间窗, 再进入定向

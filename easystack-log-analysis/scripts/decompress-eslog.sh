@@ -9,6 +9,7 @@ Usage: decompress-eslog.sh [--input PATH] [--output DIR]
 PATH may be one .eslog file or a directory containing top-level .eslog files.
 Both paths default to the current working directory.
 Every .log.gz file is expanded to a readable .log file. The original .log.gz is kept.
+A cross-platform components/ view is built from copied .log files; larger files win name conflicts.
 EOF
 }
 
@@ -37,7 +38,7 @@ while (($#)); do
     esac
 done
 
-for command in awk df find gzip mktemp mv realpath sort tar unzip; do
+for command in awk cp df find gzip mktemp mv realpath sort tar unzip wc; do
     command -v "$command" >/dev/null 2>&1 || {
         echo "Required command not found: $command" >&2
         exit 1
@@ -229,3 +230,92 @@ process_bundle() (
 for bundle in "${bundles[@]}"; do
     process_bundle "$bundle"
 done
+
+build_component_view() (
+    local source_root components_root log_path relative target_dir target_path
+    local source_size target_size part copied=0 skipped=0
+    local growth=0 max_replacement=0 required available reserve=$((16 * 1024 * 1024))
+    declare -a component_parts=()
+    declare -A candidate_paths=() candidate_sizes=()
+    components_root=$output_dir/components
+    cleanup_component_parts() {
+        local status=$?
+        trap - EXIT
+        for part in "${component_parts[@]}"; do
+            rm -f -- "$part"
+        done
+        exit "$status"
+    }
+    trap cleanup_component_parts EXIT
+    [[ ! -L $components_root && ( ! -e $components_root || -d $components_root ) ]] || {
+        echo "Component view path is not a directory: $components_root" >&2
+        return 1
+    }
+
+    while IFS= read -r -d '' source_root; do
+        while IFS= read -r -d '' log_path; do
+            relative=${log_path#"$source_root"/}
+            source_size=$(wc -c <"$log_path")
+            if [[ -z ${candidate_sizes[$relative]+x} ]] ||
+                ((source_size > candidate_sizes[$relative])); then
+                candidate_paths[$relative]=$log_path
+                candidate_sizes[$relative]=$source_size
+            fi
+        done < <(find "$source_root" -type f -name '*.log' -print0)
+    done < <(find "$output_dir" -mindepth 1 -maxdepth 1 -type d -name 'ecs.*' -print0 | sort -z)
+
+    for relative in "${!candidate_paths[@]}"; do
+        target_path=$components_root/$relative
+        source_size=${candidate_sizes[$relative]}
+        [[ ! -e $target_path || -f $target_path || -L $target_path ]] || {
+            echo "Component target is not a replaceable file: $target_path" >&2
+            return 1
+        }
+        if [[ -f $target_path && ! -L $target_path ]]; then
+            target_size=$(wc -c <"$target_path")
+            if ((source_size > target_size)); then
+                growth=$((growth + source_size - target_size))
+                ((source_size > max_replacement)) && max_replacement=$source_size
+            fi
+        else
+            growth=$((growth + source_size))
+        fi
+    done
+    required=$((growth + max_replacement + reserve))
+    available=$(df -Pk -- "$output_dir" | awk 'END {printf "%.0f", $4 * 1024}')
+    if ((available < required)); then
+        echo "Insufficient space for component view under $components_root: required=$required available=$available" >&2
+        return 1
+    fi
+
+    mkdir -p -- "$components_root"
+    for relative in "${!candidate_paths[@]}"; do
+        log_path=${candidate_paths[$relative]}
+        source_size=${candidate_sizes[$relative]}
+        target_path=$components_root/$relative
+        target_dir=${target_path%/*}
+        mkdir -p -- "$target_dir"
+
+        if [[ -f $target_path && ! -L $target_path ]]; then
+            target_size=$(wc -c <"$target_path")
+            if ((source_size <= target_size)); then
+                skipped=$((skipped + 1))
+                continue
+            fi
+        fi
+
+        part=$target_path.part.$$
+        component_parts+=("$part")
+        if ! cp -- "$log_path" "$part"; then
+            return 1
+        fi
+        if ! mv -fT -- "$part" "$target_path"; then
+            return 1
+        fi
+        copied=$((copied + 1))
+    done
+
+    echo "Component view: $components_root (copied=$copied skipped=$skipped)"
+)
+
+build_component_view

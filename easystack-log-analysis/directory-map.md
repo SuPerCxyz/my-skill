@@ -2,6 +2,11 @@
 
 Use this file to map an extracted `ecs.*` directory to service domains before searching. It does not define root-cause logic; use [cross-domain-analysis.md](cross-domain-analysis.md) and [search-patterns.md](search-patterns.md) after choosing the relevant domains.
 
+解压脚本同时生成 `components/` 跨平台普通文件视图。它沿用下述组件相对路径, 但去掉
+`ecs.node-*` 中间层。例如原始 `ecs.node-1.../openstack/cinder/cinder-volume...log`
+复制为 `components/openstack/cinder/cinder-volume...log`。同名文件保留较大者; 调查
+报告仍引用原始 `ecs.*` 路径, 以便审计具体来源。
+
 ## Top-Level Directory Layout
 
 ```

@@ -94,9 +94,10 @@ field 4 (container) is empty and field 5 contains the classic syslog line:
 ```
 
 The hostname appears both in the directory name (`ecs.node-1.20260618.0/`)
-and the filename. The decompression script keeps the original `.log.gz` but all
-analysis uses the generated `.log`. `.0` suffix on the directory is the rollover index when
-multiple collections are made the same day.
+and the filename. The decompression script keeps the original `.log.gz` and generated
+`.log`. It also copies readable logs into a cross-platform `components/` view; the original
+`ecs.*` paths remain the authoritative evidence sources. `.0` suffix on the directory is the
+rollover index when multiple collections are made the same day.
 
 ## eslog Filename Time Window
 

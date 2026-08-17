@@ -3,10 +3,16 @@ set -euo pipefail
 
 skill_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 test_root=$(mktemp -d /tmp/easystack-eslog-test.XXXXXX)
-trap 'rm -rf -- "$test_root"' EXIT
+cleanup() {
+  find "$test_root" -depth -delete
+}
+trap cleanup EXIT
 fixture=$test_root/fixture
 output=$test_root/output
-mkdir -p "$fixture/tree/ecs.node-1.20260724.0/openstack/nova"
+mkdir -p \
+  "$fixture/tree/ecs.node-1.20260724.0/openstack/nova" \
+  "$fixture/tree/ecs.node-1.20260724.0/openstack/cinder" \
+  "$fixture/tree/ecs.node-2.20260724.0/openstack/cinder"
 
 fail() {
   echo "FAIL: $*" >&2
@@ -16,7 +22,14 @@ fail() {
 log_path=$fixture/tree/ecs.node-1.20260724.0/openstack/nova/nova-compute.node-1.log
 printf 'request-id=req-test instance=vm-test\n' >"$log_path"
 gzip "$log_path"
-tar -cf "$fixture/ecs-node.tar" -C "$fixture/tree" ecs.node-1.20260724.0
+small_component=$fixture/tree/ecs.node-1.20260724.0/openstack/cinder/cinder-volume.shared.log
+large_component=$fixture/tree/ecs.node-2.20260724.0/openstack/cinder/cinder-volume.shared.log
+printf 'small\n' >"$small_component"
+printf 'large component log from node-2\n' >"$large_component"
+gzip "$small_component"
+gzip "$large_component"
+tar -cf "$fixture/ecs-node.tar" -C "$fixture/tree" \
+  ecs.node-1.20260724.0 ecs.node-2.20260724.0
 mkdir "$fixture/inner"
 cp "$fixture/ecs-node.tar" "$fixture/inner/"
 (
@@ -36,6 +49,41 @@ result=$output/ecs.node-1.20260724.0/openstack/nova/nova-compute.node-1.log
 [[ -f $result ]] || fail "readable .log was not generated"
 grep -F "req-test" "$result" >/dev/null || fail "generated log content mismatch"
 [[ -f $result.gz ]] || fail "original .log.gz was not preserved"
+
+component_result=$output/components/openstack/cinder/cinder-volume.shared.log
+[[ -f $component_result ]] || fail "component view file was not created"
+[[ ! -L $component_result ]] || fail "component view used a symlink instead of a regular file"
+grep -F "large component log from node-2" "$component_result" >/dev/null ||
+  fail "larger component log did not win the filename conflict"
+
+rm "$component_result"
+ln -s "$large_component" "$component_result"
+bash "$skill_dir/scripts/decompress-eslog.sh" \
+  --input "$test_root/sample.eslog" --output "$output"
+[[ ! -L $component_result ]] || fail "existing component symlink was not replaced"
+grep -F "large component log from node-2" "$component_result" >/dev/null ||
+  fail "regular file replacing a component symlink has wrong content"
+
+printf 'tiny\n' >"$component_result"
+bash "$skill_dir/scripts/decompress-eslog.sh" \
+  --input "$test_root/sample.eslog" --output "$output"
+grep -F "large component log from node-2" "$component_result" >/dev/null ||
+  fail "larger source did not replace a smaller component file"
+
+largest_source=$output/ecs.node-2.20260724.0/openstack/cinder/cinder-volume.shared.log
+largest_size=$(wc -c <"$largest_source")
+printf '%*s' "$largest_size" '' | tr ' ' E >"$component_result"
+bash "$skill_dir/scripts/decompress-eslog.sh" \
+  --input "$test_root/sample.eslog" --output "$output"
+grep -E "^E{$largest_size}$" "$component_result" >/dev/null ||
+  fail "equal-sized source unexpectedly replaced the existing component file"
+
+printf 'existing component file is deliberately larger than every source log in this fixture\n' \
+  >"$component_result"
+bash "$skill_dir/scripts/decompress-eslog.sh" \
+  --input "$test_root/sample.eslog" --output "$output"
+grep -F "deliberately larger" "$component_result" >/dev/null ||
+  fail "smaller source unexpectedly replaced a larger component file"
 
 printf 'keep\n' >"$output/ecs.node-1.20260724.0/previous-file.txt"
 bash "$skill_dir/scripts/decompress-eslog.sh" \

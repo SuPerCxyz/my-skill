@@ -9,7 +9,7 @@ EasyStack OpenStack 集群日志(`.eslog`)安全解压、目录映射、跨服�
 - 加密 `.eslog` 压缩包解压
 - 容器化日志目录结构与组件映射
 - 跨域关联分析(云主机生命周期 / 云盘挂载卸载 / 网络 / 镜像 / 裸金属 Ironic)
-- 强制关联 OS 系统层(内核 / OVS·OVN / SCSI·multipath / IPMI)与控制面基础设施(Galera / RabbitMQ / chrony / Ceph)
+- 按异常信号关联 OS 系统层与控制面基础设施, 避免无条件全量扫描
 - 与 env-debugging 同步的行首安全、无表格分析报告模板与实战 case
 
 ## 快速开始
@@ -22,7 +22,9 @@ bash scripts/decompress-eslog.sh --input /path/to/bundle.eslog --output /path/to
 bash scripts/decompress-eslog.sh
 ```
 
-脚本保留原始 `.log.gz`, 并统一生成可直接查看的 `.log`; 后续分析只使用 `.log`。
+脚本保留原始 `ecs.*`、`.log.gz` 和 `.log`, 并在输出目录下额外复制一份按组件整理的
+`components/` 普通日志文件, 便于跨平台直接读取。组件视图不保留 `ecs.node-*` 中间层,
+同名文件按源文件大小保留较大者。
 
 ## 文件说明
 
@@ -33,8 +35,8 @@ bash scripts/decompress-eslog.sh
 | [report-format.md](report-format.md) | 与 env-debugging 同步的完整问题调查报告格式 |
 | [cross-domain-analysis.md](cross-domain-analysis.md) | 跨域关联分析矩阵(各场景必看哪些日志) |
 | [decompress.md](decompress.md) | eslog 解压方法 |
-| [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) | 安全解压脚本 |
-| [tests/test-decompress-eslog.sh](tests/test-decompress-eslog.sh) | 自动生成 `.log` 和 merge 行为回归测试 |
+| [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) | 安全解压与跨平台组件视图脚本 |
+| [tests/test-decompress-eslog.sh](tests/test-decompress-eslog.sh) | `.log`、merge 和组件视图回归测试 |
 | [log-format.md](log-format.md) | 日志行格式、字段、awk 配方 |
 | [directory-map.md](directory-map.md) | 日志目录结构映射 |
 | [search-patterns.md](search-patterns.md) | 按问题类型的搜索模式 |
