@@ -327,6 +327,8 @@ done
 
 Captures every interactive root shell command on each node — invaluable for
 correlating cluster anomalies with human actions.
+仅当事件时间、错误、状态变化或其它证据表明可能存在人工操作时使用本节。搜索范围必须
+限制在关联时间窗内, 保留或输出命中结果前对凭据和敏感命令参数脱敏。
 
 ```bash
 # All commands across all nodes, sorted by wrapper timestamp

@@ -4,6 +4,10 @@ Use this file as the main offline eslog analysis workflow. It coordinates decomp
 
 End-to-end procedure when the user hands you an eslog bundle and a
 symptom description. Goal: produce a structured, evidence-cited analysis.
+Before searching logs, read [report-format.md](report-format.md) and use its
+event fields to plan the minimum evidence chain. Preserve an original log,
+its `file:line` source, time, identifiers and necessary context immediately
+when it proves a key event, rather than relying on a later repeat search.
 
 ## Standard Workflow
 
@@ -36,8 +40,8 @@ symptom description. Goal: produce a structured, evidence-cited analysis.
 │ 7. Build timeline (sorted, multi-source)                     │
 │    sort -k1,2 across files                                   │
 ├──────────────────────────────────────────────────────────────┤
-│ 8. Form root-cause hypothesis with evidence citations        │
-│    Validate with at least 2 independent log sources          │
+│ 8. Separate symptom, direct failure and root cause           │
+│    Validate the trigger mechanism with linked evidence       │
 ├──────────────────────────────────────────────────────────────┤
 │ 9. Output using the report template below                    │
 └──────────────────────────────────────────────────────────────┘
@@ -70,6 +74,10 @@ Before declaring a root cause, ask:
 4. **Did you check the obvious infrastructure?** mariadb (WSREP), rabbitmq
    (network partition), chrony (clock drift), and ceph health are common
    upstream causes of multi-service incidents.
+5. **Does the conclusion explain the direct failure?** A timeout, status
+   error or traceback is a lead, not the root cause, until linked evidence
+   shows what triggered it. If that evidence is unavailable, report the
+   direct failure as confirmed and the root cause as unconfirmed.
 
 If you can't reach high confidence with the evidence at hand, **say so
 explicitly** and list what additional data would close the gap.
@@ -77,9 +85,10 @@ explicitly** and list what additional data would close the gap.
 ## Output Report Template 输出报告模板
 
 使用 [report-format.md](report-format.md) 的无表格问题调查报告模板。标题后直接用一个
-自然段说明故障对象、关键触发操作、问题原因和最终结果。`问题原因`按故障发生顺序
-详细展开, 每个因果阶段以具体时间点或时间范围开头。核心结论固定包含问题现象、
-问题原因、问题影响和一句修复建议。第 1 至第 3 节必须输出, 第 2 节将关键操作时间线
+自然段说明故障对象、关键触发操作、问题原因和最终结果。核心结论在 `问题原因` 前增加
+`通俗说明`, 用一个自然段向不了解上下文的读者解释已经验证的故障机制和结果。`问题原因`
+按故障发生顺序详细展开, 每个因果阶段以具体时间点或时间范围开头, 并区分用户现象、
+直接失败和有证据支持的底层根因。第 1 至第 3 节必须输出, 第 2 节将关键操作时间线
 与证据合并, 每个事件包含时间、操作、资源显示名称与 UUID、节点或组件、结果、具体
 日志和`path/to/file:line`证据引用; 第 3 节记录未确认项与限制。章节号必须连续。
 默认报告末尾提示用户可继续输出详细分析; 用户需要时, 第 4 节按关键操作时间线逐点

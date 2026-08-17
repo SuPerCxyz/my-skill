@@ -337,12 +337,14 @@ grep -E "Instance rebooted successfully|Failed to resume instance" \
   | head -20
 ```
 
-- 全部失败 → 节点级 / 基础设施问题(去 Step 5)
-- 只这一台失败 → VM 个体问题(卷 / BDM / 镜像)，直接出报告
+- 全部失败 -> 出现节点级或基础设施信号, 去 Step 5 定向检查对应分支。
+- 只这一台失败 -> 聚焦该 VM 的卷、BDM、镜像或 qemu 因果链, 继续验证底层触发机制,
+  不因故障范围较小就直接输出根因结论。
 
-### Step 5:上游基础设施脉冲检查(30 秒)
+### Step 5:按信号检查上游基础设施
 
-在聚焦 VM 之前，先确认基础设施层是否健康。基础设施异常往往是 VM 问题的上游根因。
+只有对照组显示多个 VM 同时失败、主服务日志指向基础设施, 或当前证据无法解释直接失败
+时, 才选择与信号匹配的检查。不要把以下所有命令作为每个 VM 工单的固定步骤。
 
 ```bash
 # (a) OS 层:内核错误、OOM、磁盘 I/O、网络链路
@@ -361,12 +363,13 @@ grep -E "HEALTH_(WARN|ERR)" ecs.<node>/ceph/host.ceph.*.log 2>/dev/null | tail -
 grep -iE "rbd.csi.ceph.com not found in the list of registered CSI drivers" \
   ecs.<node>/os/messages.*.log | head -5
 
-# (e) 操作审计:近期人工操作
+# (e) 仅在存在人工变更线索时检查事件时间窗内的操作历史, 引用内容必须脱敏
 grep -E "systemctl|reboot|shutdown|drain|reset|kubectl delete" \
   ecs.<node>/openstack/dozer/bash-history.*.log | tail -20
 ```
 
-**任何一行强信号都要纳入根因候选。** 如果基础设施层(Galera/RabbitMQ/Ceph/CSI)有异常，VM 问题往往是表象而非根因。
+命中结果先作为关联线索。只有能够与目标 VM、请求和时间窗建立因果关系, 并解释它如何
+触发直接失败时, 才能写入根因; 否则记录为待验证线索或证据缺口。
 
 **快速判断分支:**
 - 基础设施无异常，仅个别 VM 失败 → 聚焦 VM 个体(卷 / BDM / 镜像)

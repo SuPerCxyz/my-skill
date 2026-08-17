@@ -36,6 +36,13 @@ E2E 使用 `easystack-cloud-web-e2e`。
 
 ## Workflow 工作流
 
+### Step 0: Read Report Contract 读取报告契约
+
+在解压或搜索日志前, MUST 先读取 [report-format.md](report-format.md), 按报告中的事件
+字段规划本次最小证据链。发现能够证明关键操作、状态变化、直接失败或底层触发机制的
+日志时, 立即保留原始日志、`file:line`、时间、关联标识和必要上下文, 不要等到报告
+阶段再重新搜索。凭据和敏感数据在保留或输出前必须脱敏。
+
 ### Step 1: 解压
 
 用户指定路径时显式传给 `--input`; 未指定时脚本默认处理当前目录顶层的所有
@@ -131,14 +138,17 @@ grep -r "req-<REQ_UUID>" .
 - **裸金属 / Ironic** -> `cloud-products/ironic/`(注意: ironic 等云产品日志放在 `cloud-products/` 而非 `openstack/`)
 - **API 网关 / IAM** -> `cloud-products/apisix/`, `cloud-products/iam/`
 
-> **跨域强制规则**: 选定"主服务"只是起点, 不是终点。任何**云主机生命周期 / 云盘挂载卸载 / 网络变更 / 镜像 / 裸金属**问题, **必须同时把以下日志带入时间线分析**, 否则容易把根因归到错的层:
+> **跨域扩展规则**: 选定"主服务"只是起点, 不是终点。先用问题域、资源标识、
+> request ID 和时间窗搜索主服务日志, 再根据已发现的关联组件或异常信号逐层扩展:
 >
-> - `os/messages.*.log`(内核 / OOM / SCSI / 多路径 / 网卡链路 / IPMI)
-> - `os/openvswitch/*.log`(实际数据面流表是否下发)
-> - `openstack/mariadb/*.log` + `openstack/rabbitmq/*.log` + `os/chrony.*.log`(控制面基础设施)
-> - `openstack/dozer/bash-history.*.log`(最近的人工动作)
+> - 出现内核、OOM、SCSI、多路径、网卡链路或 IPMI 信号时查 `os/messages.*.log`。
+> - 出现端口绑定、流表或数据面信号时查 `os/openvswitch/*.log`。
+> - 出现 DB、RPC、时钟或存储集群信号时查 MariaDB、RabbitMQ、chrony 或 Ceph 日志。
+> - 只有事件时间窗、错误或状态变化表明可能存在人工操作时, 才在限定时间窗内查
+>   `openstack/dozer/bash-history.*.log`, 并对引用内容脱敏。
 >
-> 完整的"问题域 -> 必看 / 强相关 / 兜底日志"对照见 [cross-domain-analysis.md](cross-domain-analysis.md)。
+> 无法闭合根因时, 按 [cross-domain-analysis.md](cross-domain-analysis.md) 的候选矩阵扩大
+> 范围并记录证据缺口, 不要无条件扫描所有候选日志。
 
 ### Step 5: 检索与分析
 
@@ -146,34 +156,25 @@ grep -r "req-<REQ_UUID>" .
 
 ### Step 6: 跨服务关联
 
-对跨服务问题(如云盘挂载失败), 在同一时间窗内检索:
-1. `openstack/nova/nova-compute.*.log` - VM 生命周期
-2. `openstack/cinder/cinder-volume.*.log` - 云盘操作
-3. `libvirt/libvirt.*.log` - hypervisor 操作
-4. `alcubierre/alcubierre-node.*.log` - iSCSI 连接
-5. `os/messages.*.log` - 系统层错误
-
-同时探测**上游基础设施**。多服务问题常会追溯到这些层, 不能只检查业务服务:
-
-- `openstack/mariadb/mariadb.*.log` -- Galera WSREP 状态
-- `openstack/rabbitmq/rabbitmq.*.log` -- AMQP 脑裂 / 断连
-- `os/chrony.*.log` -- 时钟漂移(会破坏 Galera 仲裁与 Ceph)
-- `ceph/host.ceph.*.log` -- 集群健康
-- `openstack/dozer/bash-history.*.log` -- 最近运维动作
+对跨服务问题(如云盘挂载失败), 先围绕同一资源、request ID 或时间窗关联主服务日志,
+再沿实际调用、错误和状态变化逐层扩展。例如 iSCSI 信号可关联 Nova、Cinder、
+Alcubierre 和 `os/messages.*.log`; 只有出现 DB、RPC、时钟或 Ceph 信号, 或现有证据
+无法闭合根因时, 才定向检查 MariaDB、RabbitMQ、Chrony 或 Ceph。人工变更历史仅在
+已有人工操作线索时检查, 并按事件时间窗检索和脱敏。每次扩展都记录触发信号; 关联错误
+本身不能直接作为根因。
 
 ### Step 7: Report 汇总报告
 
 MUST 使用 [report-format.md](report-format.md) 的无表格问题调查报告结构。标题后直接
 用自然段说明问题原因, 不输出一句话总结标签。第 1 至第 3 节必须输出, 第 4 节按需
-输出。核心结论必须包含`问题现象`、`问题原因`、`问题影响`和`修复建议`; 修复建议
-只写一句稍微丰富且可执行的话。`问题原因`必须详细写明故障发生过程, 每个因果阶段
-以具体时间点或时间范围开头, 并写清操作、资源显示名称与 UUID、处理节点或组件、
-状态变化或错误以及对下一阶段的影响。第 2 节将关键操作时间线与证据合并, 每个事件
-附具体日志原文、来源和证据说明; 第 3 节记录未确认项与限制; 第 4 节详细分析仅在
-用户明确要求时输出。默认报告末尾提示用户可继续输出详细分析; 输出详细分析时,
-按关键操作时间线逐点补充完整日志上下文、关联服务日志和深入判断。章节号必须连续,
-禁止跳号。时间线使用数字项, 任何一行都不得以 `-`、`#` 或 `$` 开头。离线证据使用
-`path/to/file:line` 引证, 便于用户审计证据链。
+输出。核心结论必须依次包含`问题现象`、`通俗说明`、`问题原因`、`问题影响`和
+`修复建议`; `通俗说明`只用自然语言解释已验证的故障机制和结果。`问题原因`必须
+区分用户现象、直接失败和底层根因, 并用实际证据说明触发机制如何导致直接失败。
+只能确认直接失败时, 明确写`直接失败已确认, 根本原因未确认`, 并在第 3 节记录最小
+补证动作。第 2 节将关键操作时间线与证据合并, 每个项目使用`事件 N`标签, 附具体
+日志原文、来源和证据说明; 不使用与章节号冲突的裸数字序号。第 4 节详细分析仅在用户
+明确要求时输出。报告格式、字段顺序、禁用行首和离线 `path/to/file:line` 引证均以
+[report-format.md](report-format.md) 为准, 不在本入口维护另一套完整模板。
 
 与 `easystack-env-debugging` 联合分析时, 两个 skill 使用相同模板, 不再切换为表格或
 其他报告结构。

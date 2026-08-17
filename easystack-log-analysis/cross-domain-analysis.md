@@ -1,16 +1,18 @@
 # Cross-Domain Analysis Matrix
 
-EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 必看日志 / 强相关日志 / 兜底日志"
-固化为硬规则，避免遗漏关键证据。
+EasyStack OpenStack 故障经常跨越多个服务层。下表提供"问题域 -> 主日志 / 条件关联日志 /
+兜底日志"候选矩阵, 用于在证据指向新组件时扩大范围, 不是要求一次读取全部日志。
 
-> **核心原则**:任何云主机生命周期 / 云盘挂载卸载 / 网络变更 / 镜像操作问题，**默认都要
-> 把 `os/messages.*.log` 和 `os/openvswitch/*.log` 一起带进时间线分析**。OpenStack 控制面日志
-> 只能解释"调度层做了什么决定"，真正的"发生了什么"往往落在内核 / 设备 / 网卡 / SCSI / multipath
-> 层，必须靠系统日志补齐。
+> **核心原则**: 先用问题域、资源标识、request ID、时间窗和主服务日志定位直接失败。
+> 只有日志、状态或调用链指向内核、设备、网卡、SCSI、multipath、数据库、消息队列或
+> 其它组件时, 才读取对应候选日志。根因仍无法闭合时再使用兜底日志, 并记录扩展原因和
+> 证据缺口。表中的`必看·主日志`是初始入口; 其它`必看·<层>`仅表示该层已经进入因果链
+> 后必须核对, 不代表所有场景默认全扫。
 
 ## 1. 云主机生命周期问题(创建 / 启动 / 重启 / 删除 / 迁移)
 
-涉及 **compute + 块存储 + 网络 + 镜像 + 虚拟化层 + 系统层**，缺一不可。
+可能涉及 **compute + 块存储 + 网络 + 镜像 + 虚拟化层 + 系统层**。先从 Nova 主日志
+确认失败阶段, 再按实际涉及的存储、网络、镜像、虚拟化或系统分支扩展。
 
 | 优先级 | 日志路径 | 看什么 |
 |--------|---------|--------|
@@ -107,9 +109,10 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ## 5. 裸金属 / Ironic(cloud-products 域)
 
-> **重要**:EasyStack 的 ironic / 裸金属管理 / 部分云产品类服务日志归在 **`cloud-products/`** 下，
-> 而不是 `openstack/`。如果集群启用了裸金属，目录里应该出现 `cloud-products/ironic/` 等子目录;
-> 当前样本 bundle 只看到 `apisix/` 和 `iam/`，说明该环境未启用裸金属。
+> **重要**: EasyStack 的 ironic / 裸金属管理 / 部分云产品类服务日志归在
+> **`cloud-products/`** 下, 而不是 `openstack/`。只有 bundle 中实际出现
+> `cloud-products/ironic/` 时才按本节分析; 目录缺失只能说明当前 bundle 未采集该服务,
+> 不能外推为环境未启用裸金属。
 
 | 优先级 | 日志路径 | 看什么 |
 |--------|---------|--------|
@@ -142,25 +145,27 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表把"问题域 → 
 
 ---
 
-## 跨域查证最小动作清单
+## Evidence-Triggered Expansion 证据触发扩展
 
-接到任何"云主机/云盘/网络/镜像"类工单，先用 30 秒按下面这个清单扫一遍，再做深入分析:
+以下命令是信号出现后的定向检查, 不是每个工单固定执行的前置清单。先按主服务日志
+确定直接失败和关联时间窗, 再选择与当前因果分支匹配的命令:
 
 ```bash
-# 1) 系统层先排雷(OOM / panic / 链路抖动 / 块设备错误)
+# 出现节点、内核、OOM、链路或块设备信号时检查系统层
 grep -iE "panic|softlockup|hung_task|Out of memory|killed process|i/o error|link is (up|down)|iscsi.*recovery|multipath" \
   ecs.*/os/messages.*.log | sort -k1,2 | head -50
 
-# 2) 基础设施(Galera / RabbitMQ / chrony / Ceph health)
+# 出现 DB、RPC、时钟或 Ceph 信号时检查对应基础设施日志
 grep -iE "WSREP|primary component|non-primary|netsplit|partition|HEALTH_(WARN|ERR)|cannot find.*source" \
   ecs.*/openstack/mariadb/*.log \
   ecs.*/openstack/rabbitmq/*.log \
   ecs.*/os/chrony.*.log \
   ecs.*/ceph/host.ceph.*.log 2>/dev/null | sort -k1,2 | head -30
 
-# 3) 运维动作(看最近有没有人改过什么)
+# 仅在存在人工变更线索时, 在事件时间窗内检查操作历史并对引用内容脱敏
 grep -E "systemctl|kubectl|reboot|shutdown|drain|reset|delete|stop" \
   ecs.*/openstack/dozer/bash-history.*.log | sort -k1,2 | tail -30
 ```
 
-这三步任何一步发现强信号，都需要把它放到时间线最前面作为根因候选。
+命中结果先作为关联线索, 只有能够与目标资源、请求和时间窗建立因果关系时才加入报告
+时间线。强信号也不能直接视为根因; 必须继续验证它如何触发直接失败。
