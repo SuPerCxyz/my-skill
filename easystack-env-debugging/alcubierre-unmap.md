@@ -10,7 +10,7 @@
 预检后仍要展示对象、协议、客户端标识、影响和回滚限制, 获得一次批量确认后才能
 调用 disconnection API。确认仅覆盖当次展示的 UUID 集合。
 
-本流程只解除 Alcubierre mapping。不要修改 Cinder 状态, 不要删除云盘, 不要自动
+本流程只解除 Alcubierre mapping。不要修改 Cinder 状态, 不要删除云硬盘, 不要自动
 修改 Alcubierre `volume` 或 `volctrl`。
 
 ## Access Routing 访问路由
@@ -121,8 +121,8 @@ kubectl exec -n alcubierre "$MANUL_POD" -c manul -- \
 2. 去重后的 UUID 数量。
 3. 每个 UUID 的 `DISK_ID`、协议、状态、mapping 数量和唯一客户端标识。
 4. 解除 mapping 会中断残留存储连接; 若仍有隐藏 I/O, 业务会受影响。
-5. 操作没有简单原地回滚; 恢复连接需要重新挂载云盘。
-6. 执行后只验证存储侧, 不自动删除 Cinder 云盘。
+5. 操作没有简单原地回滚; 恢复连接需要重新挂载云硬盘。
+6. 执行后只验证存储侧, 不自动删除 Cinder 云硬盘。
 
 用户回复明确的“确认”、“执行”或等价指令后才能执行。新增、删除或替换 UUID 后,
 原确认失效, 必须重新预检和确认。

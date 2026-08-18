@@ -76,17 +76,17 @@ To verify:
 1. **`target_iqns` 4 项全相同**:典型多路径应该列出多节点 IQN(如 `tgt1.node-1`、`tgt1.node-2` …)，如果 4 项全是 `tgt1.node-X` 同一节点，说明 portal 列表已塌缩成单节点。这是最强信号。
 
    ```bash
-   # 抽取每个卷的 target_iqns，看是否塌缩
+   # 抽取每个云硬盘的 target_iqns，看是否塌缩
    grep "Connecting to multipath volume" openstack/nova/nova-compute.*.log \
      | grep -oE "'target_iqns': \[[^]]+\]" | sort | uniq -c | sort -rn
    ```
 
 2. **`_find_dm_device: wwid fallback also failed`**:multipath 扫了所有 dm-X 都找不到这个 wwid，是 `VolumeDeviceNotFound` 的最直接前置告警。
 
-3. **后端 target 日志中"没有"这卷的 mapping**:去对应 `alcubierre-target.<node>.log` 里搜该 wwid / `volume-<id>` / LUN 号，**找不到 `Applying volume mapping` 或 `Mapped lun` 记录**比 nova 侧的 `VolumeDeviceNotFound` 更上游 —— 证明远端 target 根本没在承载这卷。
+3. **后端 target 日志中"没有"这云硬盘的 mapping**:去对应 `alcubierre-target.<node>.log` 里搜该 wwid / `volume-<id>` / LUN 号，**找不到 `Applying volume mapping` 或 `Mapped lun` 记录**比 nova 侧的 `VolumeDeviceNotFound` 更上游 —— 证明远端 target 根本没在承载这云硬盘。
 
    ```bash
-   # 用 wwid 反查后端 target 是否真的服务这卷
+   # 用 wwid 反查后端 target 是否真的服务这云硬盘
    for d in ecs.*/; do
      n=$(basename "$d" | cut -d. -f2)
      hit=$(grep -l "<WWID_NO_PREFIX_3>" "$d/alcubierre/alcubierre-target.node-"*.log 2>/dev/null | wc -l)
@@ -94,11 +94,11 @@ To verify:
    done
    ```
 
-4. **同节点对照组**:在 nova-compute 重启后，**同时**看节点上其它 VM 是否成功 resume。
+4. **同节点对照组**:在 nova-compute 重启后，**同时**看节点上其它云主机是否成功 resume。
 
    - 全部失败 → 节点级问题(基础设施 / Galera / RabbitMQ / OS)
-   - 只这一台失败、其它成功 → **VM 个体 + 卷个体的 BDM/拓扑问题**(本场景)
-   - 失败 VM 都有 iSCSI 卷、成功的都是本地盘/RBD → 进一步聚焦在 iSCSI 后端
+   - 只这一台失败、其它成功 → **云主机个体 + 云硬盘个体的 BDM/拓扑问题**(本场景)
+   - 失败云主机都有 iSCSI 云硬盘、成功的都是本地盘/RBD → 进一步聚焦在 iSCSI 后端
 
    ```bash
    # 一行抓出节点上所有 resume 结果
@@ -269,7 +269,7 @@ If some instances resume successfully while others fail, compare:
 
 ---
 
-## Scenario 7: 实战 case — VM 启动失败排查的高确定性路径
+## Scenario 7: 实战 case — 云主机启动失败排查的高确定性路径
 
 **用户问题**:"分析云主机 `<UUID>` 在某天的启动异常"。
 
@@ -290,7 +290,7 @@ grep "$VM" ecs.<node>/openstack/nova/nova-compute.*.log | grep -oE "req-[0-9a-f-
 
 > 找到的 req 是后续跨服务关联的钥匙。
 
-### Step 2:抽 VM 的事件主线(结论性事件)
+### Step 2:抽云主机的事件主线(结论性事件)
 
 只看"结论性"事件，不要被几千行 INFO 淹没:
 
@@ -300,9 +300,9 @@ grep "$VM" ecs.<node>/openstack/nova/nova-compute.*.log \
   | awk -F' ¦ ' '{raw=$5; sub(/^[^F]*F /, "", raw); print $1, "|", substr(raw,1,250)}'
 ```
 
-读得出"开始 → 销毁 → 重连卷 → 成功/失败 → ERROR"的就是主线。
+读得出"开始 → 销毁 → 重连云硬盘 → 成功/失败 → ERROR"的就是主线。
 
-### Step 3:如果是"卷连接"失败，**必看 4 个东西**
+### Step 3:如果是"云硬盘连接"失败，**必看 4 个东西**
 
 ```bash
 # (a) BDM 给的 target 列表 + wwid
@@ -317,7 +317,7 @@ grep "iscsi session list" ecs.<node>/openstack/nova/nova-compute.*.log | tail -3
 # (c) 重试次数 + 间隔(判断是否 4 分钟超时模式)
 grep -c "Connecting to multipath volume.*<VOLUME_ID>" ecs.<node>/openstack/nova/nova-compute.*.log
 
-# (d) 远端 target 是否真在服务这卷(最上游证据)
+# (d) 远端 target 是否真在服务这云硬盘(最上游证据)
 WWID=<wwid_no_prefix3>
 for d in ecs.*/; do
   n=$(basename "$d" | cut -d. -f2)
@@ -328,7 +328,7 @@ done
 
 ### Step 4:同节点对照组(强诊断手段)
 
-同时间窗内同节点上的**其它 VM** 是否成功:
+同时间窗内同节点上的**其它云主机**是否成功:
 
 ```bash
 grep -E "Instance rebooted successfully|Failed to resume instance" \
@@ -338,13 +338,13 @@ grep -E "Instance rebooted successfully|Failed to resume instance" \
 ```
 
 - 全部失败 -> 出现节点级或基础设施信号, 去 Step 5 定向检查对应分支。
-- 只这一台失败 -> 聚焦该 VM 的卷、BDM、镜像或 qemu 因果链, 继续验证底层触发机制,
+- 只这一台失败 -> 聚焦该云主机的云硬盘、BDM、镜像或 qemu 因果链, 继续验证底层触发机制,
   不因故障范围较小就直接输出根因结论。
 
 ### Step 5:按信号检查上游基础设施
 
-只有对照组显示多个 VM 同时失败、主服务日志指向基础设施, 或当前证据无法解释直接失败
-时, 才选择与信号匹配的检查。不要把以下所有命令作为每个 VM 工单的固定步骤。
+只有对照组显示多个云主机同时失败、主服务日志指向基础设施, 或当前证据无法解释直接失败
+时, 才选择与信号匹配的检查。不要把以下所有命令作为每个云主机工单的固定步骤。
 
 ```bash
 # (a) OS 层:内核错误、OOM、磁盘 I/O、网络链路
@@ -368,12 +368,12 @@ grep -E "systemctl|reboot|shutdown|drain|reset|kubectl delete" \
   ecs.<node>/openstack/dozer/bash-history.*.log | tail -20
 ```
 
-命中结果先作为关联线索。只有能够与目标 VM、请求和时间窗建立因果关系, 并解释它如何
+命中结果先作为关联线索。只有能够与目标云主机、请求和时间窗建立因果关系, 并解释它如何
 触发直接失败时, 才能写入根因; 否则记录为待验证线索或证据缺口。
 
 **快速判断分支:**
-- 基础设施无异常，仅个别 VM 失败 → 聚焦 VM 个体(卷 / BDM / 镜像)
-- 基础设施有异常 + 多个服务同时报错 → 先解基础设施问题，再回看 VM
+- 基础设施无异常，仅个别云主机失败 → 聚焦云主机个体(云硬盘 / BDM / 镜像)
+- 基础设施有异常 + 多个服务同时报错 → 先解基础设施问题，再回看云主机
 - 仅 iSCSI target `Connection refused` → 检查 Alcubierre 节点状态和启动时序
 
 ### Step 6:节点重启时间 + 服务可用时间对齐
@@ -399,15 +399,15 @@ for svc in nova-compute cinder-volume alcubierre-target alcubierre-node libvirt 
 done
 ```
 
-如果 nova-compute 重连卷时**后端 target 还没启动 10 秒**，前几次失败是正常的;只要总重试窗口(默认 ~4 分钟)内拿到设备就算成功。
+如果 nova-compute 重连云硬盘时**后端 target 还没启动 10 秒**，前几次失败是正常的;只要总重试窗口(默认 ~4 分钟)内拿到设备就算成功。
 
 ### Step 7:写报告(用 [analysis-playbook.md](analysis-playbook.md) 模板)
 
 务必包含:
 - **结论 1 句话** + 关键失败行 file:line
-- **时间线表**:节点 boot → 服务 ready → VM 事件 → 失败时刻
-- **同节点对照组**结果(成功 vs 失败的 VM 各几台、差异点是什么)
-- **未验证项**:哪些证据是间接的(例如"日志窗口内没有 cinder 操作"≠"cinder 从来没操作过这卷")
+- **时间线表**:节点 boot → 服务 ready → 云主机事件 → 失败时刻
+- **同节点对照组**结果(成功 vs 失败的云主机各几台、差异点是什么)
+- **未验证项**:哪些证据是间接的(例如"日志窗口内没有 cinder 操作"≠"cinder 从来没操作过这云硬盘")
 
 ### 这类问题的高频根因 TOP 5
 
@@ -416,5 +416,5 @@ done
 | 1 | **BDM connection_info 陈旧/塌缩**(本案例) | `target_iqns` 4 项全相同;远端 target 无 mapping;wwid fallback 失败 |
 | 2 | **节点重启后 alcubierre/cinder 后端未就绪** | nova reconnect 时 target 日志显示服务尚未 Starting |
 | 3 | **iSCSI 网络瞬断** | os/messages 中 `iscsi: session.*recovery`、`link is down`;只此一次重试就成功 |
-| 4 | **RBD 卷在 Ceph 健康异常** | ceph HEALTH_ERR/PG down，nova-compute 卡在 `librbd` 调用 |
-| 5 | **libvirt/qemu 启动失败**(非卷问题) | qemu.instance-<HEX>.log 末尾出现 `qemu-kvm:` 错误;nova 看到 domain define 成功但 start 失败 |
+| 4 | **RBD 云硬盘在 Ceph 健康异常** | ceph HEALTH_ERR/PG down，nova-compute 卡在 `librbd` 调用 |
+| 5 | **libvirt/qemu 启动失败**(非云硬盘问题) | qemu.instance-<HEX>.log 末尾出现 `qemu-kvm:` 错误;nova 看到 domain define 成功但 start 失败 |

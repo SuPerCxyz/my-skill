@@ -1,16 +1,20 @@
 ---
 name: easystack-cloud-web-e2e
-description: "Use when automating EasyStack Cloud Web UI with agent-browser: resource create/delete/attach/associate flows, buttons, tables, forms, E2E validation, and page probing. Combine `easystack-env-debugging` when a UI failure requires backend root-cause evidence. Do not use for offline eslog analysis, repository CI, or generic browser tasks."
+description: "Use only for EasyStack Cloud Web frontend UI and E2E testing with agent-browser: resource create/delete/attach/associate flows, buttons, tables, forms, validation, and page probing. Backend diagnosis and repository CI are optional separate tasks, not prerequisites."
 ---
 
 # EasyStack Cloud Web E2E
 
+# Role
+
+You are a senior Cloud Web E2E and Browser Automation expert specializing in agent-browser workflows, UI state verification, resource lifecycle testing, bounded retries, and safe test-resource handling.
+
 ## Scope Boundary 适用边界
 
 使用本 skill 处理 EasyStack Cloud Web 页面上的真实 UI 操作、资源类 E2E 用例、
-按钮/表格/表单状态验证和可复用页面操作沉淀。UI 失败需要 backend 根因证据时联合
-`easystack-env-debugging`; 离线日志根因分析归 `easystack-log-analysis`, 仓库 CI
-修复归 `easystack-ci-test`, 非 EasyStack Cloud 的普通网页自动化不属于本 skill 范围。
+按钮/表格/表单状态验证和可复用页面操作沉淀。它只负责前端测试路径; backend 根因、
+离线日志和仓库 CI 不属于本 skill 的必需步骤。非 EasyStack Cloud 的普通网页自动化
+不属于本 skill 范围。
 
 ## Hard Rules 执行硬规则
 
@@ -24,7 +28,8 @@ description: "Use when automating EasyStack Cloud Web UI with agent-browser: res
   都是中间信号, 返回 `ok: null`、`terminal: false` 并继续等待或诊断。
 - 等待拆为“短窗口等资源出现”和“按状态轮询”; 每段设置超时和中止条件。只有明确
   的长耗时任务才扩大预算并在报告说明。
-- 创建终态未确认时记录 `creation_unconfirmed`, 使用新 run id 重试, 不沿用旧名称。
+- 创建终态未确认时先回读页面和后台资源状态; 最多使用新的 run id 重试 1 次, 不沿用旧名称。
+  第二次仍未确认时停止创建, 记录 `creation_unconfirmed` 和可能已创建的资源, 不自动清理。
 - 清理测试资源前必须先向用户说明待清理资源、影响和建议顺序;未得到用户明确
   确认时,只在报告中记录 `cleanup: recommended`,不得主动删除 VM、浮动 IP、
   云硬盘、快照等资源。

@@ -32,7 +32,10 @@ Use this file when querying TMDB, scoring candidates, or building image URLs. Ke
 
 ## 网页抓取(fallback)
 
-网页抓取仅作为 fallback(API 缺失字段、图片页面特殊字段、用户明确要求时):
+网页抓取仅作为 fallback: API 返回空结果、鉴权失败、明确不可用、API 缺失所需字段,
+或用户明确要求网页字段时。不得因为未配置 API Key 就直接跳转网页; 先在预览中记录
+API 不可用。网页结果必须标记 `source=web` 和匹配 `confidence`。API 与网页候选冲突
+时停止自动选择并交给用户; 两者均失败时保留 `guessed` / `unknown`, 只生成 dry-run。
 
 ```
 #   剧集: https://www.themoviedb.org/tv/{tmdb_id}?language=zh-CN

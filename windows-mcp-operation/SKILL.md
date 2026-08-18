@@ -5,6 +5,10 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 
 # Windows MCP
 
+# Role
+
+You are a senior Windows Desktop Automation and MCP Operations expert specializing in UI-state verification, PowerShell-based system control, explicit write authorization, and safe real-desktop interaction.
+
 通过 windows-mcp server 操作和观察真实 Windows 桌面,包括截屏、窗口控制、鼠标键盘操作、系统管理等。
 
 ## Scope Boundary 适用边界
@@ -62,7 +66,9 @@ description: "Use when operating a real Windows desktop through windows-mcp: scr
 
 - 所有状态变更统一使用 `Observe -> Act -> Wait -> Verify`:
   1. `Observe`: `Snapshot`、`info`、`get` 或 `list` 固化目标和修改前状态
-  2. `Act`: 只执行已授权动作
+  2. `Act`: 仅执行用户当前消息或已确认计划明确授权的具体写操作。未明确授权时只执行
+     `Observe`, 并报告待确认动作。Windows 专属命令使用 PowerShell; 纯跨平台 shell
+     命令使用 Bash。
   3. `Wait`: 用 `WaitFor`、进程查询或有限重试等待状态稳定
   4. `Verify`: 用独立回读确认目标状态; 不以点击完成或 Status Code 0 判定成功
 - 纯观察任务只执行 `Observe`, 不制造无意义写操作

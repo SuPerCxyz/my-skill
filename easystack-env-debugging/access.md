@@ -187,14 +187,14 @@ bash easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP>
 bash easystack-env-debugging/scripts/env-access.sh --target <TARGET_IP> --cmd 'whoami; id -u; hostname; pwd'
 ```
 
-- 如果密码错误，先试 `easystack`，再问用户
+- 认证失败时不得猜测或轮换密码。记录脱敏错误信息, 根据脚本返回的缺失配置向用户
+  索取认证方式或凭据路径。
 
 ## SSH 直连/跳板补充说明
 
 - **复杂命令避免嵌套 SSH 引号传递** — 无论是跳板机双层 SSH 还是直连后跳 node，引号和变量展开都容易丢失。通过 `env-access.sh --cmd '<CMD>'` 执行短命令; 复杂排查先用脚本进入交互式会话
 - 直连和 `172.18.*` 跳板模式不要求排障者手写 SSH 命令, 密码或密钥由脚本的对应模式处理
 - **不要从本机直连 K8s 节点内网 IP**(如 10.10.1.x)，必须通过控制节点中转
-- `easystack` 密码可能因环境不同，未知时询问用户
 - 默认只允许查看操作；变更操作必须获得用户明确授权
 
 ## JumpServer 堡垒机模式
@@ -365,6 +365,9 @@ kubectl get nodes -o name
 ```
 
 ### 节点间跳转
+
+`env-access.sh` 是从本机进入目标环境的唯一入口。进入目标环境后, 可以使用节点主机名
+执行节点间 SSH; 禁止从本机直接执行该节点间 SSH。
 
 始终使用主机名而非 IP 地址访问其他节点。节点有多个 IP 分布在管理网、
 存储网、VXLAN 等多个网平面；`/etc/hosts` 由部署工具维护，解析到当前

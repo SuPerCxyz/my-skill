@@ -12,8 +12,8 @@ conda activate easystack-<project>-py<version>
 
 Both `tox -e cover` and `tox -e pep8` run in this same environment. **Never run `tox` directly without activating conda first.**
 
-When fixing pep8 or coverage for a change, follow this loop until both pass or a stop condition
-below is reached:
+When fixing pep8 or coverage for a change, follow this loop for at most 3 repair-and-rerun rounds,
+or stop earlier when a stop condition below is reached:
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -44,7 +44,7 @@ below is reached:
 ## Key Points
 
 - New tests may introduce test failures - fix those before moving on
-- Stop and report instead of continuing when the same failure remains after three targeted fixes,
+- Stop and report instead of continuing when the same failure remains after three repair rounds,
   the required change leaves the user-approved scope, or it requires dependency, root config,
   shared contract, schema, CI, or environment changes without approval.
 - DONE only when all three conditions are met:

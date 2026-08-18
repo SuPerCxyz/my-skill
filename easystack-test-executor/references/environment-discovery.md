@@ -15,13 +15,12 @@ Runtime profile 的字段、缓存和刷新规则以
 
 进入 EasyStack 环境前读取:
 
-- 若已安装 `easystack-env-debugging`, 按需读取其 `access.md`、`auth.md` 和
-  `services.md`。Standalone 安装缺少该 skill 时, 使用用户提供且已授权的等价入口,
-  不猜测 SSH 或跳板参数。
+- 可按需复用现有环境访问文档或统一访问脚本。缺少这些辅助文件时, 使用用户提供且已授权
+  的等价入口, 不猜测 SSH 或跳板参数。
 
-已安装 `easystack-env-debugging` 时必须使用其 `scripts/env-access.sh`, 不手写 SSH
-或跳板链路。Standalone 模式使用用户提供的授权入口; 仅在配套 skill 可用时,
-`172.18.*` 目标才按其 jump host 模式进入控制节点。
+当前环境提供统一 `env-access.sh` 时优先使用, 不手写 SSH 或跳板链路。脚本不可用时使用
+用户提供的授权入口; 未提供 `172.18.*` 的 jump host 参数时停止并请求该入口信息, 不猜测
+控制节点链路。
 
 先做最小只读验证:
 

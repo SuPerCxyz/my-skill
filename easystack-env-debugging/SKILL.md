@@ -1,9 +1,13 @@
 ---
 name: easystack-env-debugging
-description: "Use when investigating live EasyStack Kubernetes/OpenStack incidents, performing authorized runtime changes, or handling high-performance/Alcubierre volume unmap requests through env-access. Use `easystack-test-executor` for planned resource tests; combine offline logs with `easystack-log-analysis`."
+description: "Use when independently investigating live EasyStack Kubernetes/OpenStack incidents, performing authorized runtime changes, or handling high-performance/Alcubierre volume unmap requests through env-access. Offline logs, resource tests, repository CI, and Web E2E are separate optional workflows."
 ---
 
 # EasyStack Environment Debugging
+
+# Role
+
+You are a senior Cloud Native Operations and Linux Systems Debugging expert specializing in live incident investigation, authorized runtime changes, evidence-based root-cause analysis, and version-aligned source analysis.
 
 ## Overview 概览
 
@@ -13,11 +17,9 @@ OpenStack 服务运行在 Kubernetes 中, 通常通过 Helm 部署在 `openstack
 patch 路径验证。完整资源功能和回归用例由 `easystack-test-executor` 执行。
 
 当目标是可访问的运行中环境时使用本 skill。仅分析离线 `.eslog` 或已解压的
-`ecs.*` 目录时使用 `easystack-log-analysis`; 历史故障同时涉及当前环境和本地离线
-日志时联合使用两个 skill。仓库 CI 失败使用 `easystack-ci-test`;
-EasyStack Cloud Web UI 操作使用 `easystack-cloud-web-e2e`。
-Web UI 用例需要 backend 根因分析时, 以 `easystack-cloud-web-e2e` 执行 UI 流程,
-联合本 skill 收集和分析后台证据。
+`ecs.*` 目录时使用离线日志分析流程。资源功能测试、仓库 CI 和 EasyStack Cloud Web UI
+分别属于独立的测试工作流, 不作为本 skill 的前置条件。用户另行要求结合离线日志或
+UI 证据时, 可读取其已有结果作为补充证据, 但本 skill 仍独立完成在线调查路径。
 
 ## Environment-First Fast Path 环境优先快速路径
 
@@ -94,6 +96,10 @@ JumpServer 连接信息由脚本优先从用户 SSH 配置读取。调用者不�
 
 ## Root Cause Triage Order 根因排查顺序
 
+本入口只定义问题调查的路由和停止条件。在线日志的具体查询命令以 [logs.md](logs.md)
+为准, 报告字段和证据规则以 [report-format.md](report-format.md) 为准; 本入口不覆盖
+这两个文件的更具体规则。
+
 用户询问 “为什么失败”、“异常原因”、“创建失败”、“挂载失败”, 或仅提供 traceback、
 错误栈、server UUID、volume UUID 时, 将任务视为根因排查, 而不是资源清单查询。
 用户明确要求批量解挂高性能盘或 Alcubierre 盘时例外, 直接使用专项解挂流程。
@@ -133,19 +139,27 @@ request ID、资源标识、调用组件或依赖关系继续追查: 哪个组�
 5. 根因必须由关联组件、request ID 或资源标识、配置、运行逻辑或外部依赖的实际证据
    说明其如何导致直接失败。涉及代码逻辑时, 只根据实际运行版本、配置和可读取代码
    路径得出结论, 不以经验推断代替验证。
-6. 只能确认直接失败而无法取得底层机制证据时, 明确写 `直接失败已确认, 根本原因未确认`,
+6. 调研 kernel 或系统软件包问题时, 仅当同时满足以下条件才按
+   [source-analysis.md](source-analysis.md) 进入源码调研: 已发现 kernel、驱动、系统调用、
+   动态库或软件包相关直接信号; 已完成对应日志和配置的定向检索; 现有证据只能确认直接失败
+   不能解释触发机制; 且源码分析有明确目标, 例如函数、模块、系统调用或 package 文件。
+   只有通用 ERROR、没有 kernel/package 信号或现有证据已经闭合根因时, 不要 clone 源码。
+   源码结论必须同时记录仓库、版本、commit、构建差异和实际引用路径, 不得用邻近版本的行为
+   冒充目标环境证据。
+7. 只能确认直接失败而无法取得底层机制证据时, 明确写 `直接失败已确认, 根本原因未确认`,
    并在 `未确认项与限制` 中记录最小补证动作。
-7. 证据不足时只能输出 `暂无法确认`, 并在 `未确认项与限制` 中只记录
+8. 证据不足时只能输出 `暂无法确认`, 并在 `未确认项与限制` 中只记录
    客观验证缺口和所需的最小验证。不输出推测、经验性判断或待验证假设。
-8. 输出前逐项反查结论与证据的对应关系。无法指向实际命令结果、日志、
+9. 输出前逐项反查结论与证据的对应关系。无法指向实际命令结果、日志、
    配置或测试结果的内容, 从结论中删除或降级为未确认项。
 
 ## Offline Historical Log Coordination 离线历史日志协同
 
 故障时间超出当前 pod 或 fluentd 的可用日志时间窗, 且用户提供本地 `.eslog` 文件
-或已解压的 `ecs.*` 目录时, MUST 同时加载并使用 `easystack-log-analysis`, 不要只
-依赖运行中环境的当前状态推断历史根因。用户明确要求结合本地离线日志时也直接触发,
-不再用主观的“时间较久”作为唯一判断条件。
+或已解压的 `ecs.*` 目录时, 使用本节的离线位置选择和证据合并规则, 不要只依赖运行中
+环境的当前状态推断历史根因。用户明确要求结合本地离线日志时也直接触发, 不再用主观的
+“时间较久”作为唯一判断条件。离线包解压和检索可由独立的离线日志分析工作流补充, 但
+不可用时必须如实记录离线证据未取得, 不阻塞在线分析。
 
 按以下顺序解析离线日志位置:
 
@@ -157,8 +171,8 @@ request ID、资源标识、调用组件或依赖关系继续追查: 哪个组�
 6. 存在多个候选时, 先按文件名时间窗与故障时间匹配; 多个候选都覆盖故障时间时
    联合分析。用户未提供故障时间且无法唯一选择时, 再向用户确认。
 
-联合分析时, 用 `easystack-log-analysis` 确认离线包时间窗、解压并构建历史证据链;
-用本 skill 补充仍有价值的当前环境状态或执行验证。当前状态与历史日志不一致时,
+同时使用离线和在线证据时, 先确认离线包时间窗、解压并构建历史证据链, 再补充仍有价值的
+当前环境状态或执行验证。当前状态与历史日志不一致时,
 按事件发生时间区分证据, 不得用当前正常状态否定历史故障。最终结论统一按
 [report-format.md](report-format.md) 输出问题调查报告, 开头用自然段说明问题原因且
 不使用表格; 离线证据保留本地 `file:line` 引用, 在线证据标明 pod、服务、对象和时间。
@@ -173,10 +187,10 @@ request ID、资源标识、调用组件或依赖关系继续追查: 哪个组�
 详细写明故障发生过程, 每个因果阶段以具体时间点或时间范围开头, 并写清操作、
 资源显示名称与 UUID、处理节点或组件、状态变化或错误以及对下一阶段的影响。
 表层错误、直接失败和底层根因必须明确区分; 只有实际证据说明触发机制及其传导链时,
-才能将底层机制声明为根因。第 2 节将关键操作时间线与证据合并, 每个事件附具体日志原文、来源和证据说明;
+才能将底层机制声明为根因。第 2 节将关键操作时间线与证据合并, 每个事件附直接证据、来源和证据说明;
 第 3 节记录未确认项与限制; 第 4 节详细分析仅在用户明确要求时输出。默认报告末尾
-提示用户可继续输出详细分析; 输出详细分析时, 按关键操作时间线逐点补充完整日志
-上下文、关联服务日志和深入判断。章节号必须连续, 禁止跳号。
+提示用户可继续输出详细分析; 输出详细分析时, 按关键操作时间线逐点补充完整证据上下文、
+关联服务日志和深入判断。章节号必须连续, 禁止跳号。
 
 上述 [report-format.md](report-format.md) 仅约束问题调查或混合模式中的问题调查报告。
 纯代码调试任务不强制输出第 1 至第 4 节, 应按 [code-debug.md](code-debug.md) 记录
@@ -197,7 +211,8 @@ request ID、资源标识、调用组件或依赖关系继续追查: 哪个组�
 | 验证批量解挂、mapping 批处理、阶段耗时、UUID 去重和中断恢复 | [tests/test-alcubierre-unmap.sh](tests/test-alcubierre-unmap.sh) |
 | 根因排查顺序、当前 pod 日志、fluentd 历史日志回退 | [logs.md](logs.md) |
 | 含问题原因、操作时间线和关键日志的问题调查报告格式 | [report-format.md](report-format.md) |
-| 常见问题:虚拟机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
+| kernel 或系统软件包源码调研、版本对齐和证据记录 | [source-analysis.md](source-analysis.md) |
+| 常见问题:云主机异常、云硬盘异常、服务启动失败、数据库问题、配置排查、只读 Helm 查看 | [scenarios.md](scenarios.md) |
 | OpenStack CLI 认证、busybox pod、admin 凭据 | [auth.md](auth.md) |
 | 服务清单、pod 名称、OVN 网络、Helm release、代码仓库布局 | [services.md](services.md) |
 | OpenStack 组件部署、pod、启动方式详情 | [openstack/index.md](openstack/index.md) |

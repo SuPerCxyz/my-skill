@@ -466,14 +466,14 @@ grep -r "req-<REQUEST_ID>" . --include="*.log"
 ### 检测 `target_iqns` 列表塌缩(BDM 陈旧的强信号)
 
 ```bash
-# 抽出每个卷的 target_iqns 唯一组合及命中次数
+# 抽出每个云硬盘的 target_iqns 唯一组合及命中次数
 grep "Connecting to multipath volume" openstack/nova/nova-compute.*.log \
   | grep -oE "'target_iqns': \[[^]]+\]" | sort | uniq -c | sort -rn
 
 # 4 项全相同 → portal 塌缩 = BDM 已经退化为单节点路径
 ```
 
-### 抽出 VM 完整生命周期主线(屏蔽噪声 INFO)
+### 抽出云主机完整生命周期主线(屏蔽噪声 INFO)
 
 ```bash
 VM=<UUID>
@@ -482,7 +482,7 @@ grep "$VM" openstack/nova/nova-compute.*.log | grep -E \
   | awk -F' ¦ ' '{raw=$5; sub(/^[^F]*F /, "", raw); print $1, "|", substr(raw,1,250)}'
 ```
 
-### 同节点对照组(同时窗内成功 vs 失败的实例)
+### 同节点对照组(同时窗内成功 vs 失败的云主机)
 
 ```bash
 grep -E "Instance rebooted successfully|Failed to resume instance" \
@@ -490,7 +490,7 @@ grep -E "Instance rebooted successfully|Failed to resume instance" \
   | awk -F' ¦ ' '{raw=$5; sub(/^[^F]*F /, "", raw); print $1, "|", substr(raw,1,200)}'
 ```
 
-### 用 wwid 反查后端 target 是否服务这卷
+### 用 wwid 反查后端 target 是否服务这云硬盘
 
 ```bash
 WWID=<wwid>      # 例:36001405acbc174502609ea455fb42783
@@ -499,7 +499,7 @@ for d in ecs.*/; do
   hit=$(grep -l "$WWID" "$d/alcubierre/alcubierre-target.node-"*.log 2>/dev/null | wc -l)
   echo "$n alcubierre-target hits: $hit"
 done
-# 全为 0 → 远端没人在承载这卷 = nova 永远拿不到设备
+# 全为 0 → 远端没人在承载这云硬盘 = nova 永远拿不到设备
 ```
 
 ### 服务可用时间线(节点重启后)
@@ -546,7 +546,7 @@ done
 ### 重试节奏判定(标准 4 分钟超时 vs 短瞬抖动)
 
 ```bash
-# 数同一卷的 Connecting to multipath volume 重试次数和间隔
+# 数同一云硬盘的 Connecting to multipath volume 重试次数和间隔
 VOL=<VOLUME_ID>
 grep "Connecting to multipath volume.*$VOL" openstack/nova/nova-compute.*.log \
   | awk -F' ¦ ' '{print $1}'

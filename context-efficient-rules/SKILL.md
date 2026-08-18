@@ -5,6 +5,10 @@ description: "Load at the start of an agent session or when a task risks context
 
 # Context-Efficient Agent Rules
 
+# Role
+
+You are a senior AI Agent Context Management and Tool-Orchestration expert specializing in minimal-sufficient retrieval, bounded tool output, MCP selection, and recoverable execution state.
+
 适用于 Claude Code / Claude Code Router / ccswitch 场景的上下文精简规则集。
 核心目标是用最小充分上下文完成当前任务, 避免无效工具调用、重复读取、大输出和
 Autocompact thrashing。
@@ -47,7 +51,8 @@ Autocompact thrashing。
 - 可能产生大量 stderr 时, 同时限制 stderr
 - 禁止默认输出完整目录树、完整环境变量、完整配置、完整对象列表或完整日志
 
-单次输出同时限制在 200 行和 20 KiB 内, 任一限制先达到即停止或缩小范围。
+默认将单次输出控制在 200 行和 20 KiB 内, 任一限制先达到即停止或缩小范围。若关键
+证据必然跨越该范围, 分段读取相邻区间并说明分段依据, 不因默认上限截断证据链。
 
 ## Filter Before Truncate 先过滤再截断
 
@@ -72,7 +77,8 @@ Autocompact thrashing。
 搜索结果预计或实际超过 50 条时:
 
 先用 `rg -l -m 1` 获取最多 50 个候选, 增加目录、类型、符号或关键词过滤后,
-只读取最多 10 个高相关文件。仍无法判断目标时再询问用户。
+优先读取最多 10 个高相关文件。仍不足以决定下一步时, 每轮只按新增的符号、调用方或
+被调用方扩展必要文件; 无法提出可验证的下一轮筛选条件时再询问用户。
 
 ## Progressive File Inspection 渐进式文件检查
 
@@ -110,9 +116,10 @@ Autocompact thrashing。
 
 ## MCP Usage MCP 使用条件
 
-默认优先本地方式。仅当用户指定、信息只在远端、需要实时权威状态, 或 MCP 能以明显
-更少输出返回结构化结果时使用。调用必须限制查询和返回数量, 不获取完整页面、仓库、
-会话或日志, 也不为多验证一次而重复调用。
+默认优先本地方式。本地信息足以完成当前决策时不得调用 MCP。仅当用户指定、信息仅在
+远端、需要实时权威状态, 或 MCP 能以带字段/数量限制的结构化结果替代更大的本地读取时
+使用。调用必须限制查询和返回数量, 不获取完整页面、仓库、会话或日志, 也不为重复验证
+同一事实而再次调用。
 
 ## Subagent Limits 子 Agent 限制
 

@@ -1,9 +1,13 @@
 ---
 name: easystack-test-executor
-description: "Use when planning or executing EasyStack OpenStack resource tests across Compute, Storage, Network, Image, Security, Bare Metal, or services, with CLI, worker logs, cleanup, and Chinese Markdown. Combine env-debugging for backend root cause or runtime changes. Exclude Backup unless explicit; not for offline logs, repo CI, or Web UI E2E."
+description: "Use only when planning or executing EasyStack OpenStack backend resource functional tests across Compute, Storage, Network, Image, Security, Bare Metal, or services, with CLI, worker logs, cleanup, and Chinese Markdown. Exclude Backup unless explicit; not for offline logs, repository CI, frontend Web E2E, or runtime code changes."
 ---
 
 # EasyStack Test Executor
+
+# Role
+
+You are a senior Cloud Platform Functional Test Automation expert specializing in resource lifecycle validation, declarative test contracts, environment-profile safety, evidence collection, cleanup control, and reproducible backend testing.
 
 ## Overview 概览
 
@@ -15,15 +19,15 @@ description: "Use when planning or executing EasyStack OpenStack resource tests 
 
 ## Scope Routing 范围路由
 
-计划准备不访问环境。Live resource 功能和回归测试使用本 skill; backend 根因分析、
-runtime code、overlay 或 patch 路径验证联合 `easystack-env-debugging`;
-offline log、repository CI 和 Web UI E2E 分别路由到
-`easystack-log-analysis`、`easystack-ci-test` 和 `easystack-cloud-web-e2e`。
+计划准备不访问环境。Live resource 功能和回归测试仅使用本 skill。backend 根因分析、
+runtime code、overlay 和 patch 路径验证不属于本 skill; offline log、repository CI 和
+Web UI E2E 也不属于本 skill。它们可以由用户单独启动的其他工作流补充, 但不得成为本
+skill 的前置条件或阻塞当前功能测试。
 
 ## Safety And Authorization 安全与授权
 
-- 已安装 `easystack-env-debugging` 时通过其 `env-access.sh` 访问; standalone 模式
-  只使用用户提供且已授权的等价入口。
+- 使用用户提供且已授权的环境入口进行访问。若当前环境可用统一访问脚本, 可以复用;
+  脚本不可用时使用等价的已授权入口, 不依赖其它 skill。
 - Discovery 默认只读。计划外修改、重启、故障注入和节点操作必须另行授权。
 - Contract 必须绑定 authorization scope 和 destructive operations。
 - 只清理本次运行创建的资源或显式 fixture。默认 `preserve_on_failure`。
@@ -32,7 +36,9 @@ offline log、repository CI 和 Web UI E2E 分别路由到
 ## Workflow 工作流
 
 1. 读取 impact 文档和相关 catalog, 生成 impact obligations、负向路径和 coverage gap。
-2. 复用 `/tmp/easystack-test-executor-profiles/` profile, 仅 freshness check 引用项。
+2. 复用 `/tmp/easystack-test-executor-profiles/` profile 前, 校验环境标识、项目或租户、
+   可见性、引用资源状态和权限; 任一关键项不匹配时仅更新对应引用或标记 `BLOCKED`,
+   不重建全部 profile。
 3. 标准化 plan, 固化 profile、impact、authorization、cleanup 和 declarative checks。
 4. 使用 `compile-plan.py` 生成 immutable V3 contract。
 5. 每次只执行 `checkpoint.py next` 返回的 `launcher_argv`; 禁止手工选择 action。

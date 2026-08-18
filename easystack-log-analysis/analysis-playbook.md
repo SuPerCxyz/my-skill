@@ -1,6 +1,6 @@
 # Analysis Playbook
 
-Use this file as the main offline eslog analysis workflow. It coordinates decompression, identifier mapping, timeline construction, and final reporting; use the other reference files only for the specific step you are in.
+Use this file as the main offline eslog analysis workflow. It coordinates decompression, identifier mapping, timeline construction, and final reporting; use the other reference files only for the specific step you are in. The entry `SKILL.md` provides routing and stop conditions; this file provides the detailed sequence.
 
 End-to-end procedure when the user hands you an eslog bundle and a
 symptom description. Goal: produce a structured, evidence-cited analysis.
@@ -19,7 +19,7 @@ when it proves a key event, rather than relying on a later repeat search.
 │    - Time window (≈ when, ± minutes)                         │
 │    - Bundle name (eslog filename gives outer time range)     │
 ├──────────────────────────────────────────────────────────────┤
-│ 2. Decompress (if not yet done)                              │
+│ 2. Decompress (only if output is missing or incomplete)       │
 │    bash scripts/decompress-eslog.sh --input <path>           │
 ├──────────────────────────────────────────────────────────────┤
 │ 3. Inventory: which nodes, which time range                  │
@@ -89,14 +89,14 @@ explicitly** and list what additional data would close the gap.
 `通俗说明`, 用一个自然段向不了解上下文的读者解释已经验证的故障机制和结果。`问题原因`
 按故障发生顺序详细展开, 每个因果阶段以具体时间点或时间范围开头, 并区分用户现象、
 直接失败和有证据支持的底层根因。第 1 至第 3 节必须输出, 第 2 节将关键操作时间线
-与证据合并, 每个事件包含时间、操作、资源显示名称与 UUID、节点或组件、结果、具体
-日志和`path/to/file:line`证据引用; 第 3 节记录未确认项与限制。章节号必须连续。
+与证据合并, 每个事件包含时间、操作、资源显示名称与 UUID、节点或组件、结果、至少一种
+直接证据和证据引用; 优先使用具体日志和`path/to/file:line`, 没有日志时明确记录替代
+证据和日志缺口; 第 3 节记录未确认项与限制。章节号必须连续。
 默认报告末尾提示用户可继续输出详细分析; 用户需要时, 第 4 节按关键操作时间线逐点
-补充完整日志上下文、关联服务日志和深入判断, 不得遗漏事件。
+补充完整证据上下文、关联服务日志和深入判断, 不得遗漏事件。
 
 命令使用 `bash` fenced code block, 日志使用 `text`, 配置使用对应语言标识。任何
-一行都不得以 `-`、`#` 或 `$` 开头。与 `easystack-env-debugging` 联合分析时继续
-使用同一模板, 不切换输出结构。
+一行都不得以 `-`、`#` 或 `$` 开头。合并在线补充证据时继续使用同一模板, 不切换输出结构。
 
 ## Anti-Patterns (Don't)
 
@@ -116,13 +116,13 @@ explicitly** and list what additional data would close the gap.
 > 这些手段用于优先缩小搜索范围。只有证据链完整时才能确认根因, 不承诺固定耗时。
 
 1. **同节点 / 同时段对照组**
-   故障 VM A 失败的同时，看节点上其它 VM 是否都失败 / 都成功。
+   故障云主机 A 失败的同时，看节点上其它云主机是否都失败 / 都成功。
    - 全失败 → 节点级 / 基础设施 / 上游服务问题
-   - 只 A 失败 → A 个体(卷、BDM、镜像、qemu xml)问题
+   - 只 A 失败 → A 个体(云硬盘、BDM、镜像、qemu xml)问题
    这是把搜索空间从"整个集群"快速收敛到"单实例"的最强手段。
 
 2. **服务可用时间线 vs 失败动作时间**
-   节点重启后，nova-compute 何时开始重连卷，alcubierre-target / cinder-volume / libvirt 何时 Starting，对齐时间。如果 nova 在依赖未 ready 时就开始重连，**前几次失败正常**;如果 4 分钟重试窗口内依赖一直没 ready，可能不是 BDM 问题而是部署/编排问题。
+   节点重启后，nova-compute 何时开始重连云硬盘，alcubierre-target / cinder-volume / libvirt 何时 Starting，对齐时间。如果 nova 在依赖未 ready 时就开始重连，**前几次失败正常**;如果 4 分钟重试窗口内依赖一直没 ready，可能不是 BDM 问题而是部署/编排问题。
 
 3. **重试节奏 = 看是不是标准超时**
    多路径连接典型退避节奏 10/10/10/30/65/130/255/~512s，累计接近 17 分钟。**看到这个节奏意味着 "_connect_volume 等了完整一轮"**，不是网络瞬时抖动。
@@ -135,3 +135,10 @@ explicitly** and list what additional data would close the gap.
 
 6. **req-ID 全链路追踪**
    nova-compute 里抓到主 req(如 `req-30eb5314-...`)，用它一路追到 cinder-volume、alcubierre-node、glance-api，能直接看到"一次用户动作触发的所有跨服务调用"。比按 VM UUID 找更精准。
+
+## Search Stop Conditions 搜索停止条件
+
+完成以下条件后停止扩展日志搜索: 已覆盖故障时间窗、目标资源所在节点、当前已发现的
+关联服务和直接失败证据。只有发现新的 request ID、资源标识、节点、底层异常信号或
+矛盾证据时, 才扩展到新的节点或服务。同一节点、服务、时间窗和关键词已经取得证据时,
+不重复执行相同查询。

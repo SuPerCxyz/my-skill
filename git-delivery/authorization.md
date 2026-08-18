@@ -6,26 +6,33 @@
 
 用户要求"生成提交信息"、"整理 commit message"时, 只允许检查 diff、分析逻辑范围、
 生成提交信息。不代表授权 `git add`、`git commit`、`git commit --amend`、
-`git review` 或 `git push`。
+`git review` 或 `git push`。生成后必须停止, 明确询问用户是否需要提交。
 
 ## 提交当前修改
 
 用户明确要求"提交代码"、"帮我 commit"、"提交当前修改"时, 可以视为授权检查并
-暂存本次任务文件、执行普通 `git commit`, 以及在明确属于当前未合并 Gerrit
-Change 时执行必要的 `git commit --amend`。但不自动授权 `git review`、
-`git push`、rebase、merge、cherry-pick 或 force push。
+暂存本次任务文件、执行普通 `git commit`。不代表授权 `git commit --amend`、
+`git review`、`git push`、rebase、merge、cherry-pick 或 force push。完成 commit
+后必须停止并询问下一步。
+
+## Amend 当前提交
+
+只有用户明确要求"amend"、"修改当前提交"或等价表述时, 才可执行
+`git commit --amend`。不得将"提交代码"、"提交到 Gerrit"或生成提交信息解释为
+amend 授权。完成 amend 后必须停止并询问下一步。
 
 ## 提交到 Gerrit
 
 用户明确要求"提交到 Gerrit"、"执行 git review"、"更新原评审"、"上传新的
-Patch Set"时, 可以视为授权检查并暂存相关文件、执行必要的 commit 或 amend、
-执行 `git review -r origin <branch>`。不自动授权 interactive rebase、squash、
-重排提交、merge、cherry-pick、force push、abandon 或删除远程 Change。
+Patch Set"时, 只授权执行 `git review -r origin <branch>`。如果上传前需要 commit 或
+amend, 必须先取得对应的单独授权; 不得自动补做。完成 `git review` 后必须停止。
+不自动授权 interactive rebase、squash、重排提交、merge、cherry-pick、force push、
+abandon 或删除远程 Change。
 
 ## Push
 
 只有用户明确要求 push 时, 才能执行普通 push。不得把"commit"或"提交代码"自动
-解释为 push。
+解释为 push。完成 push 后必须停止。
 
 ## 历史改写
 

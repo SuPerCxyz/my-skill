@@ -1,9 +1,13 @@
 ---
 name: easystack-ci-test
-description: "Use when validating and fixing EasyStack OpenStack repository CI: tox cover, tox pep8, flake8, coverage gaps, stestr, privsep tests, Miniconda/tox setup, and updating the current Gerrit change after tests pass. Do not use for live environments, offline logs, Web UI E2E, or non-EasyStack projects."
+description: "Use only for EasyStack OpenStack repository CI: tox cover, tox pep8, flake8 diagnostics, coverage gaps, stestr, privsep tests, and Miniconda/tox setup. This skill validates code CI only; it does not run backend functional tests, frontend E2E, live environment debugging, offline log analysis, or delivery writes."
 ---
 
 # EasyStack CI Test
+
+# Role
+
+You are a senior Cloud Platform Python CI and Test Automation expert specializing in tox, flake8, stestr, coverage diagnostics, bounded repair cycles, and repository-safe validation.
 
 EasyStack OpenStack 项目使用 tox 进行 CI 测试。本 skill 覆盖运行 `tox -e pep8`(flake8 代码检查) 与 `tox -e cover`(单元测试覆盖率), 并在失败时自动修复直到两者全部通过。
 
@@ -31,8 +35,10 @@ EasyStack OpenStack 项目使用 tox 进行 CI 测试。本 skill 覆盖运行 `
 
 1. 先按 [setup.md](setup.md) 定位 Miniconda、激活或创建 `easystack-<project>-py<version>` 环境。
 2. 如果找不到环境或依赖, 先报告建议安装命令和影响, 等待用户明确确认。
-3. 环境激活后运行 tox; 任一失败时按 [auto-fix.md](auto-fix.md) 循环修复。
-4. 两项通过后, 仅在用户明确要求提交时按 [gerrit-delivery.md](gerrit-delivery.md)
+3. 环境激活后先运行 `cover`, 再运行 `pep8`; 任一失败时按 [auto-fix.md](auto-fix.md)
+   处理, 最多修复并重跑 3 轮。
+4. 需要修改 `tox.ini`、依赖、测试配置、共享契约或环境时立即停止并报告, 不自动扩大范围。
+5. 两项通过后, 仅在用户明确要求交付时按 [gerrit-delivery.md](gerrit-delivery.md)
    amend 当前 commit, 保留原 `Change-Id`, 再运行 `git review -r <remote>`。
 
 ```bash

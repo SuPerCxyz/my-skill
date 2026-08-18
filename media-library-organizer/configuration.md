@@ -45,6 +45,9 @@ options:
 - `staging_root` 必须位于 `media_root` 或 `target_root` 内
 - 所有 `old_path` / `new_path` / `staging_path` 都必须经过 `realpath` 校验
 - 禁止 `new_path` 跳出 `media_root`
+- 扫描只覆盖用户指定的 source root, 不跟随解析后位于 root 外的符号链接
+- source root 为空、没有媒体文件、包含多个未指定的媒体 root 或发现嵌套媒体库时, 停止
+  自动扩展扫描范围并在 dry-run 中报告
 
 ## Dry-Run Behavior Rules Dry-Run 行为规则
 

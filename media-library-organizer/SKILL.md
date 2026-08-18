@@ -5,6 +5,10 @@ description: "Use when organizing local media library folders for movies, TV, va
 
 # Media Library Organizer
 
+# Role
+
+You are a senior Media Library Metadata and File-Safety Automation expert specializing in TMDB matching, ffprobe-assisted classification, dry-run planning, reversible renaming, NFO generation, and rollback-safe execution.
+
 媒体库整理
 
 ## Scope Boundary 适用边界
@@ -20,8 +24,8 @@ description: "Use when organizing local media library folders for movies, TV, va
 高置信度自动填充
 低置信度必须让用户选
 
-能从 TMDB API 拿就从 API 拿
-不能拿再 fallback 网页抓取
+优先使用 TMDB API
+仅当 API 返回空结果、鉴权失败、明确不可用或用户要求网页字段时才网页 fallback
 
 能用 ffprobe 就不用猜
 猜出来的字段必须标记 guessed
@@ -41,6 +45,8 @@ description: "Use when organizing local media library folders for movies, TV, va
 3. 目标文件已存在时默认跳过。只有 plan 明确使用 `replace`、预览列出备份且用户确认
    当前 `plan_id` 时才允许覆盖。
 4. TMDB 匹配置信度不足时,必须列出候选项让用户选择。
+   API 与网页结果冲突时同样停止自动选择并列出候选。两者都无法匹配时保留
+   `guessed` / `unknown`, 继续 dry-run 预览, 不执行真实修改。
 5. 所有真实修改前必须生成 `_rename_mapping.json` 和可执行的 `_rollback.sh`。
 6. 回滚范围必须覆盖 rename/move、本次新建的 NFO/图片/目录、替换前备份和本次删除
    的空目录; 回滚前先校验 mapping, 并支持 dry-run。
@@ -63,6 +69,8 @@ description: "Use when organizing local media library folders for movies, TV, va
 - **多个资源的父文件夹**:如 `综艺/` 或 `电视剧/` 或 `下载/待整理/`
 
 Skill 会自动扫描并逐个处理。
+只扫描用户指定的 root; root 为空、没有媒体文件或发现嵌套媒体库/多个 root 时停止自动
+扩大范围, 在预览中报告并请求用户指定范围。不得跟随指向 root 外的符号链接。
 
 ---
 

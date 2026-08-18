@@ -1,9 +1,13 @@
 ---
 name: easystack-log-analysis
-description: "Use when analyzing offline EasyStack `.eslog` bundles or extracted `ecs.*` directories across OpenStack, Kubernetes, OS, Ceph, RabbitMQ, MariaDB, and operation history. Combine with `easystack-env-debugging` for older incidents that also require live checks. Do not use for unrelated generic logs."
+description: "Use when independently analyzing offline EasyStack `.eslog` bundles or extracted `ecs.*` directories across OpenStack, Kubernetes, OS, Ceph, RabbitMQ, MariaDB, and operation history. Live checks are optional supplemental evidence, not a prerequisite. Do not use for unrelated generic logs."
 ---
 
 # EasyStack Log Analysis
+
+# Role
+
+You are a senior Cloud Platform Offline Forensics and Distributed Systems Troubleshooting expert specializing in `.eslog` analysis, cross-service evidence correlation, time-window reconstruction, and version-aligned Linux source analysis.
 
 ## Overview 概览
 
@@ -13,11 +17,10 @@ EasyStack 诊断日志以带密码的 `.eslog` 文件形式下发。解压后得
 
 ## Scope Boundary 适用边界
 
-适用于用户提供 `.eslog` 或已解压 `ecs.*` 目录的离线分析。历史故障同时需要登录
-运行中环境执行 kubectl/SSH 检查时, MUST 联合使用 `easystack-env-debugging`, 并以两个
-skill 共同维护的行首安全、无表格报告格式输出。代码仓库测试使用
-`easystack-ci-test`; Web 页面
-E2E 使用 `easystack-cloud-web-e2e`。
+适用于用户提供 `.eslog` 或已解压 `ecs.*` 目录的离线分析。本 skill 不登录运行中环境,
+也不依赖在线检查即可完成离线证据链和报告。用户已提供在线检查结果时, 可按发生时间合并
+为补充证据; 无法获得时如实记录限制。代码 CI、backend 功能测试和 Web E2E 均不属于本
+skill 范围。
 
 ## Quick Reference 快速参考
 
@@ -25,7 +28,8 @@ E2E 使用 `easystack-cloud-web-e2e`。
 |------------|------|
 | **标准端到端分析流程 + 报告模板** | [analysis-playbook.md](analysis-playbook.md) |
 | 含问题原因、操作时间线和关键日志的问题调查报告格式 | [report-format.md](report-format.md) |
-| **跨域关联分析矩阵(云主机/云盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
+| kernel 或系统软件包源码调研、版本对齐和证据记录 | [source-analysis.md](source-analysis.md) |
+| **跨域关联分析矩阵(云主机/云硬盘/网络/镜像/裸金属 必看哪些日志)** | [cross-domain-analysis.md](cross-domain-analysis.md) |
 | 解压 eslog 并生成组件视图 | [decompress.md](decompress.md) |
 | 安全解压脚本 | [scripts/decompress-eslog.sh](scripts/decompress-eslog.sh) |
 | 验证 `.log`、merge 和组件视图行为 | [tests/test-decompress-eslog.sh](tests/test-decompress-eslog.sh) |
@@ -35,6 +39,10 @@ E2E 使用 `easystack-cloud-web-e2e`。
 | 故障排查场景与实战 case | [troubleshooting.md](troubleshooting.md) |
 
 ## Workflow 工作流
+
+本节定义离线分析的路由和停止条件。端到端步骤以 [analysis-playbook.md](analysis-playbook.md)
+为准, 解压行为以 [decompress.md](decompress.md) 为准, 报告字段和证据规则以
+[report-format.md](report-format.md) 为准; 发生冲突时使用这些具体文件的规则。
 
 ### Step 0: Read Report Contract 读取报告契约
 
@@ -53,12 +61,13 @@ bash scripts/decompress-eslog.sh --input <FILE_OR_DIR> --output <OUTPUT_DIR>
 ```
 
 输出: `ecs.<host>.<date>.<N>/` 目录(每个 host 一个), 并在输出目录下生成
-`components/<原始组件路径>/` 普通文件视图。再次解压时直接合并同名目录:
-同路径文件使用新内容覆盖, 新文件追加, 本次 bundle 未包含的旧文件保留。不要因已有
-结果而跳过解压。脚本保留原始 `.log.gz`, 统一生成可直接查看和搜索的 `.log`, 并将
-普通 `.log` 文件复制到组件视图中。组件视图不保留 `ecs.node-*` 中间层; 同名文件按
-源文件大小保留较大者。后续分析仍以原始 `ecs.*` 下的 `.log` 作为证据来源, 不直接
-读取压缩日志。
+`components/<原始组件路径>/` 普通文件视图。目标 bundle 已有经过校验的对应输出目录时,
+不重复解压。只有输出缺失、不完整或用户明确要求刷新时才重新解压; 刷新时使用新的输出
+目录, 或先明确旧目录会被合并。同路径文件使用新内容覆盖, 新文件追加, 本次 bundle 未包含的
+旧文件保留。脚本保留原始 `.log.gz`, 统一生成可直接查看和搜索的 `.log`, 并将普通 `.log`
+文件复制到组件视图中。组件视图不保留 `ecs.node-*` 中间层; 同名文件按源文件大小保留
+较大者。确认输出目录包含目标 bundle 的完整日志后, 停止解压并进入时间窗确认。后续分析
+仍以原始 `ecs.*` 下的 `.log` 作为证据来源, 不直接读取压缩日志。
 
 > **时间窗提示**: eslog 文件名本身编码了采集时间范围:
 > `ecs.20260618-20260623183823.eslog` = 2026-06-18 00:00 -> 2026-06-23 18:38:23。
@@ -91,9 +100,9 @@ bash scripts/decompress-eslog.sh --input <FILE_OR_DIR> --output <OUTPUT_DIR>
 > **重要**: 默认搜索所有节点目录(`ecs.node-*`), 除非用户指定只分析某个节点。
 > 先用解压脚本确保压缩日志已生成对应 `.log`, 后续只搜索 `.log`。
 
-### Step 3: 定位目标 VM 所在计算节点
+### Step 3: 定位目标云主机所在计算节点
 
-用 VM / volume UUID 查找哪些节点的日志包含相关事件:
+用云主机 / 云硬盘 UUID 查找哪些节点的日志包含相关事件:
 
 ```bash
 # Find which nodes have logs mentioning a VM UUID
@@ -106,7 +115,7 @@ done
 
 ### Step 3.5: 解析标识符映射
 
-深入排查前, 先解析跨层标识符 - 同一个 VM 在栈内有**三种**名字, 各自出现在不同日志中。
+深入排查前, 先解析跨层标识符 - 同一个云主机在栈内有**三种**名字, 各自出现在不同日志中。
 
 ```bash
 # VM UUID -> libvirt domain name (instance-0000XXXX) -> qemu log file
@@ -133,8 +142,8 @@ grep -r "req-<REQ_UUID>" .
 
 按问题类型聚焦对应日志目录:
 
-- **计算 / VM 问题** -> `openstack/nova/`(nova-compute.log 为主)
-- **云盘 / 存储问题** -> `openstack/cinder/`, `libvirt/`, `alcubierre/`, `openstack/nova/`
+- **计算 / 云主机问题** -> `openstack/nova/`(nova-compute.log 为主)
+- **云硬盘 / 存储问题** -> `openstack/cinder/`, `libvirt/`, `alcubierre/`, `openstack/nova/`
 - **网络问题** -> `openstack/neutron/`, `os/openvswitch/`
 - **Ceph 问题** -> `ceph/`, `ceph-k8s/`
 - **K8s 基础设施** -> `kubernetes/`, `os/messages`
@@ -159,12 +168,23 @@ grep -r "req-<REQ_UUID>" .
 
 ### Step 6: 跨服务关联
 
-对跨服务问题(如云盘挂载失败), 先围绕同一资源、request ID 或时间窗关联主服务日志,
+对跨服务问题(如云硬盘挂载失败), 先围绕同一资源、request ID 或时间窗关联主服务日志,
 再沿实际调用、错误和状态变化逐层扩展。例如 iSCSI 信号可关联 Nova、Cinder、
 Alcubierre 和 `os/messages.*.log`; 只有出现 DB、RPC、时钟或 Ceph 信号, 或现有证据
 无法闭合根因时, 才定向检查 MariaDB、RabbitMQ、Chrony 或 Ceph。人工变更历史仅在
 已有人工操作线索时检查, 并按事件时间窗检索和脱敏。每次扩展都记录触发信号; 关联错误
 本身不能直接作为根因。
+
+### Step 6.5: 系统源码深入分析
+
+仅当同时满足以下条件时, 才按 [source-analysis.md](source-analysis.md) 执行源码调研:
+已发现 kernel、驱动、系统调用、动态库或 RPM/DEB 软件包相关直接信号; 已完成对应日志
+和配置的定向检索; 现有证据只能确认直接失败不能解释触发机制; 且源码分析有明确目标,
+例如函数、模块、系统调用或 package 文件。只有通用 ERROR、没有 kernel/package 信号或
+现有证据已经闭合根因时, 不要 clone 源码。先从 bundle 中确认发行版、kernel、软件包版本、
+架构、构建 release 和必要的补丁信息, 再在本地临时目录 clone 社区源码并切换到对应版本
+或 commit/tag。源码仅用于只读分析, 不把临时源码当作 bundle 中实际运行的代码; 版本、
+commit、补丁和构建差异未对齐时, 只能将结果写为辅助线索或未确认项。
 
 ### Step 7: Report 汇总报告
 
@@ -174,13 +194,12 @@ MUST 使用 [report-format.md](report-format.md) 的无表格问题调查报告�
 `修复建议`; `通俗说明`只用自然语言解释已验证的故障机制和结果。`问题原因`必须
 区分用户现象、直接失败和底层根因, 并用实际证据说明触发机制如何导致直接失败。
 只能确认直接失败时, 明确写`直接失败已确认, 根本原因未确认`, 并在第 3 节记录最小
-补证动作。第 2 节将关键操作时间线与证据合并, 每个项目使用`事件 N`标签, 附具体
-日志原文、来源和证据说明; 不使用与章节号冲突的裸数字序号。第 4 节详细分析仅在用户
+补证动作。第 2 节将关键操作时间线与证据合并, 每个项目使用`事件 N`标签, 附直接证据、
+来源和证据说明; 不使用与章节号冲突的裸数字序号。第 4 节详细分析仅在用户
 明确要求时输出。报告格式、字段顺序、禁用行首和离线 `path/to/file:line` 引证均以
 [report-format.md](report-format.md) 为准, 不在本入口维护另一套完整模板。
 
-与 `easystack-env-debugging` 联合分析时, 两个 skill 使用相同模板, 不再切换为表格或
-其他报告结构。
+同时使用在线补充证据时仍使用相同模板, 不切换为表格或其他报告结构。
 
 ## Execution Feedback 执行反馈
 

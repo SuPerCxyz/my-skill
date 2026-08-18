@@ -18,7 +18,7 @@
 
 ## Common Resource Issues 常见资源问题
 
-虚拟机异常和云硬盘异常属于常见问题。用户说 “看某个虚拟机异常原因”、
+云主机异常和云硬盘异常属于常见问题。用户说 “看某个虚拟机异常原因”、
 “查 server/instance 状态异常”、“云硬盘挂载失败”、“volume 创建失败” 或
 “磁盘状态异常” 时, 先按 [access.md](access.md) 进入环境并完成只读验证,
 再按本节选择日志优先的根因排查入口。
@@ -32,9 +32,9 @@ traceback / error message / UUID, 先查相关服务日志。资源状态查询�
 除非用户明确要求状态, 或日志线索已经指向需要补充 server/volume 上下文。
 允许先用 `kubectl get pods` 或 label 查询发现要读取日志的 pod。
 
-### Virtual Machine Issues 虚拟机问题
+### Virtual Machine Issues 云主机问题
 
-先确认用户提供的是虚拟机名称还是 UUID。根因排查时, 优先用 server UUID 或
+先确认用户提供的是云主机名称还是 UUID。根因排查时, 优先用 server UUID 或
 错误关键字查看 `nova-api`、`nova-conductor`、`nova-scheduler` 和相关
 `nova-compute` 当前 pod 日志; 当前日志缺失或不完整时再查 fluentd 历史日志。
 
@@ -88,8 +88,8 @@ kubectl exec -n openstack services/busybox -- bash -c 'source /openrc && opensta
 - `cinder-volume ... not sending heartbeat` 或 `Update driver status failed:
   (config name <backend>) is uninitialized` → 后端服务不健康或 driver 未初始化,
   会影响 scheduler 获取可用 capabilities。
-- `attachments` 指向某个 server → 同时按 Virtual Machine Issues 查询该虚拟机。
-- 卷后端、Ceph/RBD、容量或 pool 相关线索 → 同时参考 [ceph/index.md](ceph/index.md)
+- `attachments` 指向某个 server → 同时按 Virtual Machine Issues 查询该云主机。
+- 云硬盘后端、Ceph/RBD、容量或 pool 相关线索 → 同时参考 [ceph/index.md](ceph/index.md)
   和 [openstack/cinder.md](openstack/cinder.md)。
 - 挂载、卸载、extend、snapshot、backup 相关管理动作会改变环境状态; 未经用户明确授权,
   只能查询状态和日志。

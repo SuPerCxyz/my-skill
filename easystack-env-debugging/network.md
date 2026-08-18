@@ -12,7 +12,7 @@ EasyStack 环境中常见的网桥及其用途:
 | 网桥名称 | 典型用途 | 说明 |
 |----------|---------|------|
 | `br-mgmt` | 管理网 | 节点管理、OpenStack 内部 API 通信 |
-| `br-pub` | 公网/外部网络 | 外网流量、虚拟机浮动 IP |
+| `br-pub` | 公网/外部网络 | 外网流量、云主机浮动 IP |
 | `br-storage` | 存储后端网 | Ceph/RBD 后端存储流量 |
 | `br-storagepub` | 存储公网 | 存储对外通信 |
 | `br-vxlan` | VXLAN 隧道网 | Overlay 网络 |

@@ -27,6 +27,8 @@ Use this file as the ordered execution flow for media organization. Read the spe
 - 字幕、NFO、图片、txt、url 不参与资源数量判断，只作为附属文件处理
 - 如果路径下包含多个子文件夹 → 多资源，逐个处理
 - 每个子文件夹独立判断类型
+- 只扫描用户指定的 source root; 发现嵌套媒体库或多个候选 root 时, 不自动扩大到父目录
+- root 为空或没有主视频文件时, 停止并报告空结果, 不生成真实执行计划
 - 对所有路径执行 `realpath` 校验，避免 `../` 路径逃逸
 - 禁止处理系统根目录 `/`
 - 禁止处理用户 home 根目录
@@ -71,6 +73,10 @@ Use this file as the ordered execution flow for media organization. Read the spe
 3. 置信度高于阈值(≥80%)才自动选择
 4. 多个候选相似时必须生成候选预览，让用户确认
 5. 禁止在低置信度下直接改名
+6. API 返回空结果、鉴权失败或明确不可用时, 才允许按 `tmdb-api.md` 查询网页 fallback;
+   网页结果标记 `source=web` 和 `confidence`
+7. API 与网页候选冲突时停止自动选择并让用户确认; 两者均失败时标记 `guessed` /
+   `unknown`, 仅保留 dry-run
 
 **从 TMDB 获取以下信息:**
 

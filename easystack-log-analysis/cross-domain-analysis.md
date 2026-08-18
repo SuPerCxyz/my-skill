@@ -16,30 +16,30 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表提供"问题域 -
 
 | 优先级 | 日志路径 | 看什么 |
 |--------|---------|--------|
-| **必看·主日志** | `openstack/nova/nova-compute.*.log` | 生命周期事件、init_host、hard_reboot、power_on、卷连接 |
+| **必看·主日志** | `openstack/nova/nova-compute.*.log` | 生命周期事件、init_host、hard_reboot、power_on、云硬盘连接 |
 | **必看·虚拟化** | `libvirt/libvirt.*.log` | domain define/start/destroy、agent、xml 错误 |
 | **必看·虚拟化** | `libvirt/qemu.instance-<HEX>.*.log` | qemu 启动失败、设备初始化错误、BIOS/UEFI |
 | **必看·系统层** | `os/messages.*.log` | 内核 OOM、softlockup、PCI/磁盘/网卡错误、kubelet / containerd 状态 |
 | **必看·网络** | `os/openvswitch/ovs-vswitchd.*.log`、`ovn-controller.*.log` | 端口绑定、tap/vnet 接口、流表下发 |
-| **必看·块存储** | `openstack/cinder/cinder-volume.*.log` | 卷状态变化、initialize_connection |
+| **必看·块存储** | `openstack/cinder/cinder-volume.*.log` | 云硬盘状态变化、initialize_connection |
 | **强相关** | `openstack/neutron/proton-server.*.log` | 端口创建/激活、IP 分配、安全组 |
 | **强相关** | `openstack/glance/glance-api.*.log` | 镜像下载 / 拷贝失败 |
 | **强相关** | `openstack/nova/nova-conductor.*.log` | DB 操作 / scheduler 决策回放 |
 | **强相关** | `openstack/nova/nova-scheduler.*.log` | 选主机失败、过滤器拒绝 |
-| **强相关·iSCSI 卷** | `alcubierre/alcubierre-node.*.log` | iSCSI 登录 / 多路径状态 |
-| **强相关·Ceph 卷** | `ceph/host.ceph-osd.*.log` + `ceph/host.ceph.*.log` | RBD I/O 慢 / OSD down |
+| **强相关·iSCSI 云硬盘** | `alcubierre/alcubierre-node.*.log` | iSCSI 登录 / 多路径状态 |
+| **强相关·Ceph 云硬盘** | `ceph/host.ceph-osd.*.log` + `ceph/host.ceph.*.log` | RBD I/O 慢 / OSD down |
 | **兜底·基础设施** | `openstack/mariadb/mariadb.*.log`、`openstack/rabbitmq/rabbitmq.*.log` | Galera 不可用 / AMQP 断连导致 RPC 失败 |
 | **兜底·K8s** | `kubernetes/kube-apiserver.*.log` | pod 状态变化(nova-compute pod 是否被驱逐) |
 
 ### 云主机生命周期典型陷阱
 
-- 只看 `nova-compute.*.log` 会漏掉**虚拟机网卡 vnet 没成功创建** —— 必须看 `ovs-vswitchd` 是否 add port 成功。
+- 只看 `nova-compute.*.log` 会漏掉**云主机网卡 vnet 没成功创建** —— 必须看 `ovs-vswitchd` 是否 add port 成功。
 - 只看 OpenStack 日志会漏掉**节点 OOM 杀死 qemu 进程** —— 必须看 `os/messages.*.log` 的 oom-kill 段。
-- 实例迁移失败可能源于**两端 libvirt 版本/能力不一致**或**TLS 失败**，必须看两个节点的 `libvirt.*.log`。
+- 云主机迁移失败可能源于**两端 libvirt 版本/能力不一致**或**TLS 失败**，必须看两个节点的 `libvirt.*.log`。
 
 ---
 
-## 2. 云盘挂载 / 卸载问题
+## 2. 云硬盘挂载 / 卸载问题
 
 涉及 **nova + cinder + 后端驱动(iSCSI/RBD/SAN)+ 内核 SCSI/multipath**。
 
@@ -52,16 +52,16 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表提供"问题域 -
 | **必看·iSCSI** | `alcubierre/alcubierre-node.*.log` | iSCSI 登录 / WWID / 多路径成员 |
 | **强相关·后端** | `openstack/cinder/cinder-api.*.log`、`cinder-scheduler.*.log` | API 拒绝、调度失败 |
 | **强相关·RBD** | `ceph/host.ceph-osd.*.log`、`kubernetes/csi-rbdplugin.*.log` | RBD I/O 异常、CSI 挂载 |
-| **强相关·etcd 锁** | `libvirt/etcdlock-manager.*.log`、`libvirt/etcd-client.*.log` | 共享卷 PR-key 锁冲突 |
+| **强相关·etcd 锁** | `libvirt/etcdlock-manager.*.log`、`libvirt/etcd-client.*.log` | 共享云硬盘 PR-key 锁冲突 |
 | **兜底·DB** | `openstack/mariadb/mariadb.*.log` | BDM 表读写失败 |
 
-### 云盘挂载/卸载典型陷阱
+### 云硬盘挂载/卸载典型陷阱
 
-- 卷卸载后"幽灵设备":cinder 已 detach 成功，但内核多路径还残留 `dm-X` —— 必须看
+- 云硬盘卸载后"幽灵设备":cinder 已 detach 成功，但内核多路径还残留 `dm-X` —— 必须看
   `os/messages.*.log` 中的 `multipath` 行和 `iscsi: session.*recovery`。
-- 卷挂载到错的 LUN:看 `nova-compute` 的 `Connecting to multipath volume`，对比
+- 云硬盘挂载到错的 LUN:看 `nova-compute` 的 `Connecting to multipath volume`，对比
   `target_iqns` 和 `target_portals` 是否指向了已下线的节点。
-- 共享卷(多挂载点)异常:`etcdlock-manager.*.log` 会显示锁竞争失败。
+- 共享云硬盘(多挂载点)异常:`etcdlock-manager.*.log` 会显示锁竞争失败。
 - BDM 与 cinder attachment 不一致:经典 `VolumeDeviceNotFound`，见
   [troubleshooting.md](troubleshooting.md) Scenario 1。
 
@@ -78,19 +78,19 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表提供"问题域 -
 | **必看·数据面** | `os/openvswitch/ovs-vswitchd.*.log` | 端口 add/del、bridge 状态、流表错误 |
 | **必看·系统层** | `os/messages.*.log` | NIC 链路 up/down、bonding 状态、carrier、IRQ |
 | **必看·OVN DB** | `os/openvswitch/ovn-ovsdb-{nb,sb}.*.log` | NB/SB DB 选主、Raft 集群异常 |
-| **强相关·元数据** | `openstack/neutron/proton-ovn-metadata-agent.*.log` | VM cloud-init / 元数据访问失败 |
+| **强相关·元数据** | `openstack/neutron/proton-ovn-metadata-agent.*.log` | 云主机 cloud-init / 元数据访问失败 |
 | **强相关·L2GW** | `openstack/neutron/proton-ovn-l2gw-agent.*.log` | L2 网关接入 |
 | **强相关·API 网关** | `cloud-products/apisix/apisix.*.log` | 公网入口 / 反向代理失败 |
-| **强相关·DNS** | `kubernetes/coredns.*.log` | 服务发现 / VM 内部 DNS |
+| **强相关·DNS** | `kubernetes/coredns.*.log` | 服务发现 / 云主机内部 DNS |
 | **兜底·VIP** | `openstack/keepalived/keepalived.*.log` | 控制面 VIP 漂移导致 API 间歇不通 |
 
 ### 网络问题典型陷阱
 
-- VM ping 不通但 `proton-server` 显示 port `ACTIVE`:必看 `ovs-vswitchd` 是否实际 add 了 vnet，
+- 云主机 ping 不通但 `proton-server` 显示 port `ACTIVE`:必看 `ovs-vswitchd` 是否实际 add 了 vnet，
   以及 `ovn-controller` 是否下发了流表。
 - 浮动 IP 挂上但访问不通:先看 `ovn-northd` 和 `nb` DB 是否有对应 NAT 规则，再看
   网关节点的 `ovn-controller`。
-- VM 内 cloud-init 失败:往往是 `metadata-agent` 不可达，或 metadata 169.254.169.254 路由问题。
+- 云主机内 cloud-init 失败:往往是 `metadata-agent` 不可达，或 metadata 169.254.169.254 路由问题。
 
 ---
 
@@ -101,7 +101,7 @@ EasyStack OpenStack 故障经常跨越多个服务层。下表提供"问题域 -
 | **必看·主日志** | `openstack/glance/glance-api.*.log` | 上传、下载、转换、checksum |
 | **必看·后端** | `ceph/host.ceph.*.log`、`ceph/host.ceph-osd.*.log` | RBD 池写入失败、配额 |
 | **强相关·消费方** | `openstack/nova/nova-compute.*.log` | `_create_image` / `_get_image` 流程、镜像缓存目录 |
-| **强相关·消费方** | `openstack/cinder/cinder-volume.*.log` | 从镜像创建卷 / image cache |
+| **强相关·消费方** | `openstack/cinder/cinder-volume.*.log` | 从镜像创建云硬盘 / image cache |
 | **强相关·系统层** | `os/messages.*.log` | `/var/lib/nova/instances` 所在盘 I/O 错误 / 容量满 |
 | **兜底·权限** | `openstack/keystone/keystone-api.*.log` | 镜像 ACL / project 权限 |
 

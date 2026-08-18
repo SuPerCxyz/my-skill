@@ -2,8 +2,8 @@
 
 EasyStack 云平台 Web UI 端到端自动化测试 Skill。基于 `agent-browser` 提供可复用的
 原子操作、页面知识库和测试编排规范, 支持云主机、云硬盘、网络等核心资源的 UI
-操作自动化。UI 失败需要 backend 根因证据时联合 `easystack-env-debugging`; 离线
-eslog 分析和代码仓库 CI 使用各自专用 skill。
+操作自动化。UI 失败需要 backend 根因证据时, 可将独立获取的 backend 证据作为补充;
+离线 eslog 分析和代码仓库 CI 也属于可选的独立工作流, 不影响本 skill 的前端测试执行。
 
 ## 概述
 
@@ -103,7 +103,8 @@ agent-browser --args '--no-sandbox' --ignore-https-errors open "$PLATFORM_URL/au
 - 多步骤页面动作合并到单次 `agent-browser eval --stdin` 或 `agent-browser batch`。
 - 不逐步依赖 snapshot 驱动操作;snapshot 只用于必要诊断。
 - 每个测试用例必须创建新的测试资源,不复用历史资源。
-- 资源创建提交后未确认成功时记为 `creation_unconfirmed`。
+- 资源创建提交后先回读页面和后台状态; 仍未确认时最多使用新 run id 重试 1 次, 第二次
+  仍未确认则记为 `creation_unconfirmed` 并停止创建, 不自动清理。
 - 清理资源前必须先向用户说明待清理清单,得到确认后才执行。
 
 ### 资源命名
