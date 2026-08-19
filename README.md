@@ -12,6 +12,7 @@
 | [easystack-env-debugging](easystack-env-debugging/) | EasyStack 实时环境排查、授权调试和 Alcubierre 批量解挂, 支持普通跳板与 JumpServer 访问 |
 | [easystack-log-analysis](easystack-log-analysis/) | EasyStack `.eslog` 安全解压、跨服务跨节点根因定位, 与 env-debugging 使用相同的行首安全、无表格报告格式 |
 | [easystack-test-executor](easystack-test-executor/) | EasyStack OpenStack Compute、Storage、Network、Image、Security、Bare Metal 影响分析, 基于 immutable contract 的确定性执行器、worker 日志证据和中文 Markdown 报告 |
+| [feature-parity](feature-parity/) | 参考项目功能对齐与复刻 - 证据驱动的行为分解、parity matrix 追踪、实现门禁与差分验证, 将参考项目视为可执行行为规范复现到目标项目 |
 | [git-delivery](git-delivery/) | 个人 Git 项目和公司 Gerrit 项目的统一代码提交与交付, 自动识别项目类型, 执行通用门禁, 区分授权边界, 生成规范提交信息并按授权执行 commit / amend / git review / push |
 | [media-library-organizer](media-library-organizer/) | 媒体库 TMDB 刮削、重命名、NFO 和图片整理, 默认 dry-run 并为全部本次修改生成回滚计划 |
 | [windows-mcp-operation](windows-mcp-operation/) | 通过 windows-mcp 操作真实 Windows 桌面和系统工具, 浏览器页面操作交由 agent-browser |
