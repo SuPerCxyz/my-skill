@@ -1,0 +1,4 @@
+# Runtime state belongs to the caller project root. These patterns only protect
+# legacy or accidentally misplaced local state inside the skill directory.
+kvm-test-vm-ops/environment.local.yaml
+kvm-test-vm-ops/vm-inventory.local.yaml
