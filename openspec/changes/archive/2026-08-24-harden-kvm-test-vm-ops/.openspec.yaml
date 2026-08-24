@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-24
+goal: Make the KVM test VM skill safe, deterministic, architecture-driven, and
+  efficient for weaker models

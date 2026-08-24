@@ -14,6 +14,7 @@
 | [easystack-test-executor](easystack-test-executor/) | EasyStack OpenStack Compute、Storage、Network、Image、Security、Bare Metal 影响分析, 基于 immutable contract 的确定性执行器、worker 日志证据和中文 Markdown 报告 |
 | [feature-parity](feature-parity/) | 参考项目功能对齐与复刻 - 证据驱动的行为分解、parity matrix 追踪、实现门禁与差分验证, 将参考项目视为可执行行为规范复现到目标项目 |
 | [git-delivery](git-delivery/) | 个人 Git 项目和公司 Gerrit 项目的统一代码提交与交付, 自动识别项目类型, 执行通用门禁, 区分授权边界, 生成规范提交信息并按授权执行 commit / amend / git review / push |
+| [kvm-test-vm-ops](kvm-test-vm-ops/) | 项目级 KVM/libvirt 测试 VM 复用、创建、调整和验证, 按 VM 计划执行资源与磁盘操作, IPv4 首选、IPv6 保底, 验证 QGA 和 SSH 就绪状态 |
 | [media-library-organizer](media-library-organizer/) | 媒体库 TMDB 刮削、重命名、NFO 和图片整理, 默认 dry-run 并为全部本次修改生成回滚计划 |
 | [windows-mcp-operation](windows-mcp-operation/) | 通过 windows-mcp 操作真实 Windows 桌面和系统工具, 浏览器页面操作交由 agent-browser |
 

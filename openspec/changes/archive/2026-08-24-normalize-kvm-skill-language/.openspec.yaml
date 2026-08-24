@@ -1,0 +1,5 @@
+schema: spec-driven
+skip_specs: true
+created: 2026-08-24
+goal: Make the skill concise, consistent, and easier to follow while preserving
+  validated commands and contracts

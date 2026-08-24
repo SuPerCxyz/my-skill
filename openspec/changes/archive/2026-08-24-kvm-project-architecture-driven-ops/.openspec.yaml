@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-24
+goal: Create only the VMs required by each project architecture and reduce
+  command guessing during KVM operations

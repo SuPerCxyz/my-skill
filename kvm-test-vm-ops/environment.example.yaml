@@ -1,0 +1,40 @@
+project:
+  id: null
+  root: null
+  git_revision: null
+  architecture_fingerprint: null
+  verified_at: null
+
+node:
+  ssh_alias: null
+  ssh_user: null
+  libvirt_uri: qemu:///system
+
+guest_access:
+  username: null
+  auth_mode: ssh-key
+  private_key: null
+  password_env: KVM_GUEST_PASSWORD
+  strict_host_key_checking: accept-new
+
+defaults:
+  target_virtual_size: 20G
+  default_vcpus: 2
+  default_memory: 1G
+  memory_step: 512M
+  memory_max: 4G
+
+policy:
+  preserve_on_failure: true
+  auto_cleanup: false
+  allow_template_mutation: false
+  ipv4_wait_seconds: 180
+  allow_ipv6_fallback: true
+  shutdown_wait_seconds: 120
+
+state_files:
+  root: project-root
+  environment: project-root/environment.local.yaml
+  vm_inventory: project-root/vm-inventory.local.yaml
+  prefer_compatible_records: true
+  refresh_volatile_before_mutation: true
